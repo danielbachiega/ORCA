@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "b4NLexFHzgFT3dyT1A3FkgUc7dkwSh9mMoJjhQhvznI+svz52tZQKl+Q1lMFONI7TpFaWJK/Dnheaq5VJyoPYw==",
+  "success": true,
+  "projectFilePath": "/home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Api/Orca.Orchestrator.Api.csproj",
+  "expectedPackageFiles": [
+    "/home/danielbachiega/.nuget/packages/microsoft.aspnetcore.openapi/8.0.22/microsoft.aspnetcore.openapi.8.0.22.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/microsoft.openapi/1.6.14/microsoft.openapi.1.6.14.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/swashbuckle.aspnetcore/6.6.2/swashbuckle.aspnetcore.6.6.2.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/swashbuckle.aspnetcore.swagger/6.6.2/swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/swashbuckle.aspnetcore.swaggergen/6.6.2/swashbuckle.aspnetcore.swaggergen.6.6.2.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/swashbuckle.aspnetcore.swaggerui/6.6.2/swashbuckle.aspnetcore.swaggerui.6.6.2.nupkg.sha512"
+  ],
+  "logs": []
+}

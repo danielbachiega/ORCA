@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Orca.Forms", "Orca.Forms", "{16B7C430-8391-43C9-A454-BA399909E71B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Forms.Api", "Orca.Forms\Orca.Forms.Api\Orca.Forms.Api.csproj", "{15CB43F0-4F30-45DE-A603-CE1C5045BE71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Forms.Application", "Orca.Forms\Orca.Forms.Application\Orca.Forms.Application.csproj", "{10D2AA07-C420-425C-B201-436861467803}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Forms.Domain", "Orca.Forms\Orca.Forms.Domain\Orca.Forms.Domain.csproj", "{71117E7C-4B99-4E1B-BA2C-C8E60EF47300}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Forms.Infrastructure", "Orca.Forms\Orca.Forms.Infrastructure\Orca.Forms.Infrastructure.csproj", "{6B3F9D47-83C3-4894-9CBF-F4F813FC3C0E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15CB43F0-4F30-45DE-A603-CE1C5045BE71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15CB43F0-4F30-45DE-A603-CE1C5045BE71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15CB43F0-4F30-45DE-A603-CE1C5045BE71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15CB43F0-4F30-45DE-A603-CE1C5045BE71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10D2AA07-C420-425C-B201-436861467803}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10D2AA07-C420-425C-B201-436861467803}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10D2AA07-C420-425C-B201-436861467803}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10D2AA07-C420-425C-B201-436861467803}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71117E7C-4B99-4E1B-BA2C-C8E60EF47300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71117E7C-4B99-4E1B-BA2C-C8E60EF47300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71117E7C-4B99-4E1B-BA2C-C8E60EF47300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71117E7C-4B99-4E1B-BA2C-C8E60EF47300}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B3F9D47-83C3-4894-9CBF-F4F813FC3C0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B3F9D47-83C3-4894-9CBF-F4F813FC3C0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B3F9D47-83C3-4894-9CBF-F4F813FC3C0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B3F9D47-83C3-4894-9CBF-F4F813FC3C0E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{15CB43F0-4F30-45DE-A603-CE1C5045BE71} = {16B7C430-8391-43C9-A454-BA399909E71B}
+		{10D2AA07-C420-425C-B201-436861467803} = {16B7C430-8391-43C9-A454-BA399909E71B}
+		{71117E7C-4B99-4E1B-BA2C-C8E60EF47300} = {16B7C430-8391-43C9-A454-BA399909E71B}
+		{6B3F9D47-83C3-4894-9CBF-F4F813FC3C0E} = {16B7C430-8391-43C9-A454-BA399909E71B}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Orca.Orchestrator", "Orca.Orchestrator", "{04B33D66-74A3-49CA-B823-7538885781D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Orchestrator.Api", "Orca.Orchestrator\Orca.Orchestrator.Api\Orca.Orchestrator.Api.csproj", "{288B954C-E1C7-411B-895E-8CCC9E1090C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Orchestrator.Application", "Orca.Orchestrator\Orca.Orchestrator.Application\Orca.Orchestrator.Application.csproj", "{046D27C5-179F-4D2B-8605-ABE07E92D100}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Orchestrator.Domain", "Orca.Orchestrator\Orca.Orchestrator.Domain\Orca.Orchestrator.Domain.csproj", "{73846E01-2EFF-4764-ACD3-90AE479E87FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Orchestrator.Infrastructure", "Orca.Orchestrator\Orca.Orchestrator.Infrastructure\Orca.Orchestrator.Infrastructure.csproj", "{88B1579D-E1B7-4BD8-BC9B-ED58BA5F9B5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{288B954C-E1C7-411B-895E-8CCC9E1090C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{288B954C-E1C7-411B-895E-8CCC9E1090C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{288B954C-E1C7-411B-895E-8CCC9E1090C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{288B954C-E1C7-411B-895E-8CCC9E1090C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{046D27C5-179F-4D2B-8605-ABE07E92D100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{046D27C5-179F-4D2B-8605-ABE07E92D100}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{046D27C5-179F-4D2B-8605-ABE07E92D100}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{046D27C5-179F-4D2B-8605-ABE07E92D100}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73846E01-2EFF-4764-ACD3-90AE479E87FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73846E01-2EFF-4764-ACD3-90AE479E87FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73846E01-2EFF-4764-ACD3-90AE479E87FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73846E01-2EFF-4764-ACD3-90AE479E87FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88B1579D-E1B7-4BD8-BC9B-ED58BA5F9B5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88B1579D-E1B7-4BD8-BC9B-ED58BA5F9B5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88B1579D-E1B7-4BD8-BC9B-ED58BA5F9B5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88B1579D-E1B7-4BD8-BC9B-ED58BA5F9B5B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{288B954C-E1C7-411B-895E-8CCC9E1090C5} = {04B33D66-74A3-49CA-B823-7538885781D0}
+		{046D27C5-179F-4D2B-8605-ABE07E92D100} = {04B33D66-74A3-49CA-B823-7538885781D0}
+		{73846E01-2EFF-4764-ACD3-90AE479E87FA} = {04B33D66-74A3-49CA-B823-7538885781D0}
+		{88B1579D-E1B7-4BD8-BC9B-ED58BA5F9B5B} = {04B33D66-74A3-49CA-B823-7538885781D0}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,12 @@
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/bin/Debug/net8.0/Orca.Forms.Infrastructure.deps.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/bin/Debug/net8.0/Orca.Forms.Infrastructure.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/bin/Debug/net8.0/Orca.Forms.Infrastructure.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/Orca.Forms.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/Orca.Forms.Infrastructure.AssemblyInfoInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/Orca.Forms.Infrastructure.AssemblyInfo.cs
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/Orca.Forms.Infrastructure.csproj.CoreCompileInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/Orca.Forms.Infrastructure.sourcelink.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/Orca.Forms.Infrastructure.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/refint/Orca.Forms.Infrastructure.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/Orca.Forms.Infrastructure.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Infrastructure/obj/Debug/net8.0/ref/Orca.Forms.Infrastructure.dll

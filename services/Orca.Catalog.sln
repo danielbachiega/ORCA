@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Orca.Catalog", "Orca.Catalog", "{03DE3D8F-4A22-4B9D-A59B-4027F8DFF694}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Catalog.Api", "Orca.Catalog\Orca.Catalog.Api\Orca.Catalog.Api.csproj", "{2B22B490-9F95-48D8-9CCB-B5D187FCD2D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Catalog.Application", "Orca.Catalog\Orca.Catalog.Application\Orca.Catalog.Application.csproj", "{18EA5A92-36C8-466C-A452-300CAB534C08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Catalog.Domain", "Orca.Catalog\Orca.Catalog.Domain\Orca.Catalog.Domain.csproj", "{1D1117A5-4330-4B60-AB0C-E6B34DDAFD84}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca.Catalog.Infrastructure", "Orca.Catalog\Orca.Catalog.Infrastructure\Orca.Catalog.Infrastructure.csproj", "{962B7BF1-5DED-4F5F-ABB1-5563202CBC82}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2B22B490-9F95-48D8-9CCB-B5D187FCD2D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B22B490-9F95-48D8-9CCB-B5D187FCD2D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B22B490-9F95-48D8-9CCB-B5D187FCD2D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B22B490-9F95-48D8-9CCB-B5D187FCD2D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18EA5A92-36C8-466C-A452-300CAB534C08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18EA5A92-36C8-466C-A452-300CAB534C08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18EA5A92-36C8-466C-A452-300CAB534C08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18EA5A92-36C8-466C-A452-300CAB534C08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D1117A5-4330-4B60-AB0C-E6B34DDAFD84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D1117A5-4330-4B60-AB0C-E6B34DDAFD84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D1117A5-4330-4B60-AB0C-E6B34DDAFD84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D1117A5-4330-4B60-AB0C-E6B34DDAFD84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{962B7BF1-5DED-4F5F-ABB1-5563202CBC82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{962B7BF1-5DED-4F5F-ABB1-5563202CBC82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{962B7BF1-5DED-4F5F-ABB1-5563202CBC82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{962B7BF1-5DED-4F5F-ABB1-5563202CBC82}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2B22B490-9F95-48D8-9CCB-B5D187FCD2D6} = {03DE3D8F-4A22-4B9D-A59B-4027F8DFF694}
+		{18EA5A92-36C8-466C-A452-300CAB534C08} = {03DE3D8F-4A22-4B9D-A59B-4027F8DFF694}
+		{1D1117A5-4330-4B60-AB0C-E6B34DDAFD84} = {03DE3D8F-4A22-4B9D-A59B-4027F8DFF694}
+		{962B7BF1-5DED-4F5F-ABB1-5563202CBC82} = {03DE3D8F-4A22-4B9D-A59B-4027F8DFF694}
+	EndGlobalSection
+EndGlobal

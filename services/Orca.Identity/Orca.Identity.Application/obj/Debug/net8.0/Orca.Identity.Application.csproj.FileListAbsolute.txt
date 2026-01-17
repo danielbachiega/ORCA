@@ -1,0 +1,12 @@
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/bin/Debug/net8.0/Orca.Identity.Application.deps.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/bin/Debug/net8.0/Orca.Identity.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/bin/Debug/net8.0/Orca.Identity.Application.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.GeneratedMSBuildEditorConfig.editorconfig
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.AssemblyInfoInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.AssemblyInfo.cs
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.csproj.CoreCompileInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.sourcelink.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/refint/Orca.Identity.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/ref/Orca.Identity.Application.dll

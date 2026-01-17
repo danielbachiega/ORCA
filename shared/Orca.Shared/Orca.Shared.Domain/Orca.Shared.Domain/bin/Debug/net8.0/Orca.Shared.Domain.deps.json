@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "Orca.Shared.Domain/1.0.0": {
+        "runtime": {
+          "Orca.Shared.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Orca.Shared.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

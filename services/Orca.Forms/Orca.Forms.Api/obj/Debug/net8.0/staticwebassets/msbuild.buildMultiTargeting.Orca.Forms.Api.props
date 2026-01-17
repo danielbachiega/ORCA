@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/Orca.Forms.Api.props" />
+</Project>

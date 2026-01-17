@@ -1,0 +1,12 @@
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/bin/Debug/net8.0/Orca.Shared.Domain.deps.json
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/bin/Debug/net8.0/Orca.Shared.Domain.dll
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/bin/Debug/net8.0/Orca.Shared.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/Orca.Shared.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/Orca.Shared.Domain.AssemblyInfoInputs.cache
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/Orca.Shared.Domain.AssemblyInfo.cs
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/Orca.Shared.Domain.csproj.CoreCompileInputs.cache
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/Orca.Shared.Domain.sourcelink.json
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/Orca.Shared.Domain.dll
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/refint/Orca.Shared.Domain.dll
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/Orca.Shared.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/obj/Debug/net8.0/ref/Orca.Shared.Domain.dll

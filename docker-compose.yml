@@ -1,0 +1,169 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: orca-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orca
+      POSTGRES_PASSWORD: orca123
+      POSTGRES_DB: orca
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orca"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: orca-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: orca-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Microservices
+  catalog-api:
+    build:
+      context: .
+      dockerfile: services/Orca.Catalog/Orca.Catalog.Api/Dockerfile
+    container_name: orca-catalog-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5001
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_catalog
+      RabbitMq__Host: rabbitmq
+      Redis__ConnectionString: redis:6379
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - orca-network
+
+  identity-api:
+    build:
+      context: .
+      dockerfile: services/Orca.Identity/Orca.Identity.Api/Dockerfile
+    container_name: orca-identity-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5002
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_identity
+      RabbitMq__Host: rabbitmq
+      Ldap__Host: ${LDAP_HOST:-localhost}
+      Ldap__Port: ${LDAP_PORT:-389}
+      Ldap__BaseDn: ${LDAP_BASE_DN:-dc=example,dc=com}
+    ports:
+      - "5002:5002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orca-network
+
+  forms-api:
+    build:
+      context: .
+      dockerfile: services/Orca.Forms/Orca.Forms.Api/Dockerfile
+    container_name: orca-forms-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5003
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_forms
+      RabbitMq__Host: rabbitmq
+    ports:
+      - "5003:5003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orca-network
+
+  requests-api:
+    build:
+      context: .
+      dockerfile: services/Orca.Requests/Orca.Requests.Api/Dockerfile
+    container_name: orca-requests-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5004
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_requests
+      RabbitMq__Host: rabbitmq
+    ports:
+      - "5004:5004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orca-network
+
+  orchestrator-api:
+    build:
+      context: .
+      dockerfile: services/Orca.Orchestrator/Orca.Orchestrator.Api/Dockerfile
+    container_name: orca-orchestrator-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5005
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_orchestrator
+      RabbitMq__Host: rabbitmq
+      AwxHost: ${AWX_HOST:-https://awx.example.com}
+    ports:
+      - "5005:5005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orca-network
+
+volumes:
+  pgdata:
+  rabbitmqdata:
+
+networks:
+  orca-network:
+    driver: bridge

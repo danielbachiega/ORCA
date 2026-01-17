@@ -1,0 +1,6 @@
+@Orca.Identity.Api_HostAddress = http://localhost:5125
+
+GET {{Orca.Identity.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
