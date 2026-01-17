@@ -1,4 +1,5 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/bin/Debug/net8.0/Orca.Catalog.Infrastructure.deps.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/bin/Debug/net8.0/Orca.Catalog.Infrastructure.runtimeconfig.json
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/bin/Debug/net8.0/Orca.Catalog.Infrastructure.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/bin/Debug/net8.0/Orca.Catalog.Infrastructure.pdb
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/bin/Debug/net8.0/Orca.Catalog.Application.dll
@@ -15,4 +16,5 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/obj/Debug/net8.0/Orca.Catalog.Infrastructure.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/obj/Debug/net8.0/refint/Orca.Catalog.Infrastructure.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/obj/Debug/net8.0/Orca.Catalog.Infrastructure.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/obj/Debug/net8.0/Orca.Catalog.Infrastructure.genruntimeconfig.cache
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/obj/Debug/net8.0/ref/Orca.Catalog.Infrastructure.dll
