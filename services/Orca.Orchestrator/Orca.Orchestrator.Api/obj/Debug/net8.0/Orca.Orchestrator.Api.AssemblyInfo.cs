@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Orca.Orchestrator.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0123ca0b4b6dc07ce354c84838a895980c192e95")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+173338eaf471c8c3b0fe9ed652da56577ceb35d3")]
 [assembly: System.Reflection.AssemblyProductAttribute("Orca.Orchestrator.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Orca.Orchestrator.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

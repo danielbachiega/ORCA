@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Orca.Catalog.Infrastructure.Repositories;
 
 namespace Orca.Catalog.Infrastructure.Extensions;
 
@@ -7,7 +8,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCatalogInfrastructure(this IServiceCollection services, IConfiguration config)
     {
-        //Adicionar ef core,repos,cache, etc
+        // Registrar Repositories
+        services.AddScoped<IOfferRepository, OfferRepository>();
         return services;
     }
 }
