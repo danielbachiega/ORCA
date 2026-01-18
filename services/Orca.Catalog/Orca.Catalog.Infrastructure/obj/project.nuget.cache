@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "KiOXNI2OiGTmG1LMKwharcc667/wdDXJZKp6DrmcrOVBNNe917mS67KTwi2+JfctyMOatwUAImM4cJ7/QKzXQg==",
+  "dgSpecHash": "cUD4MSrTUbNaZn0/wPkfhqfRz51Vz4g5JlLCOK/b748Qa7KlRK7WaFHofwF/3Ab0jk8H9kSV7zoo/rjvBZ+BTQ==",
   "success": true,
   "projectFilePath": "/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Infrastructure/Orca.Catalog.Infrastructure.csproj",
   "expectedPackageFiles": [
+    "/home/danielbachiega/.nuget/packages/fluentvalidation/12.1.1/fluentvalidation.12.1.1.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/microsoft.bcl.asyncinterfaces/6.0.0/microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/microsoft.codeanalysis.analyzers/3.3.3/microsoft.codeanalysis.analyzers.3.3.3.nupkg.sha512",
