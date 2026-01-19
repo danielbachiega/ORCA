@@ -134,6 +134,12 @@ export function OffersPage() {
           <p className="text-gray-500 dark:text-gray-400 text-sm">Catálogo de ofertas disponíveis</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/admin/offers/new')}
+            className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+          >
+            Nova Oferta
+          </button>
           {isRefetching && <span className="text-sm text-gray-400">Atualizando...</span>}
           <button
             onClick={() => refetch()}

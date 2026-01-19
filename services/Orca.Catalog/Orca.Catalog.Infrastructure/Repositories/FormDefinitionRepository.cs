@@ -21,17 +21,18 @@ namespace Orca.Catalog.Infrastructure.Repositories
 
         public async Task<IEnumerable<FormDefinition>> GetAllAsync()
         {
-            return await _context.FormDefinitions.OrderByDescending(fd => fd.CreatedAtUtc).ToListAsync();
+            return await _context.FormDefinitions.AsNoTracking().OrderByDescending(fd => fd.CreatedAtUtc).ToListAsync();
         }
 
         public async Task<FormDefinition?> GetByIdAsync(Guid id)
         {
-            return await _context.FormDefinitions.FirstOrDefaultAsync(fd => fd.Id == id);
+            return await _context.FormDefinitions.AsNoTracking().FirstOrDefaultAsync(fd => fd.Id == id);
         }
 
         public async Task<IEnumerable<FormDefinition>> GetByOfferIdAsync(Guid offerId)
         {
             return await _context.FormDefinitions
+                .AsNoTracking()
                 .Where(fd => fd.OfferId == offerId)
                 .OrderByDescending(fd => fd.Version)
                 .ToListAsync();
@@ -52,13 +53,35 @@ namespace Orca.Catalog.Infrastructure.Repositories
             if (formDefinition == null)
                 throw new ArgumentNullException(nameof(formDefinition));
 
-            var existing = await GetByIdAsync(formDefinition.Id);
+            var existing = await _context.FormDefinitions.AsNoTracking().FirstOrDefaultAsync(fd => fd.Id == formDefinition.Id);
             if (existing == null)
                 throw new InvalidOperationException($"FormDefinition com ID {formDefinition.Id} não encontrado");
 
+            _context.ChangeTracker.Clear();
             _context.FormDefinitions.Update(formDefinition);
             await _context.SaveChangesAsync();
             return formDefinition;
+        }
+
+        public async Task PublishAsync(Guid formDefinitionId)
+        {
+            var formToPublish = await GetByIdAsync(formDefinitionId);
+            if (formToPublish == null)
+                throw new InvalidOperationException($"FormDefinition com ID {formDefinitionId} não encontrado");
+
+            // Desativar versão publicada anterior da mesma oferta (se houver)
+            var previousPublished = await _context.FormDefinitions
+                .FirstOrDefaultAsync(fd => fd.OfferId == formToPublish.OfferId && fd.IsPublished && fd.Id != formDefinitionId);
+
+            if (previousPublished != null)
+            {
+                previousPublished.IsPublished = false;
+                _context.FormDefinitions.Update(previousPublished);
+            }
+
+            formToPublish.IsPublished = true;
+            _context.FormDefinitions.Update(formToPublish);
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid id)

@@ -243,6 +243,7 @@ pnpm dev  # ou npm run dev
 - Form builder (JSON Schema + regras)
 - Execução via **AWX**
 - Histórico (requests + runs) com status
+- Upload de imagem da oferta (substituir URL por upload persistido no banco)
 
 **Evolução**
 - Integração **OO**

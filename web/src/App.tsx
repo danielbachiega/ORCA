@@ -3,6 +3,9 @@ import { OffersPage } from './pages/OffersPage';
 import { OfferDetailPage } from './pages/OfferDetailPage';
 import { ThemeProvider } from './context/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
+import { OfferCreatePage } from './pages/OfferCreatePage';
+import { OfferEditPage } from './pages/OfferEditPage';
+import { Toaster } from 'react-hot-toast';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -29,12 +32,29 @@ function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
+        <Toaster position="top-center" />
         <Routes>
           <Route
             path="/offers"
             element={
               <Layout>
                 <OffersPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/admin/offers/new"
+            element={
+              <Layout>
+                <OfferCreatePage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/admin/offers/:offerId/edit"
+            element={
+              <Layout>
+                <OfferEditPage />
               </Layout>
             }
           />

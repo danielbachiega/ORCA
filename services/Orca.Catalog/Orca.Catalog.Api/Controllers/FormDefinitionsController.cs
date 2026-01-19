@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Orca.Catalog.Domain.Entities;
 using Orca.Catalog.Domain.Repositories;
+using Orca.Catalog.Application.FormDefinitions;
 
 namespace Orca.Catalog.Api.Controllers;
 
@@ -52,13 +53,20 @@ public class FormDefinitionsController : ControllerBase
     /// Cria uma nova form definition
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<FormDefinition>> Create([FromBody] FormDefinition formDefinition)
+    public async Task<ActionResult<FormDefinition>> Create([FromBody] CreateFormDefinitionDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         try
         {
+            var formDefinition = new FormDefinition
+            {
+                OfferId = dto.OfferId,
+                Version = dto.Version,
+                JsonSchema = dto.JsonSchema,
+                UiSchema = dto.UiSchema,
+                Rules = dto.Rules,
+                IsPublished = dto.IsPublished
+            };
+
             var createdFormDefinition = await _repository.CreateAsync(formDefinition);
             return CreatedAtAction(nameof(GetById), new { id = createdFormDefinition.Id }, createdFormDefinition);
         }
@@ -72,16 +80,24 @@ public class FormDefinitionsController : ControllerBase
     /// Atualiza uma form definition existente
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<FormDefinition>> Update(Guid id, [FromBody] FormDefinition formDefinition)
+    public async Task<ActionResult<FormDefinition>> Update(Guid id, [FromBody] UpdateFormDefinitionDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        if (id != formDefinition.Id)
+        if (id != dto.Id)
             return BadRequest("ID da URL não corresponde ao ID do corpo");
 
         try
         {
+            var formDefinition = new FormDefinition
+            {
+                Id = dto.Id,
+                OfferId = dto.OfferId,
+                Version = dto.Version,
+                JsonSchema = dto.JsonSchema,
+                UiSchema = dto.UiSchema,
+                Rules = dto.Rules,
+                IsPublished = dto.IsPublished
+            };
+
             var updatedFormDefinition = await _repository.UpdateAsync(formDefinition);
             return Ok(updatedFormDefinition);
         }
@@ -101,6 +117,23 @@ public class FormDefinitionsController : ControllerBase
         {
             await _repository.DeleteAsync(id);
             return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Publica uma form definition (desativa a anterior)
+    /// </summary>
+    [HttpPost("{id}/publish")]
+    public async Task<IActionResult> Publish(Guid id)
+    {
+        try
+        {
+            await _repository.PublishAsync(id);
+            return Ok();
         }
         catch (InvalidOperationException ex)
         {

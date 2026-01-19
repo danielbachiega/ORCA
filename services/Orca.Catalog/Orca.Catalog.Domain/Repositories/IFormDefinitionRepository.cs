@@ -10,4 +10,5 @@ public interface IFormDefinitionRepository
     Task<FormDefinition> CreateAsync(FormDefinition formDefinition);
     Task<FormDefinition> UpdateAsync(FormDefinition formDefinition);
     Task DeleteAsync(Guid id);
+    Task PublishAsync(Guid formDefinitionId);
 }
