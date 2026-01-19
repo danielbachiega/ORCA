@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Orca.Catalog.Domain.Entities;
+using Orca.Catalog.Domain.Repositories;
 
 namespace Orca.Catalog.Infrastructure.Repositories;
 

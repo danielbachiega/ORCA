@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Orca.Catalog.Domain.Entities;
-using Orca.Catalog.Infrastructure.Repositories;
+using Orca.Catalog.Domain.Repositories;
 
 namespace Orca.Catalog.Api.Controllers;
 

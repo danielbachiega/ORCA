@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Orca.Shared.Contracts")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+173338eaf471c8c3b0fe9ed652da56577ceb35d3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d2f26f95a787a452b0331ebb432a1808e7ca73e0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Orca.Shared.Contracts")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Orca.Shared.Contracts")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

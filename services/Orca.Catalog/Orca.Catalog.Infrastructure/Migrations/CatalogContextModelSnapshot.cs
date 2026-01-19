@@ -22,6 +22,38 @@ namespace Orca.Catalog.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Orca.Catalog.Domain.Entities.FormDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("JsonSchema")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OfferId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Rules")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UiSchema")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfferId");
+
+                    b.ToTable("FormDefinitions");
+                });
+
             modelBuilder.Entity("Orca.Catalog.Domain.Entities.Offer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -108,6 +140,17 @@ namespace Orca.Catalog.Infrastructure.Migrations
                     b.HasIndex("OfferId");
 
                     b.ToTable("OfferVersions");
+                });
+
+            modelBuilder.Entity("Orca.Catalog.Domain.Entities.FormDefinition", b =>
+                {
+                    b.HasOne("Orca.Catalog.Domain.Entities.Offer", "Offer")
+                        .WithMany()
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Offer");
                 });
 
             modelBuilder.Entity("Orca.Catalog.Domain.Entities.OfferRole", b =>

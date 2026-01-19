@@ -14,6 +14,7 @@ public class CatalogContext : DbContext
     public DbSet<Offer> Offers => Set<Offer>();
     public DbSet<OfferVersion> OfferVersions => Set<OfferVersion>();
     public DbSet<OfferRole> OfferRoles => Set<OfferRole>();
+    public DbSet<FormDefinition> FormDefinitions => Set<FormDefinition>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -45,6 +46,16 @@ public class CatalogContext : DbContext
             .HasOne(or => or.Offer)
             .WithMany(o => o.VisibleToRoles)
             .HasForeignKey(or => or.OfferId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configuração de FormDefinition
+        builder.Entity<FormDefinition>()
+            .HasKey(fd => fd.Id);
+
+        builder.Entity<FormDefinition>()
+            .HasOne(fd => fd.Offer)
+            .WithMany()
+            .HasForeignKey(fd => fd.OfferId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

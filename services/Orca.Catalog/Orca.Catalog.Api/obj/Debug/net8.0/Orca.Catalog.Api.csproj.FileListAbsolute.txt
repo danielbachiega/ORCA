@@ -110,3 +110,6 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Api/obj/Debug/net8.0/Orca.Catalog.Api.pdb
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Api/obj/Debug/net8.0/Orca.Catalog.Api.genruntimeconfig.cache
 /home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Api/obj/Debug/net8.0/ref/Orca.Catalog.Api.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Api/bin/Debug/net8.0/FluentValidation.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Api/bin/Debug/net8.0/FluentValidation.AspNetCore.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Api/bin/Debug/net8.0/FluentValidation.DependencyInjectionExtensions.dll
