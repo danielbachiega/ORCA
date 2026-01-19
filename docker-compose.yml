@@ -160,6 +160,22 @@ services:
     networks:
       - orca-network
 
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: orca-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - catalog-api
+      - forms-api
+      - identity-api
+      - requests-api
+    networks:
+      - orca-network
+
 volumes:
   pgdata:
   rabbitmqdata:
