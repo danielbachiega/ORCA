@@ -1,19 +1,24 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const CATALOG_API_BASE_URL = import.meta.env.VITE_CATALOG_API_BASE_URL ?? 'http://localhost:5001/api';
+const FORMS_API_BASE_URL = import.meta.env.VITE_FORMS_API_BASE_URL ?? 'http://localhost:5003/api';
 
-export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+function createClient(baseURL: string) {
+  const client = axios.create({
+    baseURL,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      console.error('Erro na requisição:', error);
+      return Promise.reject(error);
+    }
+  );
+  return client;
+}
 
-// Interceptador para tratar erros
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('Erro na requisição:', error);
-    return Promise.reject(error);
-  }
-);
+export const catalogClient = createClient(CATALOG_API_BASE_URL);
+export const formsClient = createClient(FORMS_API_BASE_URL);

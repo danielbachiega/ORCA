@@ -344,11 +344,18 @@ export function FormBuilder({ fields, onFieldsChange }: FormBuilderProps) {
 export function generateJsonSchema(fields: FormField[]): string {
   const properties: Record<string, any> = {};
   const required: string[] = [];
+  const meta: Record<string, any> = {};
 
   fields.forEach((field) => {
     const fieldSchema: any = {
       title: field.label,
       ...(field.description && { description: field.description }),
+      'x-orca': {
+        id: field.id,
+        ...(field.visibleIf
+          ? { visibleIf: { fieldId: field.visibleIf.fieldId, value: field.visibleIf.value } }
+          : {}),
+      },
     };
 
     switch (field.type) {
@@ -375,6 +382,12 @@ export function generateJsonSchema(fields: FormField[]): string {
     }
 
     properties[field.name] = fieldSchema;
+    meta[field.name] = {
+      id: field.id,
+      ...(field.visibleIf
+        ? { visibleIf: { fieldId: field.visibleIf.fieldId, value: field.visibleIf.value } }
+        : {}),
+    };
 
     if (field.required) {
       required.push(field.name);
@@ -385,6 +398,7 @@ export function generateJsonSchema(fields: FormField[]): string {
     {
       type: 'object',
       properties,
+      'x-orca': { fields: meta },
       required: required.length > 0 ? required : undefined,
     },
     null,
@@ -399,18 +413,25 @@ export function generateUiSchema(fields: FormField[]): string {
   const uiSchema: any = {};
 
   fields.forEach((field) => {
+    const meta = {
+      id: field.id,
+      ...(field.visibleIf
+        ? { visibleIf: { fieldId: field.visibleIf.fieldId, value: field.visibleIf.value } }
+        : {}),
+    };
+
     const fieldUi: any = {
       'ui:widget': field.type === 'textarea' ? 'textarea' : undefined,
+      'ui:orca:meta': meta,
     };
 
     if (field.visibleIf) {
-      const conditionFieldId = fields.find((f) => f.id === field.visibleIf!.fieldId)?.name;
-      if (conditionFieldId) {
-        fieldUi['ui:help'] = `Mostrado quando ${conditionFieldId} = ${field.visibleIf.value}`;
+      const conditionFieldName = fields.find((f) => f.id === field.visibleIf!.fieldId)?.name;
+      if (conditionFieldName) {
+        fieldUi['ui:help'] = `Mostrado quando ${conditionFieldName} = ${field.visibleIf.value}`;
       }
     }
 
-    // Remove undefined values
     Object.keys(fieldUi).forEach((key) => fieldUi[key] === undefined && delete fieldUi[key]);
 
     uiSchema[field.name] = fieldUi;

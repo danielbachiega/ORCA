@@ -1,0 +1,12 @@
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/bin/Debug/net8.0/Orca.Catalog.Domain.deps.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/bin/Debug/net8.0/Orca.Catalog.Domain.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/bin/Debug/net8.0/Orca.Catalog.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/Orca.Catalog.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/Orca.Catalog.Domain.AssemblyInfoInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/Orca.Catalog.Domain.AssemblyInfo.cs
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/Orca.Catalog.Domain.csproj.CoreCompileInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/Orca.Catalog.Domain.sourcelink.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/Orca.Catalog.Domain.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/refint/Orca.Catalog.Domain.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/Orca.Catalog.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Domain/obj/Debug/net8.0/ref/Orca.Catalog.Domain.dll

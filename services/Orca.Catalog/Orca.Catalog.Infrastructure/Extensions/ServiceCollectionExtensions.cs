@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
     {
         // Registrar Repositories
         services.AddScoped<IOfferRepository, OfferRepository>();
-        services.AddScoped<IFormDefinitionRepository, FormDefinitionRepository>();
+        // services.AddScoped<IFormDefinitionRepository, FormDefinitionRepository>(); // Removed as per requirement
         return services;
     }
 }

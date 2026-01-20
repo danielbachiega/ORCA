@@ -1,11 +1,59 @@
 {
   "version": 3,
   "targets": {
-    "net8.0": {}
+    "net8.0": {
+      "FluentValidation/12.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/FluentValidation.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/FluentValidation.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Orca.Forms.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Orca.Forms.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Orca.Forms.Domain.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "FluentValidation/12.1.1": {
+      "sha512": "EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw==",
+      "type": "package",
+      "path": "fluentvalidation/12.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "fluent-validation-icon.png",
+        "fluentvalidation.12.1.1.nupkg.sha512",
+        "fluentvalidation.nuspec",
+        "lib/net8.0/FluentValidation.dll",
+        "lib/net8.0/FluentValidation.xml"
+      ]
+    },
+    "Orca.Forms.Domain/1.0.0": {
+      "type": "project",
+      "path": "../Orca.Forms.Domain/Orca.Forms.Domain.csproj",
+      "msbuildProject": "../Orca.Forms.Domain/Orca.Forms.Domain.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net8.0": []
+    "net8.0": [
+      "FluentValidation >= 12.1.1",
+      "Orca.Forms.Domain >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "/home/danielbachiega/.nuget/packages/": {}
@@ -31,7 +79,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Domain/Orca.Forms.Domain.csproj": {
+              "projectPath": "/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Domain/Orca.Forms.Domain.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
@@ -43,6 +95,12 @@
     "frameworks": {
       "net8.0": {
         "targetAlias": "net8.0",
+        "dependencies": {
+          "FluentValidation": {
+            "target": "Package",
+            "version": "[12.1.1, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",

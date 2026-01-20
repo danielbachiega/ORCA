@@ -18,12 +18,45 @@ function formatDate(dateIso?: string) {
   });
 }
 
-function parseFieldsFromJson(jsonSchema: string): FormField[] {
+function parseFieldsFromJson(jsonSchema: string, uiSchema?: string): FormField[] {
+  let parsedUiSchema: Record<string, any> = {};
+  try {
+    parsedUiSchema = uiSchema ? JSON.parse(uiSchema) : {};
+  } catch {
+    parsedUiSchema = {};
+  }
+
   try {
     const schema = JSON.parse(jsonSchema);
     const properties = schema.properties || {};
-    return Object.keys(properties).map((key) => {
+    const rootMeta =
+      schema['x-orca'] && typeof schema['x-orca'] === 'object' && schema['x-orca'].fields
+        ? schema['x-orca'].fields
+        : {};
+
+    // Primeiro passo: criar mapa de name -> id para resolver condições
+    const nameToId: Record<string, string> = {};
+
+    const fields = Object.keys(properties).map((key) => {
       const prop = properties[key];
+      const uiField = parsedUiSchema[key] || {};
+
+      const uiMeta =
+        typeof uiField['ui:orca:meta'] === 'object' && uiField['ui:orca:meta'] !== null
+          ? uiField['ui:orca:meta']
+          : {};
+
+      const schemaMeta =
+        typeof prop['x-orca'] === 'object' && prop['x-orca'] !== null ? prop['x-orca'] : {};
+
+      const rootFieldMeta =
+        rootMeta && typeof rootMeta[key] === 'object' && rootMeta[key] !== null ? rootMeta[key] : {};
+
+      let meta = { ...rootFieldMeta, ...schemaMeta, ...uiMeta };
+      const fieldId = meta.id || key;
+
+      nameToId[key] = fieldId;
+
       const fieldType =
         prop.type === 'string'
           ? prop.format === 'email'
@@ -36,15 +69,45 @@ function parseFieldsFromJson(jsonSchema: string): FormField[] {
           : 'text';
 
       return {
-        id: key,
+        id: fieldId,
         type: fieldType as any,
         label: prop.title || key,
         name: key,
         required: schema.required?.includes(key) || false,
         options: prop.enum || [],
         description: prop.description || '',
+        visibleIf: meta.visibleIf,
+        uiHelp: parsedUiSchema[key]?.['ui:help'],
       };
     });
+
+    // Segundo passo: resolver ui:help para visibleIf
+    const result = fields.map((field) => {
+      let visibleIf = field.visibleIf;
+
+      if (!visibleIf && field.uiHelp && typeof field.uiHelp === 'string') {
+        const match = field.uiHelp.match(/Mostrado quando (\w+) = (.+)/);
+        if (match) {
+          const conditionFieldName = match[1];
+          const conditionValue = match[2];
+          const conditionFieldId = nameToId[conditionFieldName];
+          if (conditionFieldId) {
+            visibleIf = {
+              fieldId: conditionFieldId,
+              value: conditionValue,
+            };
+          }
+        }
+      }
+
+      const { uiHelp, ...fieldWithoutUiHelp } = field;
+      return {
+        ...fieldWithoutUiHelp,
+        visibleIf,
+      };
+    });
+
+    return result;
   } catch {
     return [];
   }
@@ -340,7 +403,7 @@ export function OfferDetailPage() {
                     const publishedForm = forms.find(f => f.isPublished);
                     if (!publishedForm) return;
                     const nextVersion = forms.length > 0 ? Math.max(...forms.map(f => f.version)) + 1 : 1;
-                    setPrefillFields(parseFieldsFromJson(publishedForm.jsonSchema));
+                    setPrefillFields(parseFieldsFromJson(publishedForm.jsonSchema, publishedForm.uiSchema));
                     setPrefillVersion(nextVersion);
                     setShowCreateBlank(true);
                   }}
@@ -642,7 +705,7 @@ interface EditFormModalProps {
 }
 
 function EditFormModal({ form, onClose, onSubmit, onPublish, isUpdating, isPublishing }: EditFormModalProps) {
-  const [fields, setFields] = useState<FormField[]>(parseFieldsFromJson(form.jsonSchema));
+  const [fields, setFields] = useState<FormField[]>(parseFieldsFromJson(form.jsonSchema, form.uiSchema));
   const [tab, setTab] = useState<'builder' | 'preview' | 'json'>('builder');
   const [hasChanges, setHasChanges] = useState(false);
 

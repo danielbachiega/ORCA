@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/Orca.Catalog.Api.props" />
+</Project>

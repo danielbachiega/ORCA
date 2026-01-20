@@ -10,7 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddCors(o => o.AddPolicy("DevCors",p =>p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
+    .WithOrigins("http://localhost:8080", "http://localhost:80", "http://localhost")
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
 builder.Services.AddControllers(); 
 builder.Services.AddValidatorsFromAssemblyContaining<OfferValidator>();
 //builder.Services.AddFluentValidationAutoValidation();
@@ -32,6 +35,7 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
+app.UseRouting();
 app.UseCors("DevCors");
 
 // Configure the HTTP request pipeline.
@@ -41,6 +45,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseMiddleware<Orca.Catalog.Api.Middleware.ExceptionHandlingMiddleware>();
+app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 app.Run();

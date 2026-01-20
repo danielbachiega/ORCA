@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "P1l1XRyofLRPbtppA+RPnFsrWHWbSNrAKc+4BfWrzjJML0wyrEa1ruXczDIF4wLSkihectJrN2k/fSaDhFxKwQ==",
+  "dgSpecHash": "mAUJyktA+x51Yf9VjWUHnYTjuDx+uz7DC/SXdrLxMier7NejqyVWQFqu/m5szwAZIqOjz5oVSyFdigOtr88RUg==",
   "success": true,
   "projectFilePath": "/home/danielbachiega/Documentos/ORCA/services/Orca.Forms/Orca.Forms.Application/Orca.Forms.Application.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/home/danielbachiega/.nuget/packages/fluentvalidation/12.1.1/fluentvalidation.12.1.1.nupkg.sha512"
+  ],
   "logs": []
 }

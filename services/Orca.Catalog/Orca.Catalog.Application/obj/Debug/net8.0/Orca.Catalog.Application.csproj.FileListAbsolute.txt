@@ -1,0 +1,16 @@
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/bin/Debug/net8.0/Orca.Catalog.Application.deps.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/bin/Debug/net8.0/Orca.Catalog.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/bin/Debug/net8.0/Orca.Catalog.Application.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/bin/Debug/net8.0/Orca.Catalog.Domain.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/bin/Debug/net8.0/Orca.Catalog.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.csproj.AssemblyReference.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.GeneratedMSBuildEditorConfig.editorconfig
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.AssemblyInfoInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.AssemblyInfo.cs
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.csproj.CoreCompileInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.sourcelink.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.csproj.CopyComplete
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/refint/Orca.Catalog.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/Orca.Catalog.Application.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Catalog/Orca.Catalog.Application/obj/Debug/net8.0/ref/Orca.Catalog.Application.dll

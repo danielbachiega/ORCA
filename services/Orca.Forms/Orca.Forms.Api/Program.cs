@@ -1,11 +1,43 @@
+using Microsoft.EntityFrameworkCore;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using Orca.Forms.Infrastructure;
+using Orca.Forms.Infrastructure.Repositories;
+using Orca.Forms.Domain.Repositories;
+using Orca.Forms.Application.FormDefinitions;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
+    .WithOrigins("http://localhost:8080", "http://localhost:80", "http://localhost")
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
+builder.Services.AddControllers();
+builder.Services.AddValidatorsFromAssemblyContaining<FormDefinitionValidator>();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddHealthChecks();
+
+// Registrar DbContext
+builder.Services.AddDbContext<FormsContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Registrar repositórios e serviços
+builder.Services.AddScoped<IFormDefinitionRepository, FormDefinitionRepository>();
 
 var app = builder.Build();
+
+// Apply migrations
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<FormsContext>();
+    dbContext.Database.Migrate();
+}
+
+app.UseRouting();
+app.UseCors("DevCors");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -14,31 +46,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
+app.MapHealthChecks("/health");
+app.MapControllers();
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

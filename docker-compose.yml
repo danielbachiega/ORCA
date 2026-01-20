@@ -164,6 +164,9 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+      args:
+        VITE_CATALOG_API_BASE_URL: http://localhost:5001/api
+        VITE_FORMS_API_BASE_URL: http://localhost:5003/api
     container_name: orca-web
     restart: unless-stopped
     ports:
