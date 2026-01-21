@@ -8,7 +8,38 @@ public static class OfferMapping
     
     public static OfferDetailsDto ToDetails(this Offer o)
     {
-        var pub = o.Versions.FirstOrDefault(v => v.IsPublished);
-        return new(o.Id, o.Slug, o.Name, o.Description, o.Tags, o.Active, pub?.VersionNumber, pub?.JsonSchema, pub?.UiSchema, pub?.ExecutionTemplate);
+        return new(o.Id, o.Slug, o.Name, o.Description, o.Tags, o.Active, o.VisibleToRoles.Select(r => r.RoleName).ToArray());
+    }
+    
+    // DTO → Domain (Entrada)
+    public static Offer ToEntity(this CreateOfferDto dto)
+        => new()
+        {
+            Slug = dto.Slug,
+            Name = dto.Name,
+            Description = dto.Description,
+            Tags = dto.Tags,
+            Active = dto.Active,
+            VisibleToRoles = dto.VisibleToRoles
+                .Select(role => new OfferRole { RoleName = role })
+                .ToList()
+        };
+
+    public static Offer Apply(this UpdateOfferDto dto, Offer entity)
+    {
+        entity.Slug = dto.Slug;
+        entity.Name = dto.Name;
+        entity.Description = dto.Description;
+        entity.Tags = dto.Tags;
+        entity.Active = dto.Active;
+        entity.UpdateAtUtc = DateTime.UtcNow;
+
+        entity.VisibleToRoles.Clear();
+        foreach (var role in dto.VisibleToRoles)
+        {
+            entity.VisibleToRoles.Add(new OfferRole { RoleName = role });
+        }
+
+        return entity;
     }
 }

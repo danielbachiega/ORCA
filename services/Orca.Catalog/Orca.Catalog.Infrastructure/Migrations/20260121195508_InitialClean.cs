@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Orca.Catalog.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -47,41 +47,11 @@ namespace Orca.Catalog.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "OfferVersions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    OfferId = table.Column<Guid>(type: "uuid", nullable: false),
-                    VersionNumber = table.Column<int>(type: "integer", nullable: false),
-                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
-                    JsonSchema = table.Column<string>(type: "text", nullable: true),
-                    UiSchema = table.Column<string>(type: "text", nullable: true),
-                    ExecutionTemplate = table.Column<string>(type: "text", nullable: true),
-                    CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OfferVersions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OfferVersions_Offers_OfferId",
-                        column: x => x.OfferId,
-                        principalTable: "Offers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Offers_Slug",
                 table: "Offers",
                 column: "Slug",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OfferVersions_OfferId",
-                table: "OfferVersions",
-                column: "OfferId");
         }
 
         /// <inheritdoc />
@@ -89,9 +59,6 @@ namespace Orca.Catalog.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "OfferRoles");
-
-            migrationBuilder.DropTable(
-                name: "OfferVersions");
 
             migrationBuilder.DropTable(
                 name: "Offers");

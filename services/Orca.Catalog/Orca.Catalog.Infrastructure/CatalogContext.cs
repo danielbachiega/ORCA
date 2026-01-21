@@ -12,7 +12,6 @@ public class CatalogContext : DbContext
 
     // Definem quais tabelas existem no banco
     public DbSet<Offer> Offers => Set<Offer>();
-    public DbSet<OfferVersion> OfferVersions => Set<OfferVersion>();
     public DbSet<OfferRole> OfferRoles => Set<OfferRole>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -26,16 +25,6 @@ public class CatalogContext : DbContext
         builder.Entity<Offer>()
             .HasIndex(o => o.Slug)
             .IsUnique();
-
-        builder.Entity<Offer>()
-            .HasMany(o => o.Versions)
-            .WithOne(v => v.Offer)
-            .HasForeignKey(v => v.OfferId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Configuração de OfferVersion
-        builder.Entity<OfferVersion>()
-            .HasKey(ov => ov.Id);
 
         // Configuração de OfferRole
         builder.Entity<OfferRole>()

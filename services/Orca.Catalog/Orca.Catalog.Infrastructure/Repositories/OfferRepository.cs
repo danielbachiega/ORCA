@@ -4,9 +4,9 @@ using Orca.Catalog.Domain.Repositories;
 
 namespace Orca.Catalog.Infrastructure.Repositories;
 
-
+/// <summary>
 /// Implementação do repositório de Offer usando Entity Framework Core
-
+/// </summary>
 public class OfferRepository : IOfferRepository
 {
     private readonly CatalogContext _context;
@@ -19,7 +19,6 @@ public class OfferRepository : IOfferRepository
     public async Task<Offer> GetByIdAsync(Guid id)
     {
         return await _context.Offers
-            .Include(o => o.Versions)
             .Include(o => o.VisibleToRoles)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
@@ -30,7 +29,6 @@ public class OfferRepository : IOfferRepository
             throw new ArgumentException("Slug não pode estar vazio", nameof(slug));
 
         return await _context.Offers
-            .Include(o => o.Versions)
             .Include(o => o.VisibleToRoles)
             .FirstOrDefaultAsync(o => o.Slug == slug);
     }
@@ -38,7 +36,6 @@ public class OfferRepository : IOfferRepository
     public async Task<IEnumerable<Offer>> GetAllAsync()
     {
         return await _context.Offers
-            .Include(o => o.Versions)
             .Include(o => o.VisibleToRoles)
             .ToListAsync();
     }

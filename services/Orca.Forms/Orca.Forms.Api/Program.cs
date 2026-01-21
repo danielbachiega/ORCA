@@ -12,12 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
-    .WithOrigins("http://localhost:8080", "http://localhost:80", "http://localhost")
+    .WithOrigins("http://localhost:5173", "http://localhost:8080", "http://localhost:80", "http://localhost")
     .AllowAnyHeader()
     .AllowAnyMethod()));
 builder.Services.AddControllers();
 builder.Services.AddValidatorsFromAssemblyContaining<FormDefinitionValidator>();
 builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddHealthChecks();
 
 // Registrar DbContext
@@ -33,7 +34,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<FormsContext>();
-    dbContext.Database.Migrate();
+    if (app.Environment.IsDevelopment()) {
+        dbContext.Database.Migrate();
+    }
 }
 
 app.UseRouting();
@@ -45,8 +48,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 app.MapControllers();

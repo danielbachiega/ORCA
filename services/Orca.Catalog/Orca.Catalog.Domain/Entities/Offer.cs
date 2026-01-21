@@ -9,6 +9,5 @@ public class Offer
     public bool Active { get; set; } = true;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? UpdateAtUtc { get; set; }
-    public ICollection<OfferVersion> Versions { get; set; } = new List<OfferVersion>();
     public ICollection<OfferRole> VisibleToRoles { get; set; } = new List<OfferRole>(); 
 }
