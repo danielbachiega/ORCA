@@ -13,17 +13,10 @@ public class FormDefinitionValidator : AbstractValidator<FormDefinition>
         RuleFor(x => x.Version)
             .GreaterThan(0).WithMessage("A versão deve ser maior que zero.");
 
-        RuleFor(x => x.JsonSchema)
+        RuleFor(x => x.SchemaJson)
             .NotEmpty().WithMessage("O JSON Schema é obrigatório.")
-            .Must(BeValidJson).WithMessage("O JsonSchema deve ser um JSON válido.");
+            .Must(BeValidJson).WithMessage("O SchemaJson deve ser um JSON válido.");
 
-        RuleFor(x => x.UiSchema)
-            .MaximumLength(5000).WithMessage("O UI Schema não pode ter mais de 5000 caracteres.")
-            .Must(BeValidJsonOrNull).WithMessage("O UiSchema, se preenchido, deve ser um JSON válido.");
-
-        RuleFor(x => x.Rules)
-            .MaximumLength(5000).WithMessage("As regras não podem ter mais de 5000 caracteres.")
-            .Must(BeValidJsonOrNull).WithMessage("As Rules, se preenchidas, devem ser um JSON válido.");
     }
 
     private static bool BeValidJson(string? json)

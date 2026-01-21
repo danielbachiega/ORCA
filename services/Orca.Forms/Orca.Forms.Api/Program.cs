@@ -5,6 +5,7 @@ using Orca.Forms.Infrastructure;
 using Orca.Forms.Infrastructure.Repositories;
 using Orca.Forms.Domain.Repositories;
 using Orca.Forms.Application.FormDefinitions;
+using Orca.Forms.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,18 @@ builder.Services.AddValidatorsFromAssemblyContaining<FormDefinitionValidator>();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddHealthChecks();
+builder.Services.AddScoped<IFormDefinitionService, FormDefinitionService>();
+
+// ProblemDetails (RFC 7807)
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+    };
+});
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Registrar DbContext
 builder.Services.AddDbContext<FormsContext>(options =>
@@ -41,6 +54,10 @@ using (var scope = app.Services.CreateScope())
 
 app.UseRouting();
 app.UseCors("DevCors");
+
+// Exception handling (ProblemDetails)
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

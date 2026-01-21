@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Orca.Forms.Domain.Entities;
-using Orca.Forms.Domain.Repositories;
 using Orca.Forms.Application.FormDefinitions;
 
 namespace Orca.Forms.Api.Controllers;
@@ -9,20 +7,20 @@ namespace Orca.Forms.Api.Controllers;
 [Route("api/form-definitions")]
 public class FormDefinitionsController : ControllerBase
 {
-    private readonly IFormDefinitionRepository _repository;
+    private readonly IFormDefinitionService _service;
 
-    public FormDefinitionsController(IFormDefinitionRepository repository)
+    public FormDefinitionsController(IFormDefinitionService service)
     {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _service = service ?? throw new ArgumentNullException(nameof(service));
     }
 
     /// <summary>
     /// Obtém todas as form definitions
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<FormDefinition>>> GetAll()
+    public async Task<ActionResult<IEnumerable<FormDefinitionSummaryDto>>> GetAll()
     {
-        var formDefinitions = await _repository.GetAllAsync();
+        var formDefinitions = await _service.GetAllAsync();
         return Ok(formDefinitions);
     }
 
@@ -30,9 +28,9 @@ public class FormDefinitionsController : ControllerBase
     /// Obtém uma form definition por ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<FormDefinition>> GetById(Guid id)
+    public async Task<ActionResult<FormDefinitionDetailsDto>> GetById(Guid id)
     {
-        var formDefinition = await _repository.GetByIdAsync(id);
+        var formDefinition = await _service.GetByIdAsync(id);
         if (formDefinition == null)
             return NotFound($"FormDefinition com ID {id} não encontrada");
 
@@ -43,68 +41,46 @@ public class FormDefinitionsController : ControllerBase
     /// Obtém form definitions por Offer ID
     /// </summary>
     [HttpGet("offer/{offerId}")]
-    public async Task<ActionResult<IEnumerable<FormDefinition>>> GetByOfferId(Guid offerId)
+    public async Task<ActionResult<IEnumerable<FormDefinitionSummaryDto>>> GetByOfferId(Guid offerId)
     {
-        var formDefinitions = await _repository.GetByOfferIdAsync(offerId);
+        var formDefinitions = await _service.GetByOfferIdAsync(offerId);
         return Ok(formDefinitions);
+    }
+
+    /// <summary>
+    /// Obtém a form definition publicada de uma oferta
+    /// </summary>
+    [HttpGet("offer/{offerId}/published")]
+    public async Task<ActionResult<FormDefinitionDetailsDto>> GetPublishedByOfferId(Guid offerId)
+    {
+        var formDefinition = await _service.GetPublishedByOfferIdAsync(offerId);
+        if (formDefinition == null)
+            return NotFound($"Nenhuma FormDefinition publicada encontrada para a oferta {offerId}");
+
+        return Ok(formDefinition);
     }
 
     /// <summary>
     /// Cria uma nova form definition
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<FormDefinition>> Create([FromBody] CreateFormDefinitionDto dto)
+    public async Task<ActionResult<FormDefinitionDetailsDto>> Create([FromBody] CreateFormDefinitionDto dto)
     {
-        try
-        {
-            var formDefinition = new FormDefinition
-            {
-                OfferId = dto.OfferId,
-                Version = dto.Version,
-                JsonSchema = dto.JsonSchema,
-                UiSchema = dto.UiSchema,
-                Rules = dto.Rules,
-                IsPublished = dto.IsPublished
-            };
-
-            var createdFormDefinition = await _repository.CreateAsync(formDefinition);
-            return CreatedAtAction(nameof(GetById), new { id = createdFormDefinition.Id }, createdFormDefinition);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var createdFormDefinition = await _service.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = createdFormDefinition.Id }, createdFormDefinition);
     }
 
     /// <summary>
     /// Atualiza uma form definition existente
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<FormDefinition>> Update(Guid id, [FromBody] UpdateFormDefinitionDto dto)
+    public async Task<ActionResult<FormDefinitionDetailsDto>> Update(Guid id, [FromBody] UpdateFormDefinitionDto dto)
     {
         if (id != dto.Id)
             return BadRequest("ID da URL não corresponde ao ID do corpo");
 
-        try
-        {
-            var formDefinition = new FormDefinition
-            {
-                Id = dto.Id,
-                OfferId = dto.OfferId,
-                Version = dto.Version,
-                JsonSchema = dto.JsonSchema,
-                UiSchema = dto.UiSchema,
-                Rules = dto.Rules,
-                IsPublished = dto.IsPublished
-            };
-
-            var updatedFormDefinition = await _repository.UpdateAsync(formDefinition);
-            return Ok(updatedFormDefinition);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var updatedFormDefinition = await _service.UpdateAsync(dto);
+        return Ok(updatedFormDefinition);
     }
 
     /// <summary>
@@ -113,15 +89,8 @@ public class FormDefinitionsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        try
-        {
-            await _repository.DeleteAsync(id);
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _service.DeleteAsync(id);
+        return NoContent();
     }
 
     /// <summary>
@@ -130,14 +99,7 @@ public class FormDefinitionsController : ControllerBase
     [HttpPost("{id}/publish")]
     public async Task<IActionResult> Publish(Guid id)
     {
-        try
-        {
-            await _repository.PublishAsync(id);
-            return Ok(new { message = "FormDefinition publicada com sucesso" });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _service.PublishAsync(id);
+        return Ok(new { message = "FormDefinition publicada com sucesso" });
     }
 }
