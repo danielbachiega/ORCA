@@ -22,6 +22,43 @@ namespace Orca.Forms.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Orca.Forms.Domain.Entities.ExecutionTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FieldMappings")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("FormDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ResourceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ResourceType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormDefinitionId")
+                        .IsUnique();
+
+                    b.ToTable("ExecutionTemplates");
+                });
+
             modelBuilder.Entity("Orca.Forms.Domain.Entities.FormDefinition", b =>
                 {
                     b.Property<Guid>("Id")

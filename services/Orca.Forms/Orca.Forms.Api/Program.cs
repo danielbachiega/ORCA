@@ -6,6 +6,7 @@ using Orca.Forms.Infrastructure.Repositories;
 using Orca.Forms.Domain.Repositories;
 using Orca.Forms.Application.FormDefinitions;
 using Orca.Forms.Api.Middleware;
+using Orca.Forms.Application.ExecutionTemplates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,7 @@ builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddHealthChecks();
 builder.Services.AddScoped<IFormDefinitionService, FormDefinitionService>();
+builder.Services.AddScoped<IExecutionTemplateService, ExecutionTemplateService>();
 
 // ProblemDetails (RFC 7807)
 builder.Services.AddProblemDetails(options =>
@@ -40,6 +42,7 @@ builder.Services.AddDbContext<FormsContext>(options =>
 
 // Registrar repositórios e serviços
 builder.Services.AddScoped<IFormDefinitionRepository, FormDefinitionRepository>();
+builder.Services.AddScoped<IExecutionTemplateRepository, ExecutionTemplateRepository>();
 
 var app = builder.Build();
 
