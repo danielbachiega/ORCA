@@ -113,3 +113,9 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/obj/Debug/net8.0/Orca.Requests.Api.pdb
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/obj/Debug/net8.0/Orca.Requests.Api.genruntimeconfig.cache
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/obj/Debug/net8.0/ref/Orca.Requests.Api.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/MassTransit.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/MassTransit.Abstractions.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/MassTransit.AspNetCoreIntegration.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/MassTransit.ExtensionsDependencyInjectionIntegration.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/MassTransit.RabbitMqTransport.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/RabbitMQ.Client.dll

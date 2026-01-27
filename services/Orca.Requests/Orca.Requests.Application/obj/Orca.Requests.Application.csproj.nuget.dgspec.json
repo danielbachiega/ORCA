@@ -49,6 +49,14 @@
             "FluentValidation.AspNetCore": {
               "target": "Package",
               "version": "[11.3.0, )"
+            },
+            "MassTransit": {
+              "target": "Package",
+              "version": "[8.1.0, )"
+            },
+            "MassTransit.RabbitMQ": {
+              "target": "Package",
+              "version": "[8.1.0, )"
             }
           },
           "imports": [

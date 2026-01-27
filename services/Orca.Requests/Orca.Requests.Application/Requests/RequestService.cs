@@ -1,5 +1,8 @@
 using FluentValidation;
 using Orca.Requests.Domain.Repositories;
+using MassTransit;
+using Orca.Requests.Application.Events;
+using Microsoft.Extensions.Logging;
 
 namespace Orca.Requests.Application.Requests;
 
@@ -8,15 +11,21 @@ public class RequestService : IRequestService
     private readonly IRequestRepository _repository;
     private readonly IValidator<CreateRequestDto> _createValidator;
     private readonly IValidator<UpdateRequestDto> _updateValidator;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ILogger<RequestService> _logger;
 
     public RequestService(
         IRequestRepository repository,
         IValidator<CreateRequestDto> createValidator,
-        IValidator<UpdateRequestDto> updateValidator)
+        IValidator<UpdateRequestDto> updateValidator,
+        IPublishEndpoint publishEndpoint,
+        ILogger<RequestService> logger)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
         _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
+        _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint)); 
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<IEnumerable<RequestSummaryDto>> GetAllAsync()
@@ -55,6 +64,23 @@ public class RequestService : IRequestService
 
         var entity = dto.ToEntity();
         var created = await _repository.CreateAsync(entity);
+
+        _logger.LogInformation("[MassTransit] Publicando RequestCreatedEvent para RequestId={RequestId}", created.Id);
+
+        // ✨ PUBLICA EVENTO NO RABBITMQ
+        await _publishEndpoint.Publish(new RequestCreatedEvent
+        {
+            RequestId = created.Id,
+            OfferId = created.OfferId,
+            FormDefinitionId = created.FormDefinitionId,
+            UserId = created.UserId,
+            FormData = created.FormData,
+            CreatedAtUtc = created.CreatedAtUtc
+        });
+
+        _logger.LogInformation("[MassTransit] Evento publicado com sucesso para RequestId={RequestId}", created.Id);
+        
+
         return created.ToDetailsDto();
     }
 

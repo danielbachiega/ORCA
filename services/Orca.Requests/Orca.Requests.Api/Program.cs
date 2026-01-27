@@ -6,6 +6,8 @@ using Orca.Requests.Infrastructure.Repositories;
 using Orca.Requests.Domain.Repositories;
 using Orca.Requests.Application.Requests;
 using Orca.Requests.Api.Middleware;
+using MassTransit;
+using Orca.Requests.Application.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,25 @@ builder.Services.AddHealthChecks();
 
 // Registrar Services
 builder.Services.AddScoped<IRequestService, RequestService>();
+
+// Configurar MassTransit + RabbitMQ
+builder.Services.AddMassTransit(x =>
+{
+    // Registrar consumers
+    x.AddConsumer<RequestStatusUpdatedConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMq:Host"] ?? "localhost", "/", h =>
+        {
+            h.Username(builder.Configuration["RabbitMq:Username"] ?? "guest");
+            h.Password(builder.Configuration["RabbitMq:Password"] ?? "guest");
+        });
+
+        // Configurar endpoints para consumers
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 // ProblemDetails (RFC 7807)
 builder.Services.AddProblemDetails(options =>
