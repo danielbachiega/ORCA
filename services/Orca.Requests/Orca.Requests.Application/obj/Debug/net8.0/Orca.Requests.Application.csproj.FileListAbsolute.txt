@@ -1,0 +1,16 @@
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/bin/Debug/net8.0/Orca.Requests.Application.deps.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/bin/Debug/net8.0/Orca.Requests.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/bin/Debug/net8.0/Orca.Requests.Application.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/bin/Debug/net8.0/Orca.Requests.Domain.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/bin/Debug/net8.0/Orca.Requests.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.csproj.AssemblyReference.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.GeneratedMSBuildEditorConfig.editorconfig
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.AssemblyInfoInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.AssemblyInfo.cs
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.csproj.CoreCompileInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.sourcelink.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.csproj.CopyComplete
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/refint/Orca.Requests.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/ref/Orca.Requests.Application.dll

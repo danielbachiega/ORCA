@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Orca.Requests.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9fded0ef43e44e59e8090236d71a7e62b61c314e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dff51fb3cddc901b2b68d8309ffd42521a22b299")]
 [assembly: System.Reflection.AssemblyProductAttribute("Orca.Requests.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Orca.Requests.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

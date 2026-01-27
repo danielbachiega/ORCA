@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "B9CuCyhStCLXE7Ih3WrLC2s+oibvvwWYJaJXw8/swPFi8cf8OUiYde7Xkqfy42na8Ugomk465o/dsKTfSvW63g==",
+  "dgSpecHash": "Cl2F+87fy5jFtY26p5rcQpyn4iixDvf+JEFbCCIBJoNuzBcVGrxgblVVniFpBgXSZFzN3uk+QmJGl740KbunUA==",
   "success": true,
   "projectFilePath": "/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/Orca.Requests.Application.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/home/danielbachiega/.nuget/packages/fluentvalidation/11.9.0/fluentvalidation.11.9.0.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/fluentvalidation.aspnetcore/11.3.0/fluentvalidation.aspnetcore.11.3.0.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/fluentvalidation.dependencyinjectionextensions/11.5.1/fluentvalidation.dependencyinjectionextensions.11.5.1.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/2.1.0/microsoft.extensions.dependencyinjection.abstractions.2.1.0.nupkg.sha512"
+  ],
   "logs": []
 }

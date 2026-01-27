@@ -5,9 +5,6 @@ COPY ["services/Orca.Identity/Orca.Identity.Api/Orca.Identity.Api.csproj", "serv
 COPY ["services/Orca.Identity/Orca.Identity.Application/Orca.Identity.Application.csproj", "services/Orca.Identity/Orca.Identity.Application/"]
 COPY ["services/Orca.Identity/Orca.Identity.Domain/Orca.Identity.Domain.csproj", "services/Orca.Identity/Orca.Identity.Domain/"]
 COPY ["services/Orca.Identity/Orca.Identity.Infrastructure/Orca.Identity.Infrastructure.csproj", "services/Orca.Identity/Orca.Identity.Infrastructure/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/Orca.Shared.Domain.csproj", "shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Events/Orca.Shared.Events/Orca.Shared.Events.csproj", "shared/Orca.Shared/Orca.Shared.Events/Orca.Shared.Events/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Contracts/Orca.Shared.Contracts/Orca.Shared.Contracts.csproj", "shared/Orca.Shared/Orca.Shared.Contracts/Orca.Shared.Contracts/"]
 
 RUN dotnet restore "services/Orca.Identity/Orca.Identity.Api/Orca.Identity.Api.csproj"
 

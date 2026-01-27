@@ -5,9 +5,6 @@ COPY ["services/Orca.Orchestrator/Orca.Orchestrator.Api/Orca.Orchestrator.Api.cs
 COPY ["services/Orca.Orchestrator/Orca.Orchestrator.Application/Orca.Orchestrator.Application.csproj", "services/Orca.Orchestrator/Orca.Orchestrator.Application/"]
 COPY ["services/Orca.Orchestrator/Orca.Orchestrator.Domain/Orca.Orchestrator.Domain.csproj", "services/Orca.Orchestrator/Orca.Orchestrator.Domain/"]
 COPY ["services/Orca.Orchestrator/Orca.Orchestrator.Infrastructure/Orca.Orchestrator.Infrastructure.csproj", "services/Orca.Orchestrator/Orca.Orchestrator.Infrastructure/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/Orca.Shared.Domain.csproj", "shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Events/Orca.Shared.Events/Orca.Shared.Events.csproj", "shared/Orca.Shared/Orca.Shared.Events/Orca.Shared.Events/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Contracts/Orca.Shared.Contracts/Orca.Shared.Contracts.csproj", "shared/Orca.Shared/Orca.Shared.Contracts/Orca.Shared.Contracts/"]
 
 RUN dotnet restore "services/Orca.Orchestrator/Orca.Orchestrator.Api/Orca.Orchestrator.Api.csproj"
 

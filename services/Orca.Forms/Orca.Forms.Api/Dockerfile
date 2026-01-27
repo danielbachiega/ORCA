@@ -5,9 +5,6 @@ COPY ["services/Orca.Forms/Orca.Forms.Api/Orca.Forms.Api.csproj", "services/Orca
 COPY ["services/Orca.Forms/Orca.Forms.Application/Orca.Forms.Application.csproj", "services/Orca.Forms/Orca.Forms.Application/"]
 COPY ["services/Orca.Forms/Orca.Forms.Domain/Orca.Forms.Domain.csproj", "services/Orca.Forms/Orca.Forms.Domain/"]
 COPY ["services/Orca.Forms/Orca.Forms.Infrastructure/Orca.Forms.Infrastructure.csproj", "services/Orca.Forms/Orca.Forms.Infrastructure/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/Orca.Shared.Domain.csproj", "shared/Orca.Shared/Orca.Shared.Domain/Orca.Shared.Domain/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Events/Orca.Shared.Events/Orca.Shared.Events.csproj", "shared/Orca.Shared/Orca.Shared.Events/Orca.Shared.Events/"]
-COPY ["shared/Orca.Shared/Orca.Shared.Contracts/Orca.Shared.Contracts/Orca.Shared.Contracts.csproj", "shared/Orca.Shared/Orca.Shared.Contracts/Orca.Shared.Contracts/"]
 
 RUN dotnet restore "services/Orca.Forms/Orca.Forms.Api/Orca.Forms.Api.csproj"
 
