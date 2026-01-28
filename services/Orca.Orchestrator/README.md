@@ -105,8 +105,45 @@ Orca.Orchestrator/
 
 ## 🔌 Endpoints
 
-### GET /api/job-executions/{requestId}
-Obter execução por RequestId.
+### GET /api/job-executions
+Lista todas as execuções com paginação.
+
+**Query Parameters:**
+- `page` (int, default: 1) - Número da página
+- `pageSize` (int, default: 10) - Itens por página
+
+**Response (200 OK):**
+```json
+{
+  "items": [
+    {
+      "id": "b72af38d-ab5e-44a3-a568-584ffc46dd29",
+      "requestId": "a62af38d-ab5e-44a3-a568-584ffc46dd28",
+      "executionTargetType": 0,
+      "awxOoJobId": "98765",
+      "executionStatus": 2,
+      "pollingAttempts": 24,
+      "lastPolledAtUtc": "2026-01-27T19:15:30.120Z",
+      "createdAtUtc": "2026-01-27T19:13:50.000Z",
+      "completedAtUtc": "2026-01-27T19:15:35.500Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 10
+}
+```
+
+**ExecutionStatus (int):**
+- `0` = pending
+- `1` = running
+- `2` = success
+- `3` = failed
+
+---
+
+### GET /api/job-executions/{id}
+Obter detalhes completos de uma execução por ID.
 
 **Response (200 OK):**
 ```json
@@ -114,33 +151,59 @@ Obter execução por RequestId.
   "id": "b72af38d-ab5e-44a3-a568-584ffc46dd29",
   "requestId": "a62af38d-ab5e-44a3-a568-584ffc46dd28",
   "executionTargetType": 0,
-  "executionResourceType": 0,
-  "executionResourceId": "12345",
-  "executionStatus": "success",
   "awxOoJobId": "98765",
-  "awxOoExecutionStatus": "successful",
+  "executionStatus": 2,
+  "resultStatusType": null,
   "pollingAttempts": 24,
+  "maxPollingAttempts": 1440,
   "lastPolledAtUtc": "2026-01-27T19:15:30.120Z",
-  "completedAtUtc": "2026-01-27T19:15:35.500Z",
+  "executionPayload": {
+    "extra_vars": {
+      "email": "user@example.com"
+    }
+  },
+  "executionResponse": {
+    "id": 98765,
+    "status": "successful"
+  },
   "errorMessage": null,
   "createdAtUtc": "2026-01-27T19:13:50.000Z",
-  "updatedAtUtc": "2026-01-27T19:15:35.500Z"
+  "completedAtUtc": "2026-01-27T19:15:35.500Z"
 }
 ```
 
-### GET /api/job-executions/{jobExecutionId}/status
-Obter apenas o status da execução.
+**Response (404 Not Found):**
+```json
+{
+  "error": "JobExecution b72af38d-ab5e-44a3-a568-584ffc46dd29 not found"
+}
+```
+
+---
+
+### GET /api/job-executions/request/{requestId}
+Obter todas as execuções de um Request específico.
 
 **Response (200 OK):**
 ```json
-{
-  "id": "b72af38d-ab5e-44a3-a568-584ffc46dd29",
-  "requestId": "a62af38d-ab5e-44a3-a568-584ffc46dd28",
-  "executionStatus": "success",
-  "pollingAttempts": 24,
-  "awxOoExecutionStatus": "successful",
-  "completedAtUtc": "2026-01-27T19:15:35.500Z"
-}
+[
+  {
+    "id": "b72af38d-ab5e-44a3-a568-584ffc46dd29",
+    "requestId": "a62af38d-ab5e-44a3-a568-584ffc46dd28",
+    "executionTargetType": 0,
+    "awxOoJobId": "98765",
+    "executionStatus": 2,
+    "pollingAttempts": 24,
+    "lastPolledAtUtc": "2026-01-27T19:15:30.120Z",
+    "createdAtUtc": "2026-01-27T19:13:50.000Z",
+    "completedAtUtc": "2026-01-27T19:15:35.500Z"
+  }
+]
+```
+
+**Response (200 OK - Vazio):**
+```json
+[]
 ```
 
 ## 🔄 Fluxo Completo (Event-Driven)

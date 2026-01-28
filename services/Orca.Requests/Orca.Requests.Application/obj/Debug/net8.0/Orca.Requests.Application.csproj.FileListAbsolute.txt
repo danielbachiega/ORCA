@@ -14,3 +14,5 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/refint/Orca.Requests.Application.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/Orca.Requests.Application.pdb
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/obj/Debug/net8.0/ref/Orca.Requests.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/bin/Debug/net8.0/Orca.SharedContracts.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Application/bin/Debug/net8.0/Orca.SharedContracts.pdb

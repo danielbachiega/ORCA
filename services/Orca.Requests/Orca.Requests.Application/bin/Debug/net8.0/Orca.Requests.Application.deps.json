@@ -12,7 +12,8 @@
           "FluentValidation.AspNetCore": "11.3.0",
           "MassTransit": "8.1.0",
           "MassTransit.RabbitMQ": "8.1.0",
-          "Orca.Requests.Domain": "1.0.0"
+          "Orca.Requests.Domain": "1.0.0",
+          "Orca.SharedContracts": "1.0.0"
         },
         "runtime": {
           "Orca.Requests.Application.dll": {}
@@ -152,6 +153,11 @@
       "Orca.Requests.Domain/1.0.0": {
         "runtime": {
           "Orca.Requests.Domain.dll": {}
+        }
+      },
+      "Orca.SharedContracts/1.0.0": {
+        "runtime": {
+          "Orca.SharedContracts.dll": {}
         }
       }
     }
@@ -324,6 +330,11 @@
       "hashPath": "system.threading.channels.7.0.0.nupkg.sha512"
     },
     "Orca.Requests.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Orca.SharedContracts/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

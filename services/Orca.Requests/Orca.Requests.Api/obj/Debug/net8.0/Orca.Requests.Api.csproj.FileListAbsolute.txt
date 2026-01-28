@@ -119,3 +119,5 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/MassTransit.ExtensionsDependencyInjectionIntegration.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/MassTransit.RabbitMqTransport.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/RabbitMQ.Client.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/Orca.SharedContracts.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Api/bin/Debug/net8.0/Orca.SharedContracts.pdb

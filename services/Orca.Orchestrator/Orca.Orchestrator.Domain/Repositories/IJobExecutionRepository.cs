@@ -8,6 +8,7 @@ public interface IJobExecutionRepository
     Task<JobExecution?> GetByIdAsync(Guid id);
     Task<JobExecution?> GetByRequestIdAsync(Guid requestId);
     Task<JobExecution> UpdateAsync(JobExecution execution);
+    Task<(List<JobExecution> items, int totalCount)> GetPagedAsync(int page, int pageSize);
     
     // Para o PollingWorker
     Task<IEnumerable<JobExecution>> GetPendingExecutionsAsync();  // status = "pending" ou "running"

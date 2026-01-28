@@ -13,25 +13,14 @@ using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ============================================
-// 📦 CONFIGURAR BANCO DE DADOS
-// ============================================
+
 builder.Services.AddDbContext<OrchestratorContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ============================================
-// 💾 REGISTRAR REPOSITÓRIOS
-// ============================================
-builder.Services.AddScoped<IJobExecutionRepository, JobExecutionRepository>();
 
-// ============================================
-// 🚀 REGISTRAR SERVIÇOS
-// ============================================
+builder.Services.AddScoped<IJobExecutionRepository, JobExecutionRepository>();
 builder.Services.AddScoped<IJobExecutionService, JobExecutionService>();
 
-// ============================================
-// 🔌 REGISTRAR CLIENTES HTTP (COM NAMED INJECTION)
-// ============================================
 builder.Services.AddHttpClient<AwxClient>()
     .ConfigureHttpClient(client =>
     {
@@ -50,15 +39,13 @@ builder.Services.AddHttpClient<OoClient>()
 builder.Services.AddScoped<IExecutionClient>(sp => sp.GetRequiredService<AwxClient>());
 builder.Services.AddScoped<IExecutionClient>(sp => sp.GetRequiredService<OoClient>());
 
-// ============================================
-// 🐰 CONFIGURAR MASSTRANSIT + RABBITMQ
-// ============================================
+//  CONFIGURAR MASSTRANSIT + RABBITMQ
 builder.Services.AddMassTransit(x =>
 {
-    // 📥 Registrar Consumer
+    //  Registrar Consumer
     x.AddConsumer<RequestCreatedEventConsumer>();
 
-    // 🐰 Configurar RabbitMQ
+    //  Configurar RabbitMQ
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(builder.Configuration["RabbitMQ:Host"], h =>
@@ -77,32 +64,27 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-// ============================================
-// ⏳ REGISTRAR POLLING WORKER
-// ============================================
+//  REGISTRAR POLLING WORKER
 builder.Services.AddHostedService<PollingWorker>();
 
-// ============================================
-// 📚 CONTROLLERS E LOGGING
-// ============================================
+
+//  CONTROLLERS E LOGGING
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// ============================================
-// 🗄️ APLICAR MIGRATIONS AUTOMATICAMENTE
-// ============================================
+
+//  APLICAR MIGRATIONS AUTOMATICAMENTE
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<OrchestratorContext>();
     dbContext.Database.Migrate();
 }
 
-// ============================================
-// 📡 MIDDLEWARE
-// ============================================
+//  MIDDLEWARE
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

@@ -65,4 +65,18 @@ public class JobExecutionRepository : IJobExecutionRepository
             .OrderBy(j => j.CreatedAtUtc)
             .ToListAsync();
     }
+
+    public async Task<(List<JobExecution> items, int totalCount)> GetPagedAsync(int page, int pageSize)
+    {
+        var query = _context.JobExecutions.AsNoTracking();
+        var total = await query.CountAsync();
+        
+        var items = await query
+            .OrderByDescending(j => j.CreatedAtUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, total);
+    }
 }

@@ -144,9 +144,9 @@ public class AwxClient : IExecutionClient
         }
     }
 
-    public async Task<string?> GetResultStatusTypeAsync(string executionId)
+    public Task<string?> GetResultStatusTypeAsync(string executionId)
     {
         // AWX não tem conceito de ResultStatusType (isso é apenas OO) NECESSARIO PARA NAO QUEBRAR O IExecutionClient
-        return null;
+        return Task.FromResult<string?>(null);
     }
 }
