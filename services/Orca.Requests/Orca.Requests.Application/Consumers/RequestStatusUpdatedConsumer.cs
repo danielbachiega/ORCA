@@ -1,5 +1,5 @@
 using MassTransit;
-using Orca.Requests.Application.Events;
+using Orca.SharedContracts.Events;
 using Orca.Requests.Application.Requests;
 using Orca.Requests.Domain.Repositories;
 using Microsoft.Extensions.Logging;

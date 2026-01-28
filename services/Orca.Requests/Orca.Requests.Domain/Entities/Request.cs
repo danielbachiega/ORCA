@@ -5,6 +5,9 @@ public class Request
     public Guid Id { get; set; } =  Guid.NewGuid();
     public Guid OfferId { get; set; }
     public Guid FormDefinitionId { get; set; }
+    public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO (enum salvo como int no BD)
+    public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)
+    public string ExecutionResourceId { get; set; } = string.Empty; // ID ou UUID do job/workflow
     public string UserId { get; set; } = string.Empty;
     public string FormData { get; set; } = string.Empty; // JSONB com dados preenchidos
     public RequestStatus Status { get; set; } // Estado simplificado

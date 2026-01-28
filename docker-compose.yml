@@ -149,7 +149,8 @@ services:
       ASPNETCORE_URLS: http://+:5005
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_orchestrator
       RabbitMq__Host: rabbitmq
-      AwxHost: ${AWX_HOST:-https://awx.example.com}
+      ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example.com}
+      ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example.com}
     ports:
       - "5005:5005"
     depends_on:
@@ -159,7 +160,6 @@ services:
         condition: service_healthy
     networks:
       - orca-network
-
   web:
     build:
       context: ./web

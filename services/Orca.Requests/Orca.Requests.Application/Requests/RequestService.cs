@@ -1,7 +1,7 @@
 using FluentValidation;
 using Orca.Requests.Domain.Repositories;
 using MassTransit;
-using Orca.Requests.Application.Events;
+using Orca.SharedContracts.Events;
 using Microsoft.Extensions.Logging;
 
 namespace Orca.Requests.Application.Requests;
@@ -73,6 +73,9 @@ public class RequestService : IRequestService
             RequestId = created.Id,
             OfferId = created.OfferId,
             FormDefinitionId = created.FormDefinitionId,
+            ExecutionTargetType = created.ExecutionTargetType,
+            ExecutionResourceType = created.ExecutionResourceType,
+            ExecutionResourceId = created.ExecutionResourceId,
             UserId = created.UserId,
             FormData = created.FormData,
             CreatedAtUtc = created.CreatedAtUtc

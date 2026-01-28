@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Orca.Requests.Domain\Orca.Requests.Domain.csproj" />
+    <ProjectReference Include="..\..\Orca.SharedContracts\Orca.SharedContracts.csproj" />
   </ItemGroup>
 
 </Project>

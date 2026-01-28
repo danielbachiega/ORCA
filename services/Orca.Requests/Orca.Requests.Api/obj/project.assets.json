@@ -1252,7 +1252,8 @@
           "FluentValidation.AspNetCore": "11.3.0",
           "MassTransit": "8.1.0",
           "MassTransit.RabbitMQ": "8.1.0",
-          "Orca.Requests.Domain": "1.0.0"
+          "Orca.Requests.Domain": "1.0.0",
+          "Orca.SharedContracts": "1.0.0"
         },
         "compile": {
           "bin/placeholder/Orca.Requests.Application.dll": {}
@@ -1284,6 +1285,16 @@
         },
         "runtime": {
           "bin/placeholder/Orca.Requests.Infrastructure.dll": {}
+        }
+      },
+      "Orca.SharedContracts/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Orca.SharedContracts.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Orca.SharedContracts.dll": {}
         }
       }
     }
@@ -3467,6 +3478,11 @@
       "type": "project",
       "path": "../Orca.Requests.Infrastructure/Orca.Requests.Infrastructure.csproj",
       "msbuildProject": "../Orca.Requests.Infrastructure/Orca.Requests.Infrastructure.csproj"
+    },
+    "Orca.SharedContracts/1.0.0": {
+      "type": "project",
+      "path": "../../Orca.SharedContracts/Orca.SharedContracts.csproj",
+      "msbuildProject": "../../Orca.SharedContracts/Orca.SharedContracts.csproj"
     }
   },
   "projectFileDependencyGroups": {

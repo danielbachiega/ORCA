@@ -1,0 +1,12 @@
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/bin/Debug/net8.0/Orca.SharedContracts.deps.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/bin/Debug/net8.0/Orca.SharedContracts.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/bin/Debug/net8.0/Orca.SharedContracts.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/Orca.SharedContracts.GeneratedMSBuildEditorConfig.editorconfig
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/Orca.SharedContracts.AssemblyInfoInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/Orca.SharedContracts.AssemblyInfo.cs
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/Orca.SharedContracts.csproj.CoreCompileInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/Orca.SharedContracts.sourcelink.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/Orca.SharedContracts.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/refint/Orca.SharedContracts.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/Orca.SharedContracts.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/obj/Debug/net8.0/ref/Orca.SharedContracts.dll

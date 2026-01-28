@@ -10,3 +10,9 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/obj/Debug/net8.0/refint/Orca.Orchestrator.Application.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/obj/Debug/net8.0/Orca.Orchestrator.Application.pdb
 /home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/obj/Debug/net8.0/ref/Orca.Orchestrator.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/bin/Debug/net8.0/Orca.Orchestrator.Domain.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/bin/Debug/net8.0/Orca.SharedContracts.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/bin/Debug/net8.0/Orca.Orchestrator.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/bin/Debug/net8.0/Orca.SharedContracts.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/obj/Debug/net8.0/Orca.Orchestrator.Application.csproj.AssemblyReference.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Orchestrator/Orca.Orchestrator.Application/obj/Debug/net8.0/Orca.Orchestrator.Application.csproj.CopyComplete

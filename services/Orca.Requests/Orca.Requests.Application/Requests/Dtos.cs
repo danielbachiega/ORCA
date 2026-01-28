@@ -5,6 +5,9 @@ public class CreateRequestDto
 {
     public Guid OfferId { get; set; }
     public Guid FormDefinitionId { get; set; }
+    public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO
+    public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)
+    public string ExecutionResourceId { get; set; } = string.Empty; // ID ou UUID do job/workflow
     public string UserId { get; set; } = string.Empty;
     public string FormData { get; set; } = string.Empty;  // JSON string
 }
@@ -14,6 +17,9 @@ public class UpdateRequestDto
     public Guid Id { get; set; }
     public Guid OfferId { get; set; }
     public Guid FormDefinitionId { get; set; }
+    public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO
+    public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)
+    public string ExecutionResourceId { get; set; } = string.Empty; // ID ou UUID do job/workflow
     public string UserId { get; set; } = string.Empty;
     public string FormData { get; set; } = string.Empty;
     public int Status { get; set; }  // Enum como int
@@ -29,6 +35,9 @@ public class RequestSummaryDto
     public Guid Id { get; set; }
     public Guid OfferId { get; set; }
     public Guid FormDefinitionId { get; set; }
+    public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO
+    public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)
+    public string ExecutionResourceId { get; set; } = string.Empty; // ID ou UUID do job/workflow
     public string UserId { get; set; } = string.Empty;
     public int Status { get; set; }
     public int? ResultType { get; set; }
@@ -42,6 +51,9 @@ public class RequestDetailsDto
     public Guid Id { get; set; }
     public Guid OfferId { get; set; }
     public Guid FormDefinitionId { get; set; }
+    public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO
+    public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)
+    public string ExecutionResourceId { get; set; } = string.Empty; // ID ou UUID do job/workflow
     public string UserId { get; set; } = string.Empty;
     public string FormData { get; set; } = string.Empty;
     public int Status { get; set; }

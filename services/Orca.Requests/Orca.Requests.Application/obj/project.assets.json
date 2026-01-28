@@ -393,6 +393,16 @@
         "runtime": {
           "bin/placeholder/Orca.Requests.Domain.dll": {}
         }
+      },
+      "Orca.SharedContracts/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Orca.SharedContracts.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Orca.SharedContracts.dll": {}
+        }
       }
     }
   },
@@ -1116,6 +1126,11 @@
       "type": "project",
       "path": "../Orca.Requests.Domain/Orca.Requests.Domain.csproj",
       "msbuildProject": "../Orca.Requests.Domain/Orca.Requests.Domain.csproj"
+    },
+    "Orca.SharedContracts/1.0.0": {
+      "type": "project",
+      "path": "../../Orca.SharedContracts/Orca.SharedContracts.csproj",
+      "msbuildProject": "../../Orca.SharedContracts/Orca.SharedContracts.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -1124,7 +1139,8 @@
       "FluentValidation.AspNetCore >= 11.3.0",
       "MassTransit >= 8.1.0",
       "MassTransit.RabbitMQ >= 8.1.0",
-      "Orca.Requests.Domain >= 1.0.0"
+      "Orca.Requests.Domain >= 1.0.0",
+      "Orca.SharedContracts >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -1154,6 +1170,9 @@
           "projectReferences": {
             "/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Domain/Orca.Requests.Domain.csproj": {
               "projectPath": "/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Domain/Orca.Requests.Domain.csproj"
+            },
+            "/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/Orca.SharedContracts.csproj": {
+              "projectPath": "/home/danielbachiega/Documentos/ORCA/services/Orca.SharedContracts/Orca.SharedContracts.csproj"
             }
           }
         }

@@ -11,6 +11,9 @@ public static class RequestMappings
         {
             OfferId = dto.OfferId,
             FormDefinitionId = dto.FormDefinitionId,
+            ExecutionTargetType = dto.ExecutionTargetType,
+            ExecutionResourceType = dto.ExecutionResourceType,
+            ExecutionResourceId = dto.ExecutionResourceId,
             UserId = dto.UserId,
             FormData = dto.FormData,
             Status = RequestStatus.Pending,  // Sempre começa como Pending
@@ -26,6 +29,9 @@ public static class RequestMappings
             Id = dto.Id,
             OfferId = dto.OfferId,
             FormDefinitionId = dto.FormDefinitionId,
+            ExecutionTargetType = dto.ExecutionTargetType,
+            ExecutionResourceType = dto.ExecutionResourceType,
+            ExecutionResourceId = dto.ExecutionResourceId,
             UserId = dto.UserId,
             FormData = dto.FormData,
             Status = (RequestStatus)dto.Status,  // Converte int → enum
@@ -44,6 +50,9 @@ public static class RequestMappings
             Id = entity.Id,
             OfferId = entity.OfferId,
             FormDefinitionId = entity.FormDefinitionId,
+            ExecutionTargetType = entity.ExecutionTargetType,
+            ExecutionResourceType = entity.ExecutionResourceType,
+            ExecutionResourceId = entity.ExecutionResourceId,
             UserId = entity.UserId,
             Status = (int)entity.Status,  // Converte enum → int
             ResultType = (int?)entity.ResultType,
@@ -61,6 +70,9 @@ public static class RequestMappings
             Id = entity.Id,
             OfferId = entity.OfferId,
             FormDefinitionId = entity.FormDefinitionId,
+            ExecutionTargetType = entity.ExecutionTargetType,
+            ExecutionResourceType = entity.ExecutionResourceType,
+            ExecutionResourceId = entity.ExecutionResourceId,
             UserId = entity.UserId,
             FormData = entity.FormData,
             Status = (int)entity.Status,

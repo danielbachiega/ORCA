@@ -43,6 +43,16 @@ namespace Orca.Requests.Infrastructure.Migrations
                     b.Property<string>("ExecutionId")
                         .HasColumnType("text");
 
+                    b.Property<string>("ExecutionResourceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ExecutionResourceType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ExecutionTargetType")
+                        .HasColumnType("integer");
+
                     b.Property<string>("FormData")
                         .IsRequired()
                         .HasColumnType("jsonb");

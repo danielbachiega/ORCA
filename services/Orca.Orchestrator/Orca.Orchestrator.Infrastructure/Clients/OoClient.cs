@@ -1,0 +1,183 @@
+using System.Text;
+using System.Text.Json;
+using Polly;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Orca.Orchestrator.Application.Clients.Dtos;
+using Orca.Orchestrator.Application.Clients;
+
+namespace Orca.Orchestrator.Infrastructure.Clients;
+
+public class OoClient : IExecutionClient
+{
+    private readonly HttpClient _httpClient;
+    private readonly string _ooBaseUrl;
+    private readonly string _ooUsername;
+    private readonly string _ooPassword;
+    private readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy;
+    private readonly ILogger<OoClient> _logger;
+
+    public OoClient(
+        HttpClient httpClient,
+        IConfiguration config,
+        ILogger<OoClient> logger)
+    {
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        // Ler configurações do appsettings
+        _ooBaseUrl = config["OO:BaseUrl"] ?? "http://localhost:8080";
+        _ooUsername = config["OO:Username"] ?? "admin";
+        _ooPassword = config["OO:Password"] ?? "password";
+
+        // ⏱️ RETRY POLICY - Polly (idêntica ao AWX)
+        _retryPolicy = Policy
+            .HandleResult<HttpResponseMessage>(r => 
+                (int)r.StatusCode >= 500 ||
+                r.StatusCode == System.Net.HttpStatusCode.RequestTimeout)
+            .Or<HttpRequestException>()
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: attempt => 
+                    TimeSpan.FromSeconds(Math.Pow(2, attempt)),
+                onRetry: (outcome, timespan, retryCount, context) =>
+                {
+                    _logger.LogWarning(
+                        "🔄 OoClient Retry {RetryCount} após {Delay}ms. Status: {StatusCode}",
+                        retryCount, timespan.TotalMilliseconds,
+                        outcome.Result?.StatusCode ?? System.Net.HttpStatusCode.OK);
+                });
+    }
+
+    public async Task<string> LaunchAsync(string executionPayload)
+    {
+        _logger.LogInformation("📤 OoClient.LaunchAsync com payload: {Payload}", executionPayload);
+
+        try
+        {
+            // Parse do payload para extrair flowUuid
+            var payloadJson = JsonDocument.Parse(executionPayload);
+            var root = payloadJson.RootElement;
+
+            // OO retorna executionId como string numérica (ex: "12345678901")
+            var endpoint = $"{_ooBaseUrl}/executions";
+
+            var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            
+            // ✅ Basic Auth (OO também usa Basic Auth)
+            var authHeader = Convert.ToBase64String(
+                Encoding.ASCII.GetBytes($"{_ooUsername}:{_ooPassword}"));
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Basic", authHeader);
+
+            request.Content = new StringContent(executionPayload, Encoding.UTF8, "application/json");
+
+            // 🔄 Executa com retry policy
+            var response = await _retryPolicy.ExecuteAsync(async () =>
+                await _httpClient.SendAsync(request));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError(
+                    "❌ OoClient.LaunchAsync falhou: {StatusCode} {Error}",
+                    response.StatusCode, errorContent);
+                throw new HttpRequestException($"OO Launch Failed: {response.StatusCode}");
+            }
+
+            // OO retorna o executionId direto como string numérica (ex: 12345678901)
+            // Sem aspas, apenas o número no body
+            var content = await response.Content.ReadAsStringAsync();
+            var executionId = content.Trim();  // Remove apenas whitespace
+
+            if (string.IsNullOrEmpty(executionId) || !long.TryParse(executionId, out _))
+            {
+                throw new InvalidOperationException($"OO não retornou um ID válido: {executionId}");
+            }
+
+            _logger.LogInformation("✅ OoClient.LaunchAsync sucesso. ExecutionId: {ExecutionId}", executionId);
+            return executionId;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ OoClient.LaunchAsync erro não tratado");
+            throw;
+        }
+    }
+
+    public async Task<string> GetStatusAsync(string executionId)
+    {
+        _logger.LogInformation("📊 OoClient.GetStatusAsync para ExecutionId: {ExecutionId}", executionId);
+
+        try
+        {
+            var endpoint = $"{_ooBaseUrl}/executions/{executionId}/execution-log";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            
+            var authHeader = Convert.ToBase64String(
+                Encoding.ASCII.GetBytes($"{_ooUsername}:{_ooPassword}"));
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Basic", authHeader);
+
+            var response = await _retryPolicy.ExecuteAsync(async () =>
+                await _httpClient.SendAsync(request));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("⚠️ OoClient.GetStatusAsync retornou: {StatusCode}", response.StatusCode);
+                return "unknown";
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var executionLog = JsonSerializer.Deserialize<OoExecutionLogResponse>(content);
+
+            var status = executionLog?.ExecutionSummary.Status ?? "unknown";
+            _logger.LogInformation("📊 OoClient.GetStatusAsync Status: {Status}", status);
+            return status;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ OoClient.GetStatusAsync erro");
+            return "unknown";
+        }
+    }
+
+    public async Task<string?> GetResultStatusTypeAsync(string executionId)
+    {
+        _logger.LogInformation("📊 OoClient.GetResultStatusTypeAsync para ExecutionId: {ExecutionId}", executionId);
+
+        try
+        {
+            var endpoint = $"{_ooBaseUrl}/executions/{executionId}/execution-log";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            
+            var authHeader = Convert.ToBase64String(
+                Encoding.ASCII.GetBytes($"{_ooUsername}:{_ooPassword}"));
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Basic", authHeader);
+
+            var response = await _retryPolicy.ExecuteAsync(async () =>
+                await _httpClient.SendAsync(request));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("⚠️ OoClient.GetResultStatusTypeAsync retornou: {StatusCode}", response.StatusCode);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var executionLog = JsonSerializer.Deserialize<OoExecutionLogResponse>(content);
+
+            var resultType = executionLog?.ExecutionSummary.ResultStatusType;
+            _logger.LogInformation("📊 OoClient.GetResultStatusTypeAsync ResultType: {ResultType}", resultType);
+            return resultType;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ OoClient.GetResultStatusTypeAsync erro");
+            return null;
+        }
+    }
+}
