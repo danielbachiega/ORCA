@@ -19,13 +19,27 @@ builder.Services.AddDbContext<OrchestratorContext>(options =>
 
 
 builder.Services.AddScoped<IJobExecutionRepository, JobExecutionRepository>();
+builder.Services.Configure<LaunchRetryOptions>(
+    builder.Configuration.GetSection("Orchestrator:LaunchRetry"));
 builder.Services.AddScoped<IJobExecutionService, JobExecutionService>();
+
+var allowInvalidSsl = builder.Configuration.GetValue<bool>("ExternalServices:AllowInvalidSsl");
 
 builder.Services.AddHttpClient<AwxClient>()
     .ConfigureHttpClient(client =>
     {
         client.BaseAddress = new Uri(builder.Configuration["ExternalServices:AwxBaseUrl"]!);
         client.Timeout = TimeSpan.FromSeconds(30);
+    })
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler();
+        if (allowInvalidSsl)
+        {
+            handler.ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        }
+        return handler;
     });
 
 builder.Services.AddHttpClient<OoClient>()
@@ -33,6 +47,16 @@ builder.Services.AddHttpClient<OoClient>()
     {
         client.BaseAddress = new Uri(builder.Configuration["ExternalServices:OoBaseUrl"]!);
         client.Timeout = TimeSpan.FromSeconds(30);
+    })
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler();
+        if (allowInvalidSsl)
+        {
+            handler.ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        }
+        return handler;
     });
 
 // Registrar os clientes como IExecutionClient (injeção por tipo no JobExecutionService)

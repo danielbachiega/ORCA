@@ -61,7 +61,10 @@ public class JobExecutionRepository : IJobExecutionRepository
     {
         return await _context.JobExecutions
             .AsNoTracking()
-            .Where(j => j.ExecutionStatus == "pending" || j.ExecutionStatus == "running")
+            .Where(j =>
+                j.ExecutionStatus == "pending" ||
+                j.ExecutionStatus == "running" ||
+                j.ExecutionStatus == "retry_pending")
             .OrderBy(j => j.CreatedAtUtc)
             .ToListAsync();
     }

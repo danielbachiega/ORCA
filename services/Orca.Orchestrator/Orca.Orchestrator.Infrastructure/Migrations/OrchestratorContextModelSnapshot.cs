@@ -63,7 +63,16 @@ namespace Orca.Orchestrator.Infrastructure.Migrations
                     b.Property<int>("ExecutionTargetType")
                         .HasColumnType("integer");
 
+                    b.Property<string>("LastLaunchError")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("LastPolledAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LaunchAttempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("NextLaunchAttemptAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("PollingAttempts")

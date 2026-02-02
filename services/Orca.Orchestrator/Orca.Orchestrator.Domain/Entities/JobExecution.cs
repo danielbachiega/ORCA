@@ -25,10 +25,17 @@ public class JobExecution
     public DateTime? SentToAwxOoAtUtc { get; set; }         // Quando foi disparado
     public DateTime? CompletedAtUtc { get; set; }         // Quando terminou
     
-    // === Polling ===
+    // === Polling  de consulta de status ===
     public int PollingAttempts { get; set; } = 0;        // Contador (máx 1440 = 2h com 5s)
     public DateTime? LastPolledAtUtc { get; set; }        // Última vez que consultou status
     
+    // === Retry do Launch ===
+    public int LaunchAttempts { get; set; } = 0;
+    public DateTime? NextLaunchAttemptAtUtc { get; set; }
+    public string? LastLaunchError { get; set; }
+    
     // === Erro ===
     public string? ErrorMessage { get; set; }
+
+
 }

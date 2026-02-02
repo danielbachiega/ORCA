@@ -15,8 +15,10 @@ Microserviço responsável pela **orquestração de execuções** em sistemas ex
 ### Multi-Target Execution
 - **AWX (Ansible):** JobTemplate ou Workflow - dispara e consulta status
 - **OO (Operations Orchestration):** Flow UUID - dispara e consulta status + resultType
-- **Retry inteligente** com Polly (exponential backoff 2s, 4s, 8s)
-- **Timeout automático** após 2 horas (1440 tentativas de 5s)
+- **Bypass SSL** para ambientes com certificados inválidos (`AllowInvalidSsl`)
+- **Retry inteligente** com exponential backoff (5s, 10s, 20s, 40s, 80s, máx 120s)
+- **Máximo 5 tentativas** de launch antes de marcar como failed
+- **Timeout automático** após 2 horas de polling (1440 tentativas de 5s)
 
 ### Polling Strategy
 - **5 segundos** de intervalo entre consultas (respeitado via `LastPolledAtUtc`)
@@ -36,13 +38,18 @@ public class JobExecution
     public int ExecutionTargetType { get; set; }     // 0=AWX, 1=OO
     public int? ExecutionResourceType { get; set; }  // 0=JobTemplate, 1=Workflow (null para OO)
     public string ExecutionResourceId { get; set; }  // ID do job/workflow/flow
-    public string ExecutionStatus { get; set; }      // pending/running/success/failed
+    public string ExecutionStatus { get; set; }      // pending/running/retry_pending/success/failed
     public string? AwxOoJobId { get; set; }          // ID retornado por AWX/OO
     public string? AwxOoExecutionStatus { get; set; }// Status original (new, pending, running, successful, failed, RUNNING, COMPLETED, SYSTEM_FAILURE)
-    public int PollingAttempts { get; set; }         // Contador de tentativas (0-1440)
+    public int PollingAttempts { get; set; }         // Contador de tentativas de polling (0-1440)
     public DateTime? LastPolledAtUtc { get; set; }   // Última consulta de status
     public DateTime? CompletedAtUtc { get; set; }    // Quando terminou
     public string? ErrorMessage { get; set; }        // Se falhou, por quê?
+    
+    // Launch Retry
+    public int LaunchAttempts { get; set; }          // Contador de tentativas de launch (0-5)
+    public DateTime? NextLaunchAttemptAtUtc { get; set; } // Quando fazer próximo retry
+    public string? LastLaunchError { get; set; }     // Último erro de launch
     
     // JSONB Storage
     public string? ExecutionPayload { get; set; }    // Request JSON enviado para AWX/OO
@@ -50,8 +57,8 @@ public class JobExecution
     
     // Auditoria
     public DateTime CreatedAtUtc { get; set; }
-    public DateTime UpdatedAtUtc { get; set; }
-}
+    public DateTime? SentToAwxOoAtUtc { get; set; }  // Quando foi disparado
+}```
 ```
 
 ## 🏗️ Arquitetura (Clean Architecture)
@@ -219,18 +226,25 @@ Obter todas as execuções de um Request específico.
 4. Consumer chama JobExecutionService.SendToAwxOoAsync()
    → Prepara payload (extra_vars para AWX, inputs para OO)
    → HTTP POST para AWX/OO
-   → Salva executionId na entidade (AwxOoJobId)
+   → SE SUCESSO: Salva executionId (AwxOoJobId), muda para "running"
+   → SE FALHA: Agenda retry (LaunchAttempts++, muda para "retry_pending")
    ↓
 5. PollingWorker inicia loop (a cada 5 segundos)
-   → Obtém execuções com status "pending" ou "running"
-   → Para cada uma: HTTP GET para consultar status em AWX/OO
-   → Atualiza AwxOoExecutionStatus, PollingAttempts, LastPolledAtUtc
+   
+   5a. Para execuções "retry_pending":
+       → Verifica se NextLaunchAttemptAtUtc <= now
+       → Se sim e LaunchAttempts < MaxAttempts (5): relança SendToAwxOoAsync()
+       → Se LaunchAttempts >= MaxAttempts: marca como "failed" e publica erro
+   
+   5b. Para execuções "running":
+       → HTTP GET para consultar status em AWX/OO
+       → Atualiza AwxOoExecutionStatus, PollingAttempts, LastPolledAtUtc
    ↓
 6. Quando status muda para "successful" ou "COMPLETED"
    → JobExecutionService publica RequestStatusUpdatedEvent
    → Requests consome e atualiza status da requisição
    ↓
-7. Se falhar ou timeout (1440 tentativas)
+7. Se falhar ou timeout (1440 tentativas de polling ou 5 tentativas de launch)
    → Marca como "failed"
    → Publica RequestStatusUpdatedEvent com erro
    → Requests atualiza requisição como Failed
@@ -446,7 +460,15 @@ dotnet run
     "Host": "rabbitmq",
     "Username": "guest",
     "Password": "guest"
+  },,
+    "AllowInvalidSsl": false
   },
+  "Orchestrator": {
+    "LaunchRetry": {
+      "MaxAttempts": 5,
+      "BaseDelaySeconds": 5,
+      "MaxDelaySeconds": 120
+    }
   "ExternalServices": {
     "AwxBaseUrl": "https://awx.example.com",
     "AwxUsername": "admin",
@@ -456,11 +478,19 @@ dotnet run
     "OoPassword": "password"
   }
 }
+  ExternalServices__AllowInvalidSsl: ${ALLOW_INVALID_SSL:-false}
+  Orchestrator__LaunchRetry__MaxAttempts: ${LAUNCH_RETRY_MAX:-5}
+  Orchestrator__LaunchRetry__BaseDelaySeconds: ${LAUNCH_RETRY_BASE_DELAY:-5}
+  Orchestrator__LaunchRetry__MaxDelaySeconds: ${LAUNCH_RETRY_MAX_DELAY:-120}
 ```
 
-## ⚙️ Variáveis de Ambiente (docker-compose)
+Use:
+```bash
+# Ignorar SSL inválido em dev/test
+ALLOW_INVALID_SSL=true AWX_HOST=https://awx-real.com podman-compose up -d
 
-```yaml
+# Customizar retry (3 tentativas, delay maior)
+LAUNCH_RETRY_MAX=3 LAUNCH_RETRY_BASE_DELAY=10
 environment:
   ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example.com}
   ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example.com}
@@ -493,15 +523,47 @@ curl -X POST http://localhost:15672/api/exchanges/%2F/RequestCreated/publish \
   -H "Content-Type: application/json" \
   -d '{
     "routing_key": "test",
-    "properties": {},
-    "payload": "{\"RequestId\":\"a62af38d-ab5e-44a3-a568-584ffc46dd28\",\"ExecutionTargetType\":0}",
-    "payload_encoding": "string"
-  }'
+    SSL Certificate Validation Error
+**Sintoma:** `Handshake failure` ou `unable to verify the first certificate`
+
+**Solução:** Ativar `AllowInvalidSsl=true` em appsettings ou variável de ambiente:
+```bash
+ALLOW_INVALID_SSL=true podman-compose up -d
 ```
 
-## 🔍 Troubleshooting
+**⚠️ Atenção:** Use apenas em desenvolvimento/teste com certificados auto-assinados. Em produção, resolva o certificado.
+
+---
+
+### Launch falha mas não relança
+**Sintoma:** JobExecution fica com `ExecutionStatus=failed` imediatamente após erro
+
+**Verificar:**
+- Logs do consumer: `podman logs orca-orchestrator-api | grep "SendToAwxOoAsync"`
+- Verificar `LaunchAttempts` no banco: `SELECT "Id", "LaunchAttempts", "ExecutionStatus" FROM "JobExecutions" ORDER BY "CreatedAtUtc" DESC LIMIT 5;`
+- Se `LaunchAttempts > 0` e status é `retry_pending`, o retry está funcionando
+
+---
+
+### Retry não acontece
+**Sintoma:** Status permanece `retry_pending` indefinidamente
+
+**Verificar:**
+- PollingWorker está rodando: `podman logs orca-orchestrator-api | grep "PollingWorker"`
+- `NextLaunchAttemptAtUtc` está no passado: `SELECT "NextLaunchAttemptAtUtc" FROM "JobExecutions" WHERE "ExecutionStatus"='retry_pending';`
+- `LaunchAttempts < MaxAttempts` (default 5): verifique configuração em appsettings
+
+---
 
 ### PollingWorker não está rodando
+- Verificar logs: `podman logs orca-orchestrator-api | grep "PollingWorker"`
+- Confirmar que não há erro de DI no Program.cs
+- Verificar se está em debug mode
+
+### Polling não atualiza status
+- Verificar AWX/OO está acessível: `curl https://awx.example.com/api/v2/`
+- Verificar credenciais em appsettings.json
+- Verificar que AwxOoJobId foi salvo no banco (execuções com `ExecutionStatus=running`)
 - Verificar logs: `podman logs orca-orchestrator-api | grep "PollingWorker"`
 - Confirmar que não há erro de DI no Program.cs
 - Verificar se está em debug mode

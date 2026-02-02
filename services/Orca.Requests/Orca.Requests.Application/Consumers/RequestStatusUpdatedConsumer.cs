@@ -1,21 +1,20 @@
 using MassTransit;
 using Orca.SharedContracts.Events;
 using Orca.Requests.Application.Requests;
-using Orca.Requests.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace Orca.Requests.Application.Consumers;
 
 public class RequestStatusUpdatedConsumer : IConsumer<RequestStatusUpdatedEvent>
 {
-    private readonly IRequestRepository _repository;
+    private readonly IRequestService _requestService;
     private readonly ILogger<RequestStatusUpdatedConsumer> _logger;
 
     public RequestStatusUpdatedConsumer(
-        IRequestRepository repository,
+        IRequestService requestService,
         ILogger<RequestStatusUpdatedConsumer> logger)
     {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _requestService = requestService ?? throw new ArgumentNullException(nameof(requestService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -24,50 +23,33 @@ public class RequestStatusUpdatedConsumer : IConsumer<RequestStatusUpdatedEvent>
         var message = context.Message;
         
         _logger.LogInformation(
-            "Recebido evento RequestStatusUpdated para Request {RequestId} com Status {Status}",
+            "📨 RequestStatusUpdatedConsumer recebeu evento: RequestId={RequestId}, Status={Status}",
             message.RequestId, message.Status);
 
         try
         {
-            // Busca a request existente
-            var request = await _repository.GetByIdAsync(message.RequestId);
-            
-            if (request == null)
-            {
-                _logger.LogWarning("Request {RequestId} não encontrada", message.RequestId);
-                return;
-            }
+            // Atualizar status do Request via Service
+            await _requestService.UpdateStatusAsync(
+                requestId: message.RequestId,
+                status: message.Status,
+                errorMessage: message.ErrorMessage,
+                completedAtUtc: message.Status == 2 || message.Status == 3 
+                    ? message.UpdatedAtUtc 
+                    : null
+            );
 
-            // Atualiza os campos baseado no evento
-            request.Status = (Orca.Requests.Domain.Entities.RequestStatus)message.Status;
-            request.ResultType = message.ResultType.HasValue 
-                ? (Orca.Requests.Domain.Entities.ExecutionResultType)message.ResultType 
-                : null;
-            request.AwxOoExecutionStatus = message.AwxOoExecutionStatus;
-            request.ExecutionId = message.ExecutionId;
-            request.ErrorMessage = message.ErrorMessage;
-
-            // Atualiza timestamps baseado no status
-            if (message.Status == 1) // Running
-            {
-                request.StartedAtUtc = message.UpdatedAtUtc;
-            }
-            else if (message.Status == 2 || message.Status == 3) // Success ou Failed
-            {
-                request.CompletedAtUtc = message.UpdatedAtUtc;
-            }
-
-            // Salva no banco
-            await _repository.UpdateAsync(request);
-            
             _logger.LogInformation(
-                "Request {RequestId} atualizada com sucesso para Status {Status}",
+                "✅ Request {RequestId} atualizado para status {Status}",
                 message.RequestId, message.Status);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao processar RequestStatusUpdatedEvent para Request {RequestId}", message.RequestId);
-            throw; // MassTransit vai fazer retry automático
+            _logger.LogError(ex,
+                "❌ Erro ao processar RequestStatusUpdatedEvent para RequestId={RequestId}",
+                message.RequestId);
+            
+            // Não relançar - permitir que mensagem seja marcada como processada
+            // (evita loop infinito se o Request não existir)
         }
     }
 }

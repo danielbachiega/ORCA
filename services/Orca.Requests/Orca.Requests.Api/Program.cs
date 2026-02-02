@@ -41,7 +41,12 @@ builder.Services.AddMassTransit(x =>
             h.Password(builder.Configuration["RabbitMq:Password"] ?? "guest");
         });
 
-        // Configurar endpoints para consumers
+        // 📨 Configurar endpoint para RequestStatusUpdatedEvent
+        cfg.ReceiveEndpoint("requests-status-updated", e =>
+        {
+            e.ConfigureConsumer<RequestStatusUpdatedConsumer>(context);
+        });
+
         cfg.ConfigureEndpoints(context);
     });
 });

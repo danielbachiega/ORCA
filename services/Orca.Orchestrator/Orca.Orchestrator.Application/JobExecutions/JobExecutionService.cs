@@ -6,6 +6,7 @@ using Orca.Orchestrator.Domain.Repositories;
 using Orca.Orchestrator.Application.Clients;
 using Orca.Orchestrator.Application.Clients.Dtos;
 using Orca.SharedContracts.Events;
+using Microsoft.Extensions.Options;
 
 namespace Orca.Orchestrator.Application.JobExecutions;
 
@@ -16,6 +17,7 @@ public class JobExecutionService : IJobExecutionService
     private readonly IExecutionClient _ooClient;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<JobExecutionService> _logger;
+    private readonly LaunchRetryOptions _retryOptions;
     
     private const int MAX_POLLING_ATTEMPTS = 1440;  // 2h com 5s de intervalo
 
@@ -24,13 +26,15 @@ public class JobExecutionService : IJobExecutionService
         IExecutionClient awxClient,
         IExecutionClient ooClient,
         IPublishEndpoint publishEndpoint,
-        ILogger<JobExecutionService> logger)
+        ILogger<JobExecutionService> logger,
+        IOptions<LaunchRetryOptions> retryOptions)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _awxClient = awxClient ?? throw new ArgumentNullException(nameof(awxClient));
         _ooClient = ooClient ?? throw new ArgumentNullException(nameof(ooClient));
         _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _retryOptions = retryOptions?.Value ?? throw new ArgumentNullException(nameof(retryOptions));
     }
 
     public async Task<JobExecution> CreateJobExecutionAsync(
@@ -65,15 +69,20 @@ public class JobExecutionService : IJobExecutionService
         _logger.LogInformation(
             "📤 SendToAwxOoAsync JobExecutionId={JobExecutionId} TargetType={TargetType}",
             jobExecution.Id, jobExecution.ExecutionTargetType);
+        var payload = string.Empty;
 
         try
         {
             // 🔧 Prepara payload baseado no alvo
-            var payload = jobExecution.ExecutionTargetType == 0
+            payload = jobExecution.ExecutionTargetType == 0
                 ? PrepareAwxPayload(formData, jobExecution.ExecutionResourceType)
                 : PrepareOoPayload(formData, jobExecution.ExecutionResourceId);
 
             _logger.LogInformation("📦 Payload preparado: {Payload}", payload);
+
+            // Salva payload para auditoria
+            jobExecution.ExecutionPayload = payload;
+            await _repository.UpdateAsync(jobExecution);
 
             // ✅ Seleciona cliente correto
             var client = jobExecution.ExecutionTargetType == 0 ? _awxClient : _ooClient;
@@ -90,6 +99,9 @@ public class JobExecutionService : IJobExecutionService
 
             //  Salva o executionId na entidade para polling posterior
             jobExecution.AwxOoJobId = executionId;
+            jobExecution.ExecutionResponse = response;
+            jobExecution.ExecutionStatus = "running";
+            jobExecution.SentToAwxOoAtUtc = DateTime.UtcNow;
             await _repository.UpdateAsync(jobExecution);
 
             return (executionId, payload, response);
@@ -98,7 +110,32 @@ public class JobExecutionService : IJobExecutionService
         {
             _logger.LogError(ex, "❌ SendToAwxOoAsync erro para JobExecutionId={JobExecutionId}",
                 jobExecution.Id);
-            throw;
+
+            jobExecution.LaunchAttempts++;
+            jobExecution.LastLaunchError = ex.Message;
+
+            // Calcula delay com backoff exponencial
+            var delaySeconds = Math.Min(
+                _retryOptions.BaseDelaySeconds * Math.Pow(2, jobExecution.LaunchAttempts - 1),
+                _retryOptions.MaxDelaySeconds);
+            
+            jobExecution.NextLaunchAttemptAtUtc = DateTime.UtcNow.AddSeconds(delaySeconds);
+            jobExecution.ExecutionStatus = "retry_pending";
+            
+            if (!string.IsNullOrWhiteSpace(payload))
+            {
+                jobExecution.ExecutionPayload = payload;
+            }
+
+            _logger.LogWarning(
+                "🔄 Agendando retry {Attempt}/{Max} para JobExecutionId={JobExecutionId} em {Delay}s",
+                jobExecution.LaunchAttempts, _retryOptions.MaxAttempts, jobExecution.Id, delaySeconds);
+
+            await _repository.UpdateAsync(jobExecution);
+            
+            // NÃO publica evento ainda (vai tentar de novo)
+            // NÃO faz throw (para não quebrar o consumer)
+            return (string.Empty, payload, string.Empty);
         }
     }
 
@@ -120,7 +157,46 @@ public class JobExecutionService : IJobExecutionService
                     execution.Id);
                 continue;
             }
+            // 🔄 Lógica de RETRY do Launch
+            if (execution.ExecutionStatus == "retry_pending")
+            {
+                if (execution.LaunchAttempts >= _retryOptions.MaxAttempts)
+                {
+                    _logger.LogWarning(
+                        "⏹️ JobExecutionId={JobExecutionId} excedeu limite de relançamento ({Attempts})",
+                        execution.Id, execution.LaunchAttempts);
 
+                    execution.ExecutionStatus = "failed";
+                    execution.ErrorMessage = $"Falha ao disparar após {execution.LaunchAttempts} tentativas";
+                    execution.CompletedAtUtc = DateTime.UtcNow;
+                    await _repository.UpdateAsync(execution);
+                    await PublishStatusUpdateAsync(execution, "failed", null);
+                    continue;
+                }
+
+                if (execution.NextLaunchAttemptAtUtc.HasValue &&
+                    execution.NextLaunchAttemptAtUtc.Value > DateTime.UtcNow)
+                {
+                    _logger.LogDebug(
+                        "⏭️ JobExecutionId={JobExecutionId} aguardando próxima tentativa em {NextAttempt}",
+                        execution.Id, execution.NextLaunchAttemptAtUtc.Value);
+                    continue;
+                }
+
+                _logger.LogInformation(
+                    "🔄 Relançando JobExecutionId={JobExecutionId} (tentativa {Attempt})",
+                    execution.Id, execution.LaunchAttempts + 1);
+
+                try
+                {
+                    await SendToAwxOoAsync(execution, execution.ExecutionPayload ?? "{}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "❌ Falha ao relançar JobExecutionId={JobExecutionId}", execution.Id);
+                }
+                continue;
+            }
             // ⚠️ Verifica limite de tentativas (2h = 1440 tentativas)
             if (execution.PollingAttempts >= MAX_POLLING_ATTEMPTS)
             {
@@ -138,11 +214,26 @@ public class JobExecutionService : IJobExecutionService
                 continue;
             }
 
+            if (string.IsNullOrWhiteSpace(execution.AwxOoJobId))
+            {
+                _logger.LogWarning(
+                    "⚠️ JobExecutionId={JobExecutionId} sem ExecutionId para polling",
+                    execution.Id);
+
+                execution.ExecutionStatus = "failed";
+                execution.ErrorMessage = "Sem ExecutionId para polling (falha no disparo)";
+                execution.CompletedAtUtc = DateTime.UtcNow;
+                await _repository.UpdateAsync(execution);
+
+                await PublishStatusUpdateAsync(execution, "failed", null);
+                continue;
+            }
+
             try
             {
                 // 🔍 Consulta status no AWX/OO
                 var client = execution.ExecutionTargetType == 0 ? _awxClient : _ooClient;
-                var status = await client.GetStatusAsync(execution.AwxOoJobId!.ToString());
+                var status = await client.GetStatusAsync(execution.AwxOoJobId.ToString());
 
                 _logger.LogInformation(
                     "📊 Polling JobExecutionId={JobExecutionId} Status={Status}",

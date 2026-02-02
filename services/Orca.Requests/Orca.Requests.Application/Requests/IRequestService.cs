@@ -12,5 +12,6 @@ public interface IRequestService
     // Comandos (recebem DTOs de entrada, retornam DTOs de saída)
     Task<RequestDetailsDto> CreateAsync(CreateRequestDto dto);
     Task<RequestDetailsDto> UpdateAsync(UpdateRequestDto dto);
+    Task UpdateStatusAsync(Guid requestId, int status, string? errorMessage = null, DateTime? completedAtUtc = null);
     Task DeleteAsync(Guid id);
 }

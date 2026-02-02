@@ -1,0 +1,16 @@
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/bin/Release/net8.0/Orca.Requests.Infrastructure.deps.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/bin/Release/net8.0/Orca.Requests.Infrastructure.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/bin/Release/net8.0/Orca.Requests.Infrastructure.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/bin/Release/net8.0/Orca.Requests.Domain.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/bin/Release/net8.0/Orca.Requests.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.csproj.AssemblyReference.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.AssemblyInfoInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.AssemblyInfo.cs
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.csproj.CoreCompileInputs.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.sourcelink.json
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.csproj.CopyComplete
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/refint/Orca.Requests.Infrastructure.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/Orca.Requests.Infrastructure.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Requests/Orca.Requests.Infrastructure/obj/Release/net8.0/ref/Orca.Requests.Infrastructure.dll

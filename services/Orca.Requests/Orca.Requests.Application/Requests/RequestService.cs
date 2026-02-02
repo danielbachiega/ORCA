@@ -100,4 +100,32 @@ public class RequestService : IRequestService
     {
         await _repository.DeleteAsync(id);
     }
-}
+
+    public async Task UpdateStatusAsync(Guid requestId, int status, string? errorMessage = null, DateTime? completedAtUtc = null)
+    {
+        var request = await _repository.GetByIdAsync(requestId);
+        
+        if (request == null)
+        {
+            _logger.LogWarning("Request {RequestId} não encontrada para atualizar status", requestId);
+            return;
+        }
+
+        // Mapear status int → enum
+        request.Status = (Domain.Entities.RequestStatus)status;
+        request.ErrorMessage = errorMessage;
+
+        // Atualizar timestamps baseado no status
+        if (status == 1) // Running
+        {
+            request.StartedAtUtc ??= DateTime.UtcNow;
+        }
+        else if (status == 2 || status == 3) // Success ou Failed
+        {
+            request.CompletedAtUtc = completedAtUtc ?? DateTime.UtcNow;
+        }
+
+        await _repository.UpdateAsync(request);
+        
+        _logger.LogInformation("Request {RequestId} atualizada para Status {Status}", requestId, status);
+    }}
