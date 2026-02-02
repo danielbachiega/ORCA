@@ -12,6 +12,37 @@ public class LdapClient : ILdapClient
         _logger = logger;
     }
 
+    public async Task<bool> ValidateCredentialsAsync(string username, string password)
+    {
+        // ⚠️ MOCK: Em produção, validar via LDAP.DirectoryServices
+        // Por enquanto: credenciais mock para testes
+
+        _logger.LogInformation("Validando credenciais LDAP para usuário: {Username}", username);
+
+        await Task.Delay(50); // Simula latência de LDAP
+
+        // Mock: credenciais predefinidas para testes
+        var isValid = (username, password) switch
+        {
+            ("superadmin", "Orca@2026") => true,  // Superadmin padrão
+            ("admin", "admin123") => true,        // Admin de teste
+            ("editor", "editor123") => true,      // Editor de teste
+            ("consumer", "consumer123") => true,  // Consumer de teste
+            _ => !string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password) // Fallback: aceita qualquer
+        };
+
+        if (isValid)
+        {
+            _logger.LogInformation("Credenciais válidas para usuário: {Username}", username);
+        }
+        else
+        {
+            _logger.LogWarning("Credenciais inválidas para usuário: {Username}", username);
+        }
+
+        return isValid;
+    }
+
     public async Task<List<string>> GetUserGroupsAsync(string username)
     {
         // ⚠️ MOCK: Em produção, conectar via LDAP.DirectoryServices

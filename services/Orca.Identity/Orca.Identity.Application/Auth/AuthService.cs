@@ -29,22 +29,25 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
     {
-        // 1️⃣ Validar token OIDC
-        var claims = await _oidcValidator.ValidateTokenAsync(request.IdToken)
-            ?? throw new UnauthorizedAccessException("Token OIDC inválido");
+        // 1️⃣ Validar credenciais no LDAP
+        var isValid = await _ldapClient.ValidateCredentialsAsync(request.Username, request.Password);
+        if (!isValid)
+        {
+            throw new UnauthorizedAccessException("Credenciais inválidas");
+        }
 
         // 2️⃣ Consultar LDAP para obter grupos do usuário
-        var ldapGroups = await _ldapClient.GetUserGroupsAsync(claims.Username);
+        var ldapGroups = await _ldapClient.GetUserGroupsAsync(request.Username);
 
         // 3️⃣ Buscar ou criar usuário
-        var user = await _userRepository.GetByUsernameAsync(claims.Username);
+        var user = await _userRepository.GetByUsernameAsync(request.Username);
         if (user == null)
         {
             user = new User
             {
                 Id = Guid.NewGuid(),
-                Username = claims.Username,
-                Email = claims.Email,
+                Username = request.Username,
+                Email = $"{request.Username}@orca.local", // Fallback se LDAP não retornar email
                 LdapGroups = ldapGroups,
                 LastLoginAtUtc = DateTime.UtcNow
             };

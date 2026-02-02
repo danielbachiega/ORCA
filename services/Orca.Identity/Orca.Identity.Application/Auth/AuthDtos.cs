@@ -2,7 +2,8 @@ namespace Orca.Identity.Application.Auth;
 
 // Requisição de login
 public record LoginRequestDto(
-    string IdToken  // Token OIDC do frontend
+    string Username,  // Username ou Email
+    string Password   // Password
 );
 
 // Resposta de login

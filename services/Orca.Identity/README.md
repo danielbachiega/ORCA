@@ -71,10 +71,10 @@ public class User
 ## 🚀 Fluxo de Login
 
 ```
-1. Frontend → POST /api/auth/login { idToken }
+1. Frontend → POST /api/auth/login { username, password }
                           ↓
-2. OidcValidator.ValidateTokenAsync()
-   └─ Decodifica JWT e extrai: username, email, sub
+2. LdapClient.ValidateCredentialsAsync(username, password)
+   └─ Valida credenciais no LDAP/AD
                           ↓
 3. LdapClient.GetUserGroupsAsync(username)
    └─ Consulta LDAP/AD → retorna grupos do usuário
@@ -100,7 +100,7 @@ public class User
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `POST` | `/api/auth/login` | Login com OIDC token |
+| `POST` | `/api/auth/login` | Login com username/password |
 | `GET` | `/api/auth/me?userId={id}` | Info do usuário autenticado |
 | `POST` | `/api/auth/logout` | Logout |
 
@@ -126,17 +126,27 @@ Este é o usuário padrão criado no banco de dados. Perfeito para **primeiro lo
 
 **Dados do SuperAdmin:**
 - **Username:** `superadmin`
+- **Password:** `Orca@2026`
 - **Email:** `admin@orca.local`
 - **Roles:** Admin (com todos os acessos)
 - **Grupos LDAP:** Admins
 
-**Como logar:**
+**Credenciais de Teste:**
+| Username | Password | Roles |
+|----------|----------|-------|
+| `superadmin` | `Orca@2026` | Admin |
+| `admin` | `admin123` | Admin |
+| `editor` | `editor123` | Editor |
+| `consumer` | `consumer123` | Consumer |
+
+**Como logar via cURL:**
 
 ```bash
 curl -X POST http://localhost:5002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "idToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzdXBlcmFkbWluIiwiZW1haWwiOiJhZG1pbkBvcmNhLmxvY2FsIiwic3ViIjoic3VwZXJhZG1pbiJ9.mock"
+    "username": "superadmin",
+    "password": "Orca@2026"
   }'
 ```
 

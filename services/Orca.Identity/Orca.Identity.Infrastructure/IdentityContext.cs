@@ -117,6 +117,9 @@ public class IdentityContext : DbContext
         // Seed de Super User
         var superUserId = Guid.Parse("99999999-9999-9999-9999-999999999999");
 
+        // ⚠️ CREDENCIAIS MOCK (LdapClient):
+        // Username: "superadmin"
+        // Password: "Orca@2026"
         builder.Entity<User>().HasData(
             new User
             {

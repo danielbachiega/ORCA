@@ -98,6 +98,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// CORS (para o frontend acessar)
+builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
+    .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:80", "http://localhost")
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
+
 var app = builder.Build();
 
 
@@ -115,6 +121,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
+app.UseCors("DevCors");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

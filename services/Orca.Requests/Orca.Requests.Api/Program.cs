@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
-    .WithOrigins("http://localhost:5173", "http://localhost:8080", "http://localhost:80", "http://localhost")
+    .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:80", "http://localhost")
     .AllowAnyHeader()
     .AllowAnyMethod()));
 builder.Services.AddControllers();
