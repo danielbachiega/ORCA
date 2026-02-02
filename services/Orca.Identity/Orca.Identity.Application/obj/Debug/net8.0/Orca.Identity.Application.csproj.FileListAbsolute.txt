@@ -10,3 +10,7 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/refint/Orca.Identity.Application.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.pdb
 /home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/ref/Orca.Identity.Application.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/bin/Debug/net8.0/Orca.Identity.Domain.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/bin/Debug/net8.0/Orca.Identity.Domain.pdb
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.csproj.AssemblyReference.cache
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Application/obj/Debug/net8.0/Orca.Identity.Application.csproj.CopyComplete

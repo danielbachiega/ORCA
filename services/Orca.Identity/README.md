@@ -1,108 +1,430 @@
 # 🛡️ Orca.Identity Service
 
-## Visão Geral
+## 🎯 Visão Geral
 
-O Orca.Identity é o serviço responsável por autenticação, autorização e resolução de roles dinâmicas no ORCA, integrando OIDC, LDAP (Windows AD) e RBAC customizável. Ele segue Clean Architecture (Domain/Application/Infrastructure/Api) e permite:
+O Orca.Identity é o serviço responsável por **autenticação, autorização e resolução de roles dinâmicas** no ORCA. Ele integra:
 
-- Login via OIDC (mock ou provedor real)
-- Consulta de grupos do usuário no AD via LDAP
-- Mapeamento dinâmico de grupos AD para roles internas (persistidas no banco)
-- CRUD de roles (nome, grupos AD vinculados, tipo de acesso, ofertas visíveis)
-- Gestão de sessão e cache de claims
-- Endpoints REST: login, logout, user info
+- ✅ **OIDC** (mock ou provedor real: Auth0, Azure AD, Google, etc)
+- ✅ **LDAP** (mock ou Active Directory corporativo)
+- ✅ **RBAC Customizável** com mapeamento dinâmico de grupos → roles
+- ✅ **JWT de Sessão** com claims de roles
+- ✅ **CRUD de Roles** com persistência no PostgreSQL
 
----
-
-## Arquitetura
+## 🏗️ Arquitetura Clean
 
 ```
-API (Controllers)
-  └─ Application (Services, DTOs)
-      └─ Infrastructure (LdapClient, UserRepository)
-          └─ Domain (Entities: User, Role, OfferRole)
+┌─────────────────────────┐
+│    API Layer (REST)     │  ← Controllers, Middleware, Program.cs
+├─────────────────────────┤
+│  Application Layer      │  ← Services, DTOs, Interfaces
+├─────────────────────────┤
+│  Infrastructure Layer   │  ← DbContext, Repositories, LDAP, OIDC
+├─────────────────────────┤
+│   Domain Layer (Core)   │  ← Entities, Enums, Business Rules
+└─────────────────────────┘
 ```
 
-- **User**: representa o usuário autenticado, suas roles e grupos AD
-- **Role**: role interna do ORCA, vinculada a grupos AD e ofertas visíveis
-- **OfferRole**: join entre Offer e Role (ofertas visíveis por role)
+**Benefícios:**
+- 🔄 **Independente de BD**: trocar PostgreSQL por SQL Server sem alterar Application
+- 🔌 **Independente de LDAP**: mockar para testes, trocar para AD real em produção
+- 🧪 **Testável**: cada camada isolada, fácil mockar dependências
 
 ---
 
-## Fluxo de Login
+## 📋 Entidades Principais
 
-1. Frontend envia OIDC idToken para `/auth/login`
-2. API valida token (mock: extrai claims)
-3. Consulta LDAP para obter grupos AD do usuário
-4. Busca roles no banco e verifica quais grupos AD do usuário batem com as roles cadastradas
-5. Monta lista de roles do usuário
-6. Gera JWT de sessão com claims
-7. Retorna LoginResponseDto (sessionToken, user, expiresAt)
-
----
-
-## CRUD de Roles
-
-- Admin pode criar/editar roles:
-  - Nome da role
-  - Lista de grupos AD vinculados (um ou mais)
-  - Tipo de acesso (Admin, Editor, Consumer)
-  - Ofertas visíveis (seleção N:N)
-- Permite RBAC dinâmico e flexível, sem hardcode
-
----
-
-## Exemplo de Entidade Role
-
+### **Role** (Função/Grupo)
 ```csharp
 public class Role
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = default!;
-    public List<string> LdapGroups { get; set; } = new();
+    public string Name { get; set; }              // "Admin", "Editor", "Consumer"
+    public string Description { get; set; }      // "Administradores do sistema"
+    public List<string> LdapGroups { get; set; } // ["Admins", "TI"] - grupos AD vinculados
     public RoleAccessType AccessType { get; set; }
-    public ICollection<OfferRole> Offers { get; set; } = new List<OfferRole>();
 }
 
+[Flags]
 public enum RoleAccessType
 {
-    Admin,
-    Editor,
-    Consumer
+    None = 0,
+    Consumer = 1,  // Pode solicitar execuções
+    Admin = 2,     // Pode criar e gerenciar roles
+    Editor = 4     // Pode criar ofertas
 }
+```
+
+### **User** (Usuário Autenticado)
+```csharp
+public class User
+{
+    public Guid Id { get; set; }
+    public string Username { get; set; }           // Do OIDC
+    public string Email { get; set; }
+    public List<string> LdapGroups { get; set; }   // Grupos do AD
+    public List<Guid> RoleIds { get; set; }        // Roles mapeadas
+    public DateTime LastLoginAtUtc { get; set; }   // Auditoria
+    public bool IsActive { get; set; }
+}
+```
+
+## 🚀 Fluxo de Login
+
+```
+1. Frontend → POST /api/auth/login { idToken }
+                          ↓
+2. OidcValidator.ValidateTokenAsync()
+   └─ Decodifica JWT e extrai: username, email, sub
+                          ↓
+3. LdapClient.GetUserGroupsAsync(username)
+   └─ Consulta LDAP/AD → retorna grupos do usuário
+                          ↓
+4. RoleRepository.GetByLdapGroupAsync()
+   └─ Para cada grupo LDAP, busca roles cadastradas
+                          ↓
+5. UserRepository.AddAsync() ou UpdateAsync()
+   └─ Salva/atualiza usuário com roles mapeadas
+                          ↓
+6. SessionTokenGenerator.GenerateToken()
+   └─ Cria JWT de sessão com claims de roles
+                          ↓
+7. Retorna LoginResponseDto
+   └─ sessionToken, user (info + roles), expiresAt
 ```
 
 ---
 
-## Endpoints
+## 🔐 Endpoints REST
 
-- `POST /auth/login` — Login OIDC + LDAP
-- `GET /auth/me` — Dados do usuário autenticado
-- `POST /auth/logout` — Logout
-- `GET/POST/PUT/DELETE /roles` — CRUD de roles
+### **Autenticação**
 
----
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/api/auth/login` | Login com OIDC token |
+| `GET` | `/api/auth/me?userId={id}` | Info do usuário autenticado |
+| `POST` | `/api/auth/logout` | Logout |
 
-## Passo a Passo de Implementação
+### **Roles**
 
-1. **Domain**: Criar entidades User, Role, OfferRole
-2. **Application**: DTOs, interfaces, serviços de autenticação e roles
-3. **Infrastructure**: LdapClient, UserRepository, persistência
-4. **Api**: Controllers para auth e roles
-5. **Testes**: Validar fluxo de login, roles dinâmicas e visibilidade de ofertas
-
----
-
-## Observações
-
-- O mapeamento de roles é dinâmico: basta cadastrar uma nova role e vincular grupos AD para que usuários desses grupos recebam a role automaticamente no login.
-- O tipo de acesso da role controla permissões administrativas na plataforma.
-- A visibilidade das ofertas é controlada por role, permitindo cenários avançados de RBAC.
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/roles` | Lista todas as roles |
+| `GET` | `/api/roles/{id:guid}` | Busca role por ID |
+| `GET` | `/api/roles/by-name/{name}` | Busca role por nome |
+| `GET` | `/api/roles/by-ldap-group/{ldapGroup}` | Busca roles por grupo LDAP |
+| `POST` | `/api/roles` | Cria nova role |
+| `PUT` | `/api/roles/{id:guid}` | Atualiza role |
+| `DELETE` | `/api/roles/{id:guid}` | Deleta role |
 
 ---
 
-## Roadmap Futuro
+## 🧪 Como Testar
 
-- Integração real com OIDC
-- UI de administração de roles
-- Auditoria de acessos e alterações de roles
-- Cache distribuído para sessões
+### 1️⃣ Login com SuperAdmin (Usuário Local)
+
+Este é o usuário padrão criado no banco de dados. Perfeito para **primeiro login e testes**.
+
+**Dados do SuperAdmin:**
+- **Username:** `superadmin`
+- **Email:** `admin@orca.local`
+- **Roles:** Admin (com todos os acessos)
+- **Grupos LDAP:** Admins
+
+**Como logar:**
+
+```bash
+curl -X POST http://localhost:5002/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzdXBlcmFkbWluIiwiZW1haWwiOiJhZG1pbkBvcmNhLmxvY2FsIiwic3ViIjoic3VwZXJhZG1pbiJ9.mock"
+  }'
+```
+
+**Resposta (200 OK):**
+```json
+{
+  "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "99999999-9999-9999-9999-999999999999",
+    "username": "superadmin",
+    "email": "admin@orca.local",
+    "roles": [
+      {
+        "id": "11111111-1111-1111-1111-111111111111",
+        "name": "Admin",
+        "accessType": "Consumer, Admin, Editor"
+      }
+    ],
+    "ldapGroups": ["Admins"]
+  },
+  "expiresAtUtc": "2026-02-02T19:09:44Z"
+}
+```
+
+**Use o `sessionToken` em chamadas autenticadas como header:**
+```bash
+Authorization: Bearer {sessionToken}
+```
+
+---
+
+### 2️⃣ CRUD de Roles
+
+**Listar todas as roles:**
+```bash
+curl -X GET http://localhost:5002/api/roles
+```
+
+**Criar nova role:**
+```bash
+curl -X POST http://localhost:5002/api/roles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Viewer",
+    "description": "Apenas visualização",
+    "ldapGroups": ["Viewers"],
+    "accessType": 1
+  }'
+```
+
+**Atualizar role:**
+```bash
+curl -X PUT http://localhost:5002/api/roles/33333333-3333-3333-3333-333333333333 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "33333333-3333-3333-3333-333333333333",
+    "name": "Consumer Updated",
+    "description": "Usuários que consomem ofertas",
+    "ldapGroups": ["Users", "Customers"],
+    "accessType": 1
+  }'
+```
+
+**Deletar role:**
+```bash
+curl -X DELETE http://localhost:5002/api/roles/33333333-3333-3333-3333-333333333333
+```
+
+---
+
+## ⚙️ Configuração de LDAP (Para Testes Reais)
+
+### 🔧 Estrutura Atual (Mock)
+
+O `LdapClient` está em **mock** retornando grupos fictícios baseado no username:
+
+```csharp
+public async Task<List<string>> GetUserGroupsAsync(string username)
+{
+    // Mock: retorna grupos diferentes por username
+    var mockGroups = username switch
+    {
+        "admin" => new List<string> { "Admins", "TI", "Developers" },
+        "editor" => new List<string> { "Editors", "Developers" },
+        "consumer" => new List<string> { "Users" },
+        _ => new List<string> { "Users" }
+    };
+    return mockGroups;
+}
+```
+
+### 🔌 Integrar com Active Directory Real
+
+Para usar um **Active Directory corporativo**, siga estes passos:
+
+#### **Passo 1: Instalar pacote LDAP**
+
+```bash
+cd services/Orca.Identity/Orca.Identity.Infrastructure
+dotnet add package System.DirectoryServices
+dotnet add package System.DirectoryServices.AccountManagement
+```
+
+#### **Passo 2: Atualizar `LdapClient.cs`**
+
+Substitua o mock por implementação real:
+
+```csharp
+using System.DirectoryServices;
+using System.DirectoryServices.AccountManagement;
+using Orca.Identity.Domain.Ldap;
+
+namespace Orca.Identity.Infrastructure.Ldap;
+
+public class LdapClient : ILdapClient
+{
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<LdapClient> _logger;
+
+    public LdapClient(IConfiguration configuration, ILogger<LdapClient> logger)
+    {
+        _configuration = configuration;
+        _logger = logger;
+    }
+
+    public async Task<List<string>> GetUserGroupsAsync(string username)
+    {
+        try
+        {
+            var adServer = _configuration["LDAP:Server"] ?? "ldap.example.com";
+            var domain = _configuration["LDAP:Domain"] ?? "example.com";
+            
+            using (var context = new PrincipalContext(ContextType.Domain, adServer, domain))
+            {
+                var userPrincipal = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, username);
+                
+                if (userPrincipal == null)
+                {
+                    _logger.LogWarning("Usuário {Username} não encontrado no LDAP", username);
+                    return new List<string>();
+                }
+
+                var groups = userPrincipal.GetAuthorizationGroups()
+                    .Cast<GroupPrincipal>()
+                    .Select(g => g.Name)
+                    .ToList();
+
+                _logger.LogInformation("Usuário {Username} encontrado com {GroupCount} grupos", username, groups.Count);
+                return groups;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao consultar LDAP para usuário {Username}", username);
+            return new List<string>();
+        }
+    }
+}
+```
+
+#### **Passo 3: Configurar `appsettings.json`**
+
+Adicione as credenciais do AD:
+
+```json
+{
+  "LDAP": {
+    "Server": "ldap.example.com",
+    "Domain": "example.com",
+    "AdminUser": "admin@example.com",
+    "AdminPassword": "senha-secura"
+  }
+}
+```
+
+#### **Passo 4: Registrar no DI**
+
+No `ServiceCollectionExtensions.cs`:
+
+```csharp
+// Antes (mock)
+services.AddScoped<ILdapClient, LdapClient>();
+
+// Depois (real)
+// Já registra automaticamente quando você chama AddScoped<ILdapClient, LdapClient>
+// O construtor recebe IConfiguration injetado automaticamente
+```
+
+#### **Passo 5: Mapear Grupos AD → Roles**
+
+Crie roles no banco vinculadas aos grupos AD reais:
+
+```bash
+curl -X POST http://localhost:5002/api/roles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Developers",
+    "description": "Time de desenvolvimento",
+    "ldapGroups": ["CN=DEV-TEAM,OU=Groups,DC=example,DC=com"],
+    "accessType": 6
+  }'
+```
+
+Agora quando um usuário com grupo "DEV-TEAM" logar, receberá automaticamente a role "Developers".
+
+---
+
+## 📊 Seed de Dados Padrão
+
+Ao iniciar, essas roles são criadas automaticamente:
+
+| ID | Nome | Grupos LDAP | Acesso |
+|----|----|-----------|--------|
+| `11111111...` | **Admin** | Admins, TI | Consumer + Admin + Editor |
+| `22222222...` | **Editor** | Editors, Developers | Consumer + Editor |
+| `33333333...` | **Consumer** | Users | Consumer |
+
+E um usuário de teste:
+
+| ID | Username | Email | Grupos | Roles |
+|----|----|--------|--------|-------|
+| `99999999...` | **superadmin** | admin@orca.local | Admins | Admin |
+
+---
+
+## 🛠️ Stack Técnico
+
+- **.NET 8** - Runtime
+- **PostgreSQL 16** - Banco de dados
+- **Entity Framework Core 8** - ORM
+- **System.DirectoryServices** - LDAP/AD
+- **System.IdentityModel.Tokens.Jwt** - JWT
+- **FluentValidation** - Validação de DTOs
+- **Swagger/OpenAPI** - Documentação
+
+---
+
+## 📁 Estrutura de Projeto
+
+```
+Orca.Identity/
+├── Domain/
+│   ├── Entities/
+│   │   ├── Role.cs
+│   │   └── User.cs
+│   ├── Repositories/
+│   │   ├── IRoleRepository.cs
+│   │   └── IUserRepository.cs
+│   ├── Auth/
+│   │   ├── IOidcValidator.cs
+│   │   └── OidcClaims.cs
+│   └── Ldap/
+│       └── ILdapClient.cs
+│
+├── Application/
+│   ├── Auth/
+│   │   ├── AuthService.cs
+│   │   ├── AuthDtos.cs
+│   │   ├── IAuthService.cs
+│   │   └── ISessionTokenGenerator.cs
+│   └── Roles/
+│       ├── RoleService.cs
+│       ├── RoleDtos.cs
+│       ├── IRoleService.cs
+│       └── Mappings.cs
+│
+├── Infrastructure/
+│   ├── IdentityContext.cs
+│   ├── Repositories/
+│   │   ├── RoleRepository.cs
+│   │   └── UserRepository.cs
+│   ├── Auth/
+│   │   ├── OidcValidator.cs
+│   │   └── SessionTokenGenerator.cs
+│   ├── Ldap/
+│   │   └── LdapClient.cs
+│   ├── Migrations/
+│   │   └── 20260202173607_InitialCreate.cs
+│   └── Extensions/
+│       └── ServiceCollectionExtensions.cs
+│
+└── Api/
+    ├── Controllers/
+    │   ├── RolesController.cs
+    │   └── AuthController.cs
+    ├── Middleware/
+    │   └── GlobalExceptionHandler.cs
+    ├── Program.cs
+    ├── appsettings.json
+    └── Dockerfile
+```
