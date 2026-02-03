@@ -23,24 +23,30 @@ O ORCA Web é o frontend da plataforma ORCA, permitindo que usuários:
 
 ### Features Implementadas ✅
 
-- ✅ Autenticação LDAP com sessão JWT
-- ✅ Dashboard com listagem de ofertas
+- ✅ Autenticação LDAP com sessão JWT + persistência em localStorage
+- ✅ Dashboard com listagem de ofertas role-based
 - ✅ Detalhes de ofertas
-- ✅ Criação de requisições
-- ✅ Listagem de minhas requisições com paginação
-- ✅ Admin: Criar/Editar ofertas
-- ✅ Admin: Controle de visibilidade por roles
+- ✅ Criação de requisições com field mapping
+- ✅ Listagem de minhas requisições com filtro por usuário
+- ✅ Página de detalhes de requisição com auto-refresh
+- ✅ Admin: Criar/Editar/Deletar ofertas
+- ✅ Admin: Gerenciar roles (CRUD, search, paginação, modal)
+- ✅ Admin: Controle de visibilidade de ofertas por roles
+- ✅ User: Página de perfil (info, roles, grupos LDAP)
 - ✅ Protected routes com RBAC
 - ✅ Error handling e loading states
 - ✅ Cache inteligente com TanStack Query
+- ✅ ExecutionTemplate com mapeamento visual de payload
+- ✅ Suporte para string/número em accessType
 
 ### Em Desenvolvimento 🚧
 
-- 🚧 Designer de formulários visual (JSON Schema)
-- 🚧 Renderização dinâmica de formulários
-- 🚧 Integração com AWX/Operations Orchestration
-- 🚧 Histórico de execuções
-- 🚧 Dashboard analytics
+- 🚧 Designer de formulários visual (JSON Schema) - Backend pronto, frontend em desenvolvimento
+- 🚧 Renderização dinâmica de formulários via JSON Schema
+- 🚧 Integração visual com AWX/OO (endpoints já implementados)
+- 🚧 Histórico de execuções detalhado
+- 🚧 Dashboard analytics com métricas
+- 🚧 Export de dados (CSV/JSON)
 
 ## 💻 Stack Tecnológico
 
@@ -222,10 +228,12 @@ docker run -p 3000:3000 orca-web
 
 | Username | Password | Roles | Acesso |
 |----------|----------|-------|--------|
-| superadmin | Orca@2026 | Admin, Editor | Total |
-| admin | admin123 | Admin, Editor | Criar/editar ofertas |
-| editor | editor123 | Editor | Criar ofertas |
-| consumer | consumer123 | Consumer | Ver e requisitar |
+| superadmin | Orca@2026 | Admin, Editor, Consumer | Total - Criar/editar ofertas e roles |
+| admin | admin123 | Admin, Editor, Consumer | Criar e editar ofertas, gerenciar roles |
+| editor | editor123 | Editor, Consumer | Criar ofertas, ver consumidor |
+| consumer | consumer123 | Consumer | Ver e requisitar ofertas |
+
+**Nota:** As credenciais são validadas via **LDAP** no backend. Em desenvolvimento, use as credenciais acima. Em produção, será integrado com Windows Active Directory.
 
 ### Proteção de Rotas
 

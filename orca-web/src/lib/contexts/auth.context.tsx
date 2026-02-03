@@ -54,24 +54,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const storedUser = localStorage.getItem(USER_STORAGE_KEY);
 
         if (storedToken && storedUser) {
-          // Token existe, validar no backend
-          setSessionToken(storedToken);
-          identityService.setToken(storedToken);
-
           try {
+            // Token existe, validar no backend
+            setSessionToken(storedToken);
+            identityService.setToken(storedToken);
+
             const response = await identityService.getMe();
             console.log('✅ getMe response:', response);
             setUser(response);
             setRoles(response.roles || []);
           } catch (err) {
-            console.error('❌ getMe error:', err);
+            console.error('❌ getMe error (token expirado?):', err);
             // Token expirado ou inválido, limpar
             localStorage.removeItem(TOKEN_STORAGE_KEY);
             localStorage.removeItem(USER_STORAGE_KEY);
             setSessionToken(null);
             setUser(null);
             setRoles([]);
+            identityService.clearToken();
           }
+        } else {
+          // Sem token salvo
+          setSessionToken(null);
+          setUser(null);
+          setRoles([]);
         }
       } catch (err) {
         console.error('Erro ao restaurar sessão:', err);

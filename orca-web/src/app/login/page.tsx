@@ -109,7 +109,7 @@ export default function LoginPage() {
                   type="secondary"
                   style={{ fontSize: '12px', display: 'block', marginTop: '8px' }}
                 >
-                  💡 Para testes, use qualquer usuário/senha
+                  💡 Credenciais são validadas no backend (LDAP)
                 </Text>
               </div>
 

@@ -40,12 +40,13 @@ O ORCA é um sistema de **solicitação e execução de automações** onde:
 
 | Serviço | Porta | Responsabilidade | Status |
 |---------|-------|------------------|--------|
-| **Catalog** | 5001 | Gestão de ofertas (CRUD, visibilidade, tags) | ⏳ Em desenvolvimento |
-| **Forms** | 5003 | Schemas JSON, versionamento, ExecutionTemplate (mapeamento) | ⏳ Em desenvolvimento |
+| **Catalog** | 5001 | Gestão de ofertas (CRUD, visibilidade, tags) | ✅ **Completo** |
+| **Forms** | 5003 | Schemas JSON, versionamento, ExecutionTemplate (mapeamento) | ✅ **Completo** |
 | **Identity** | 5002 | **Autenticação OIDC, LDAP, mapeamento dinâmico de roles** | ✅ **Completo** |
-| **Requests** | 5004 | Gestão de solicitações, histórico, eventos | ⏳ Em desenvolvimento |
+| **Requests** | 5004 | Gestão de solicitações, histórico, eventos | ✅ **Completo** |
 | **Orchestrator** | 5005 | **Disparo em AWX/OO**, polling, retry com backoff, tracking | ✅ **Completo** |
 | **SharedContracts** | — | Definições de eventos compartilhados (Message Contracts) | ✅ Disponível |
+| **Frontend (Web)** | 3000 | Next.js - Dashboard, gerenciamento de ofertas e requisições | ✅ **Completo (MVP)** |
 
 ---
 
@@ -708,6 +709,18 @@ src/
 ## 🚀 Roadmap (Core MVP)
 
 - [x] **Auth & RBAC**: ✅ Login OIDC + Consulta LDAP + Mapeamento dinâmico de grupos → roles (Clean Architecture)
-- [ ] **Designer de Mapeamento**: Interface UI para configurar o payload (Form Fields + System Fields + Fixed).
-- [x] **Engine de Orquestração**: ✅ Implementação do disparo Basic Auth e loop de Polling (5s) + Retry exponencial.
-- [ ] **History Dashboard**: Visualização de status e auditoria de solicitações.
+- [x] **Designer de Mapeamento**: ✅ Interface UI para configurar payload (Form Fields + System Fields + Fixed)
+- [x] **Engine de Orquestração**: ✅ Implementação do disparo Basic Auth e loop de Polling (5s) + Retry exponencial
+- [x] **History Dashboard**: ✅ Visualização de status, auditoria e detalhes de solicitações
+- [x] **Frontend MVP**: ✅ Dashboard, gerenciamento de ofertas, requisições, roles e perfil de usuário
+- [x] **Session Persistence**: ✅ localStorage + getMe() para manter sessão ativa ao atualizar página
+- [x] **Password Validation**: ✅ Backend valida credenciais via LDAP
+
+## 🚀 Próximos Passos (Phase 2)
+
+- [ ] **JSON Schema Editor**: UI visual para criar/editar formulários
+- [ ] **Advanced Reporting**: Dashboards com métricas e trends
+- [ ] **Webhook Support**: Notificações de status em tempo real via webhook
+- [ ] **Multi-tenant**: Suporte para múltiplas organizações
+- [ ] **API Documentation**: Auto-generated API docs com exemplos
+- [ ] **Performance**: Cache distribuído com Redis, índices PostgreSQL
