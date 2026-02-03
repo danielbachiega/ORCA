@@ -26,7 +26,15 @@ export interface Role {
   id: string;
   name: string;
   description?: string;
-  accessType: number; // [Flags] RoleAccessType
+  ldapGroups?: string[];
+  accessType: number | string; // Pode vir como número ou string do backend
+}
+
+export interface CreateRoleDto {
+  name: string;
+  description?: string;
+  ldapGroups?: string[];
+  accessType: number;
 }
 
 export interface LoginRequest {

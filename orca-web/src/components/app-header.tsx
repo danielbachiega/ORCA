@@ -10,7 +10,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth.context';
 import { Layout, Button, Avatar, Space, Dropdown, Badge } from 'antd';
-import { LogoutOutlined, UserOutlined, HomeOutlined } from '@ant-design/icons';
+import { LogoutOutlined, UserOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
 const { Header } = Layout;
@@ -18,6 +18,10 @@ const { Header } = Layout;
 export const AppHeader: React.FC = () => {
   const router = useRouter();
   const { user, logout, roles } = useAuth();
+
+  const isAdmin = roles && roles.some((r) =>
+    r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
+  );
 
   const handleLogout = () => {
     logout();
@@ -33,12 +37,22 @@ export const AppHeader: React.FC = () => {
       key: 'profile',
       icon: <UserOutlined />,
       label: 'Perfil',
-      disabled: true,
-    },
-    {
-      type: 'divider',
+      onClick: () => router.push('/dashboard/profile'),
     },
   ];
+
+  if (isAdmin) {
+    menuItems.push({
+      key: 'roles',
+      icon: <SettingOutlined />,
+      label: 'Roles',
+      onClick: () => router.push('/dashboard/admin/roles'),
+    });
+  }
+
+  menuItems.push({
+    type: 'divider',
+  });
 
   menuItems.push({
     key: 'logout',

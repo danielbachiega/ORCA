@@ -7,7 +7,7 @@
 
 import { ApiClient } from '@/lib/utils/api-client';
 import { API_CONFIG } from '@/lib/constants';
-import { LoginResponse, AuthMeResponse, Role } from '@/lib/types';
+import { LoginResponse, AuthMeResponse, Role, CreateRoleDto } from '@/lib/types';
 
 class IdentityService {
   private client: ApiClient;
@@ -52,6 +52,33 @@ class IdentityService {
    */
   async listRoles(): Promise<Role[]> {
     return this.client.get<Role[]>('/api/roles');
+  }
+
+  /**
+   * POST /api/roles
+   * Criar nova role
+   */
+  async createRole(dto: CreateRoleDto): Promise<Role> {
+    return this.client.post<Role>('/api/roles', dto);
+  }
+
+  /**
+   * PUT /api/roles/{id}
+   * Atualizar role
+   */
+  async updateRole(id: string, dto: CreateRoleDto): Promise<Role> {
+    return this.client.put<Role>(`/api/roles/${id}`, {
+      id,
+      ...dto,
+    });
+  }
+
+  /**
+   * DELETE /api/roles/{id}
+   * Deletar role
+   */
+  async deleteRole(id: string): Promise<void> {
+    await this.client.delete(`/api/roles/${id}`);
   }
 
   /**
