@@ -30,6 +30,12 @@ interface FormsManagementModalProps {
   onChange: (fields: FormField[]) => void;
   isLoading?: boolean;
   onSaved?: () => void;
+  executionTargetType?: 0 | 1 | null;
+  onExecutionTargetTypeChange?: (type: 0 | 1 | null) => void;
+  executionResourceType?: 0 | 1 | null;
+  onExecutionResourceTypeChange?: (type: 0 | 1 | null) => void;
+  executionResourceId?: string | null;
+  onExecutionResourceIdChange?: (id: string | null) => void;
 }
 
 export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
@@ -45,6 +51,12 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
   onChange,
   isLoading = false,
   onSaved,
+  executionTargetType = null,
+  onExecutionTargetTypeChange,
+  executionResourceType = null,
+  onExecutionResourceTypeChange,
+  executionResourceId = null,
+  onExecutionResourceIdChange,
 }) => {
   const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
   const isEditing = mode === 'edit' && Boolean(editingFormId);
@@ -76,6 +88,9 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
             version: nextVersion,
             schemaJson,
             isPublished: false,
+            executionTargetType: executionTargetType ?? undefined,
+            executionResourceType: executionResourceType ?? undefined,
+            executionResourceId: executionResourceId ?? undefined,
           }),
         }
       );
@@ -118,6 +133,9 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
             version: currentVersion,
             schemaJson,
             isPublished: currentIsPublished,
+            executionTargetType: executionTargetType ?? undefined,
+            executionResourceType: executionResourceType ?? undefined,
+            executionResourceId: executionResourceId ?? undefined,
           }),
         }
       );
@@ -153,6 +171,9 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
       open={visible}
       onCancel={() => {
         onChange([]);
+        onExecutionTargetTypeChange?.(null);
+        onExecutionResourceTypeChange?.(null);
+        onExecutionResourceIdChange?.(null);
         onClose();
       }}
       width={1000}
@@ -170,7 +191,16 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
       }
     >
       <Spin spinning={isLoading}>
-        <FormBuilder fields={fields} onChange={onChange} />
+        <FormBuilder
+          fields={fields}
+          onChange={onChange}
+          executionTargetType={executionTargetType}
+          onExecutionTargetTypeChange={onExecutionTargetTypeChange}
+          executionResourceType={executionResourceType}
+          onExecutionResourceTypeChange={onExecutionResourceTypeChange}
+          executionResourceId={executionResourceId}
+          onExecutionResourceIdChange={onExecutionResourceIdChange}
+        />
       </Spin>
     </Modal>
   );

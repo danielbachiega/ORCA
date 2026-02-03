@@ -48,6 +48,9 @@ interface FormDefinition {
   createdAtUtc: string;
   updatedAtUtc?: string;
   schemaJson?: string;
+  executionTargetType?: 0 | 1 | null;
+  executionResourceType?: 0 | 1 | null;
+  executionResourceId?: string | null;
 }
 
 function OfferDetailsContent() {
@@ -60,6 +63,9 @@ function OfferDetailsContent() {
   const [editingForm, setEditingForm] = useState<FormDefinition | null>(null);
   const [modalFields, setModalFields] = useState<FormField[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
+  const [executionTargetType, setExecutionTargetType] = useState<0 | 1 | null>(null);
+  const [executionResourceType, setExecutionResourceType] = useState<0 | 1 | null>(null);
+  const [executionResourceId, setExecutionResourceId] = useState<string | null>(null);
   const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
 
   const isAdmin = roles && roles.length > 0 && roles.some((r) =>
@@ -148,6 +154,9 @@ function OfferDetailsContent() {
     setEditingForm(null);
     setFormsModalMode('create');
     setModalFields([]);
+    setExecutionTargetType(null);
+    setExecutionResourceType(null);
+    setExecutionResourceId(null);
     setFormsModalVisible(true);
   };
 
@@ -181,6 +190,9 @@ function OfferDetailsContent() {
         isPublished: details?.isPublished ?? formDef.isPublished,
       });
       setModalFields(parseFieldsFromSchema(details?.schemaJson));
+      setExecutionTargetType(details?.executionTargetType ?? null);
+      setExecutionResourceType(details?.executionResourceType ?? null);
+      setExecutionResourceId(details?.executionResourceId ?? null);
       setFormsModalMode('edit');
       setFormsModalVisible(true);
     } catch {
@@ -517,7 +529,12 @@ function OfferDetailsContent() {
           {/* Forms Management Modal */}
           <FormsManagementModal
             visible={formsModalVisible}
-            onClose={() => setFormsModalVisible(false)}
+            onClose={() => {
+              setFormsModalVisible(false);
+              setExecutionTargetType(null);
+              setExecutionResourceType(null);
+              setExecutionResourceId(null);
+            }}
             offerId={offerId}
             mode={formsModalMode}
             editingFormId={editingForm?.id ?? null}
@@ -528,6 +545,12 @@ function OfferDetailsContent() {
             onChange={setModalFields}
             isLoading={modalLoading}
             onSaved={() => refetchForms()}
+            executionTargetType={executionTargetType}
+            onExecutionTargetTypeChange={setExecutionTargetType}
+            executionResourceType={executionResourceType}
+            onExecutionResourceTypeChange={setExecutionResourceType}
+            executionResourceId={executionResourceId}
+            onExecutionResourceIdChange={setExecutionResourceId}
           />
         </div>
       </Content>

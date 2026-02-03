@@ -54,6 +54,12 @@ export interface FormField {
 interface FormBuilderProps {
   fields: FormField[];
   onChange: (fields: FormField[]) => void;
+  executionTargetType?: 0 | 1 | null; // 0 = AWX, 1 = OO
+  onExecutionTargetTypeChange?: (type: 0 | 1 | null) => void;
+  executionResourceType?: 0 | 1 | null; // 0 = JobTemplate, 1 = Workflow (null para OO)
+  onExecutionResourceTypeChange?: (type: 0 | 1 | null) => void;
+  executionResourceId?: string | null;
+  onExecutionResourceIdChange?: (id: string | null) => void;
 }
 
 const fieldTypes = [
@@ -121,7 +127,16 @@ const PreviewForm: React.FC<PreviewFormProps> = ({ fields, renderFieldPreview })
   );
 };
 
-export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) => {
+export const FormBuilder: React.FC<FormBuilderProps> = ({
+  fields,
+  onChange,
+  executionTargetType = null,
+  onExecutionTargetTypeChange,
+  executionResourceType = null,
+  onExecutionResourceTypeChange,
+  executionResourceId = null,
+  onExecutionResourceIdChange,
+}) => {
   const [editingField, setEditingField] = useState<FormField | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -399,6 +414,138 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                   rows={15}
                   style={{ fontFamily: 'monospace', fontSize: '12px' }}
                 />
+              </Card>
+            ),
+          },
+          {
+            key: 'automation',
+            label: '🤖 Automação',
+            children: (
+              <Card title="Configuração de Automação">
+                <Alert
+                  message="Configure qual aplicação externa (AWX ou OO) este formulário irá disparar"
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: '24px' }}
+                />
+
+                <Form layout="vertical">
+                  <Form.Item
+                    label="Tipo de Alvo"
+                    required
+                    tooltip="Sistema de automação que executará o workflow"
+                  >
+                    <Select
+                      placeholder="Selecione AWX ou Operations Orchestration"
+                      value={executionTargetType}
+                      onChange={(value) => {
+                        onExecutionTargetTypeChange?.(value);
+                        // Limpar tipo de recurso ao mudar alvo
+                        if (value === 1) {
+                          // OO não tem tipos de recurso
+                          onExecutionResourceTypeChange?.(null);
+                        }
+                      }}
+                      options={[
+                        {
+                          label: '🎯 AWX (Ansible Automation Platform)',
+                          value: 0,
+                        },
+                        {
+                          label: '🎯 OO (Operations Orchestration)',
+                          value: 1,
+                        },
+                      ]}
+                      allowClear
+                      onClear={() => {
+                        onExecutionTargetTypeChange?.(null);
+                        onExecutionResourceTypeChange?.(null);
+                        onExecutionResourceIdChange?.(null);
+                      }}
+                    />
+                  </Form.Item>
+
+                  {executionTargetType === 0 && (
+                    <Form.Item
+                      label="Tipo de Recurso (AWX)"
+                      required
+                      tooltip="JobTemplate ou Workflow do AWX"
+                    >
+                      <Select
+                        placeholder="Selecione JobTemplate ou Workflow"
+                        value={executionResourceType}
+                        onChange={onExecutionResourceTypeChange}
+                        options={[
+                          {
+                            label: '📋 Job Template',
+                            value: 0,
+                          },
+                          {
+                            label: '⚙️ Workflow',
+                            value: 1,
+                          },
+                        ]}
+                        allowClear
+                      />
+                    </Form.Item>
+                  )}
+
+                  <Form.Item
+                    label={
+                      executionTargetType === 1
+                        ? 'Flow UUID (OO)'
+                        : 'ID do Recurso (AWX)'
+                    }
+                    required
+                    tooltip={
+                      executionTargetType === 1
+                        ? 'UUID único do Flow no Operations Orchestration'
+                        : 'ID do Job Template ou Workflow no AWX'
+                    }
+                  >
+                    <Input
+                      placeholder={
+                        executionTargetType === 1
+                          ? 'c1234567-89ab-cdef-0123-456789abcdef'
+                          : '12345'
+                      }
+                      value={executionResourceId || ''}
+                      onChange={(e) =>
+                        onExecutionResourceIdChange?.(e.target.value || null)
+                      }
+                    />
+                  </Form.Item>
+
+                  {executionTargetType !== null && executionResourceType !== null && executionResourceId && (
+                    <Card
+                      style={{ marginTop: '24px', backgroundColor: '#f6ffed' }}
+                      size="small"
+                    >
+                      <div style={{ fontSize: '14px' }}>
+                        <div style={{ marginBottom: '8px' }}>
+                          <strong>✅ Resumo da Configuração:</strong>
+                        </div>
+                        <div>
+                          • <strong>Alvo:</strong>{' '}
+                          {executionTargetType === 0
+                            ? 'AWX (Ansible Automation Platform)'
+                            : 'OO (Operations Orchestration)'}
+                        </div>
+                        {executionTargetType === 0 && (
+                          <div>
+                            • <strong>Tipo:</strong>{' '}
+                            {executionResourceType === 0
+                              ? 'Job Template'
+                              : 'Workflow'}
+                          </div>
+                        )}
+                        <div>
+                          • <strong>ID/UUID:</strong> <code>{executionResourceId}</code>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+                </Form>
               </Card>
             ),
           },
