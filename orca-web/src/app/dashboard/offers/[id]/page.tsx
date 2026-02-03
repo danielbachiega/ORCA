@@ -88,6 +88,10 @@ function OfferDetailsContent() {
   const handleCreateRequest = () => {
     // TODO: Implementar formulário de requisição
     // Por enquanto, vai pra página de submissão
+    if (offer?.slug) {
+      router.push(`/dashboard/offers/${offer.slug}/request`);
+      return;
+    }
     router.push(`/dashboard/offers/${offerId}/request`);
   };
 
@@ -137,6 +141,33 @@ function OfferDetailsContent() {
       refetchForms();
     },
   });
+
+  const deleteOfferMutation = useMutation({
+    mutationFn: async () => {
+      if (!offerId) throw new Error('Oferta inválida');
+      await catalogService.deleteOffer(offerId);
+    },
+    onSuccess: () => {
+      message.success('Oferta excluída com sucesso!');
+      router.push('/dashboard');
+    },
+    onError: (error: Error) => {
+      message.error(error.message || 'Erro ao excluir oferta');
+    },
+  });
+
+  const handleDeleteOffer = () => {
+    Modal.confirm({
+      title: 'Excluir oferta?',
+      content: 'Esta ação não pode ser desfeita.',
+      okText: 'Excluir',
+      cancelText: 'Cancelar',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        await deleteOfferMutation.mutateAsync();
+      },
+    });
+  };
 
   const orderedForms = useMemo(() => {
     const publishedForm = forms.find((f: FormDefinition) => f.isPublished);
@@ -276,8 +307,14 @@ function OfferDetailsContent() {
                         <Button
                           icon={<EditOutlined />}
                           onClick={() => router.push(`/dashboard/admin/offers/${offerId}/edit`)}
-                        >
-                          Editar
+                        >                          
+                        </Button>
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          loading={deleteOfferMutation.isPending}
+                          onClick={handleDeleteOffer}
+                        >                        
                         </Button>
                       </>
                     )}
@@ -287,7 +324,7 @@ function OfferDetailsContent() {
                       icon={<SendOutlined />}
                       onClick={handleCreateRequest}
                     >
-                      Criar Requisição
+                      Solicitar
                     </Button>
                   </Space>
                 </div>

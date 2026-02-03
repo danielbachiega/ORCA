@@ -198,7 +198,7 @@ function DynamicFormFields({ fields }: { fields: FormField[] }) {
 function RequestFormContent() {
   const router = useRouter();
   const params = useParams();
-  const offerId = params.id as string;
+  const offerSlug = params.id as string;
   const { user } = useAuth();
   const [form] = Form.useForm();
   const [formData, setFormData] = useState<Record<string, unknown>>({});
@@ -211,8 +211,13 @@ function RequestFormContent() {
     isError: isErrorOffer,
     error: errorOffer,
   } = useQuery({
-    queryKey: ['offers', offerId],
-    queryFn: () => catalogService.getOfferById(offerId),
+    queryKey: ['offers', 'slug', offerSlug],
+    queryFn: async () => {
+      const offers = await catalogService.listOffers();
+      const found = offers.find((o) => o.slug === offerSlug || o.id === offerSlug);
+      if (!found) throw new Error('Oferta não encontrada');
+      return found;
+    },
   });
 
   // Buscar formulário publicado da oferta
@@ -222,12 +227,13 @@ function RequestFormContent() {
     isError: isErrorForm,
     error: errorForm,
   } = useQuery({
-    queryKey: ['forms', offerId, 'published'],
+    queryKey: ['forms', offer?.id, 'published'],
     queryFn: async () => {
-      console.log('🔍 Buscando formulário publicado para oferta:', offerId);
+      if (!offer?.id) return null;
+      console.log('🔍 Buscando formulário publicado para oferta:', offer.id);
       console.log('📍 Forms API Base:', formsApiBase);
       
-      const url = `${formsApiBase}/api/form-definitions/offer/${offerId}/published`;
+      const url = `${formsApiBase}/api/form-definitions/offer/${offer.id}/published`;
       console.log('🌐 URL completa:', url);
       
       const response = await fetch(url);
@@ -251,6 +257,7 @@ function RequestFormContent() {
       
       return data as FormDefinition;
     },
+    enabled: !!offer?.id,
   });
 
   // Pegar apenas o formulário publicado (agora já vem do endpoint correto)
@@ -331,8 +338,9 @@ function RequestFormContent() {
     mutationFn: async () => {
       if (!user) throw new Error('Usuário não autenticado');
 
+      if (!offer?.id) throw new Error('Oferta inválida');
       const result = await requestsService.createRequest({
-        offerId,
+        offerId: offer.id,
         userId: user.id,
         formData,
       });
@@ -444,10 +452,15 @@ function RequestFormContent() {
               {/* Header */}
               <Card style={{ marginBottom: '24px' }}>
                 <div>
-                  <h1>Criar Requisição</h1>
-                  <p style={{ color: '#666' }}>
-                    Oferta: <strong>{offer.name}</strong>
-                  </p>
+                  <div style={{ color: '#999', fontSize: '12px', marginBottom: '6px' }}>
+                    Criar Requisição
+                  </div>
+                  <h1 style={{ marginBottom: '8px' }}>{offer.name}</h1>
+                  {offer.description && (
+                    <p style={{ color: '#666', margin: 0 }}>
+                      {offer.description}
+                    </p>
+                  )}
                 </div>
               </Card>
 
