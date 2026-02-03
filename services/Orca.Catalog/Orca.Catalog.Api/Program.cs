@@ -11,12 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
-    .WithOrigins("http://localhost:8080", "http://localhost:80", "http://localhost")
+    .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:80", "http://localhost")
     .AllowAnyHeader()
     .AllowAnyMethod()));
 builder.Services.AddControllers(); 
-builder.Services.AddValidatorsFromAssemblyContaining<OfferValidator>();
-//builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateOfferDtoValidator>();
+builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddHealthChecks();
 
@@ -32,7 +32,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<Orca.Catalog.Infrastructure.CatalogContext>();
-    dbContext.Database.Migrate();
+    if (app.Environment.IsDevelopment()) {
+        dbContext.Database.Migrate();
+    }
 }
 
 app.UseRouting();
@@ -45,7 +47,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseMiddleware<Orca.Catalog.Api.Middleware.ExceptionHandlingMiddleware>();
-app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 app.Run();

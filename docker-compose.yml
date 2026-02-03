@@ -149,7 +149,8 @@ services:
       ASPNETCORE_URLS: http://+:5005
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_orchestrator
       RabbitMq__Host: rabbitmq
-      AwxHost: ${AWX_HOST:-https://awx.example.com}
+      ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example.com}
+      ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example.com}
     ports:
       - "5005:5005"
     depends_on:
@@ -159,23 +160,25 @@ services:
         condition: service_healthy
     networks:
       - orca-network
-
-  web:
+  
+  orca-web:
     build:
-      context: ./web
+      context: ./orca-web
       dockerfile: Dockerfile
-      args:
-        VITE_CATALOG_API_BASE_URL: http://localhost:5001/api
-        VITE_FORMS_API_BASE_URL: http://localhost:5003/api
     container_name: orca-web
     restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_IDENTITY_API: http://localhost:5002
+      NEXT_PUBLIC_CATALOG_API: http://localhost:5001
+      NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
+      NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
     ports:
-      - "8080:80"
+      - "3000:3000"
     depends_on:
       - catalog-api
-      - forms-api
       - identity-api
       - requests-api
+      - orchestrator-api
     networks:
       - orca-network
 

@@ -22,41 +22,6 @@ namespace Orca.Catalog.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Orca.Catalog.Domain.Entities.FormDefinition", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("JsonSchema")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("OfferId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Rules")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UiSchema")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OfferId");
-
-                    b.ToTable("FormDefinitions");
-                });
-
             modelBuilder.Entity("Orca.Catalog.Domain.Entities.Offer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -84,7 +49,7 @@ namespace Orca.Catalog.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<DateTime?>("UpdateAtUtc")
+                    b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -108,54 +73,6 @@ namespace Orca.Catalog.Infrastructure.Migrations
                     b.ToTable("OfferRoles");
                 });
 
-            modelBuilder.Entity("Orca.Catalog.Domain.Entities.OfferVersion", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ExecutionTemplate")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("JsonSchema")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("OfferId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("UiSchema")
-                        .HasColumnType("text");
-
-                    b.Property<int>("VersionNumber")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OfferId");
-
-                    b.ToTable("OfferVersions");
-                });
-
-            modelBuilder.Entity("Orca.Catalog.Domain.Entities.FormDefinition", b =>
-                {
-                    b.HasOne("Orca.Catalog.Domain.Entities.Offer", "Offer")
-                        .WithMany()
-                        .HasForeignKey("OfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Offer");
-                });
-
             modelBuilder.Entity("Orca.Catalog.Domain.Entities.OfferRole", b =>
                 {
                     b.HasOne("Orca.Catalog.Domain.Entities.Offer", "Offer")
@@ -167,21 +84,8 @@ namespace Orca.Catalog.Infrastructure.Migrations
                     b.Navigation("Offer");
                 });
 
-            modelBuilder.Entity("Orca.Catalog.Domain.Entities.OfferVersion", b =>
-                {
-                    b.HasOne("Orca.Catalog.Domain.Entities.Offer", "Offer")
-                        .WithMany("Versions")
-                        .HasForeignKey("OfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Offer");
-                });
-
             modelBuilder.Entity("Orca.Catalog.Domain.Entities.Offer", b =>
                 {
-                    b.Navigation("Versions");
-
                     b.Navigation("VisibleToRoles");
                 });
 #pragma warning restore 612, 618

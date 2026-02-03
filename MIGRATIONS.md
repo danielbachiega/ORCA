@@ -104,6 +104,96 @@ dotnet ef database update \
 
 **Solução**: Use a flag `--startup-project` apontando para o projeto com Program.cs (a Api).
 
+### Erro: "column [ColumnName] does not exist" no container após rebuild
+**Sintoma**: Container recriado, mas queries falham com erro `42703: column does not exist` (ex: "column JsonSchema does not exist").
+
+**Causa**: Descasamento entre código do container e schema do banco. Pode acontecer de duas formas:
+1. **Container com código ANTIGO + Banco com schema NOVO**: Você aplicou migrations localmente (banco atualizou), mas o container ainda tem código antigo compilado em cache.
+2. **Container com código NOVO + Banco com schema ANTIGO**: Banco criado com migrations antigas, novas migrations não foram aplicadas.
+
+**Solução 1 - Rebuild forçado sem cache (primeira tentativa)**:
+```bash
+# Para e remove container
+podman-compose stop [service-name]-api
+podman rm orca-[service-name]-api
+
+# Rebuild SEM cache (força recompilação completa)
+podman-compose build --no-cache [service-name]-api
+
+# Sobe container
+podman-compose up -d [service-name]-api
+```
+
+**Solução 2 - Dropar volume (DESENVOLVIMENTO - perde todos dados)**:
+```bash
+# Para todos containers
+podman-compose down
+
+# Remove volume do Postgres (perde TODOS os dados de TODOS os serviços)
+podman volume rm orca_pgdata
+
+# Sobe tudo (vai recriar bancos com todas migrations)
+podman-compose up -d
+```
+
+**Solução 3 - Dropar apenas banco específico (preserva outros serviços)**:
+```bash
+# Para containers
+podman-compose down
+
+# Dropa apenas o banco do serviço problemático
+podman run --rm --network orca_orca-network postgres:16 \
+  psql -h postgres -U orca -c "DROP DATABASE IF EXISTS orca_[servicename];"
+
+# Exemplo para Forms:
+podman run --rm --network orca_orca-network postgres:16 \
+  psql -h postgres -U orca -c "DROP DATABASE IF EXISTS orca_forms;"
+
+# Sobe containers (serviço recria banco com todas migrations)
+podman-compose up -d
+```
+
+**Solução 3 - Dropar apenas banco específico (preserva outros serviços)**:
+```bash
+# Para containers
+podman-compose down
+
+# Dropa apenas o banco do serviço problemático
+podman run --rm --network orca_orca-network postgres:16 \
+  psql -h postgres -U orca -c "DROP DATABASE IF EXISTS orca_[servicename];"
+
+# Exemplo para Forms:
+podman run --rm --network orca_orca-network postgres:16 \
+  psql -h postgres -U orca -c "DROP DATABASE IF EXISTS orca_forms;"
+
+# Sobe containers (serviço recria banco com todas migrations)
+podman-compose up -d
+```
+
+**Solução 4 - Verificar e corrigir manualmente (avançado - SE houver dados a preservar)**:
+```bash
+# 1. Verifique o schema atual do banco
+podman exec -it orca-postgres psql -U orca -d orca_[servicename]
+\d "TableName"  # Mostra estrutura da tabela
+
+# 2. Verifique quais migrations foram aplicadas
+SELECT "MigrationId" FROM "__EFMigrationsHistory";
+
+# 3. Se a coluna JÁ existe mas a migration não está registrada:
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion") 
+VALUES ('[timestamp]_[MigrationName]', '8.0.0');
+
+# 4. Se a coluna NÃO existe, execute SQL da migration manualmente
+# (consulte o arquivo em Infrastructure/Migrations/[timestamp]_[name].cs)
+
+\q
+```
+
+**Prevenção**: 
+- Sempre faça rebuild com `--no-cache` após mudanças grandes no código
+- O `Program.cs` aplica automaticamente migrations pendentes via `dbContext.Database.Migrate()` quando o container sobe
+- Em desenvolvimento, prefira dropar volumes quando houver refatorações grandes de schema (evita estados inconsistentes)
+
 ## 🔍 Verificar Migrations Pendentes
 
 Para listar todas as migrations que não foram aplicadas ao banco:

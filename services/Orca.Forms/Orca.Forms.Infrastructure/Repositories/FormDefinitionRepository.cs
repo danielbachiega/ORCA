@@ -38,6 +38,12 @@ namespace Orca.Forms.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<FormDefinition?> GetPublishedByOfferIdAsync(Guid offerId)
+        {
+            return await _context.FormDefinitions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(fd => fd.OfferId == offerId && fd.IsPublished);
+        }
         public async Task<FormDefinition> CreateAsync(FormDefinition formDefinition)
         {
             if (formDefinition == null)

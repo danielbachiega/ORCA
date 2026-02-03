@@ -1,266 +1,713 @@
- # 🐳 ORCA — Orchestrator Catalog Application
+# 🐳 ORCA — Plataforma de Orquestração e Catálogo de Serviços
 
-> Plataforma corporativa de **Catálogo de Serviços** focada em **UX fluida**, **formulários dinâmicos**, **integrações com AWX/OO**, **RBAC com Windows AD** e **histórico de solicitações/execuções**.  
-> O ORCA centraliza a descoberta, a solicitação e a orquestração de automações com governança e escalabilidade.
+> Plataforma corporativa de **Catálogo de Serviços** e **Orquestração de Automações** integrada com **AWX (Ansible)** e **OO (Operations Orchestration)**.  
+> Oferece **UX fluida**, **formulários dinâmicos (JSON Schema)**, **retry inteligente com backoff exponencial**, **RBAC via LDAP**, **polling contínuo** e **rastreamento completo** de execuções.
 
 ---
 
-## 🎯 Objetivos
+## 🎯 Visão Geral
 
-- Permitir que **criadores de ofertas** definam **formulários customizados** (JSON Schema + regras condicionais) e mapeiem respostas para **payloads AWX/OO**.
-- Oferecer ao **usuário solicitante** uma jornada simples para **ver**, **solicitar** e **acompanhar** ofertas às quais tem acesso.
-- Controlar a visibilidade por **RBAC** baseado em **roles** vinculadas a **grupos do Windows AD**.
-- Manter **histórico de solicitações e execuções**, com status em tempo quase real e auditoria.
-- Adotar **boas práticas**: microserviços, Clean Architecture, mensageria, observabilidade, segurança corporativa (AAD), containers e Kubernetes.
+O ORCA é um sistema de **solicitação e execução de automações** onde:
+
+1. **Admins** criam **ofertas** com **formulários dinâmicos** e configuram **como executar** em AWX/OO
+2. **Usuários** solicitam execuções preenchendo os formulários
+3. **Orchestrator** dispara automaticamente em AWX/OO e **monitora o progresso** (polling 5s)
+4. **Retry automático** com backoff exponencial se falhar na primeira tentativa
+5. **Bypass SSL** para ambientes com certificados inválidos
+6. Usuários acompanham o status em **tempo real**
+
+---
+
+## 🏗️ Arquitetura — Microserviços
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Frontend (Next.js)                       │
+├─────────────────────────────────────────────────────────────┤
+│                API Gateway (YARP) — Validação OIDC           │
+├─────────────────────────────────────────────────────────────┤
+│  Catalog   │  Forms   │  Identity  │ Requests │ Orchestrator │
+│  Service   │ Service  │  Service   │ Service  │   Service    │
+│  (Offers)  │ (Schemas)│  (LDAP)    │(Tracking)│ (AWX/OO)    │
+└──────────────────────────────────────────────────────────────┘
+        │        │          │            │            │
+        └────────┴──────────┴────────────┴────────────┘
+                         │
+                    PostgreSQL + RabbitMQ
+```
+
+### 📦 Microserviços
+
+| Serviço | Porta | Responsabilidade | Status |
+|---------|-------|------------------|--------|
+| **Catalog** | 5001 | Gestão de ofertas (CRUD, visibilidade, tags) | ⏳ Em desenvolvimento |
+| **Forms** | 5003 | Schemas JSON, versionamento, ExecutionTemplate (mapeamento) | ⏳ Em desenvolvimento |
+| **Identity** | 5002 | **Autenticação OIDC, LDAP, mapeamento dinâmico de roles** | ✅ **Completo** |
+| **Requests** | 5004 | Gestão de solicitações, histórico, eventos | ⏳ Em desenvolvimento |
+| **Orchestrator** | 5005 | **Disparo em AWX/OO**, polling, retry com backoff, tracking | ✅ **Completo** |
+| **SharedContracts** | — | Definições de eventos compartilhados (Message Contracts) | ✅ Disponível |
+
+---
+
+## 🔄 Fluxo Completo de Execução
+
+### 1️⃣ Preparação (Admin)
+```
+Admin cria Offer → Admin cria FormDefinition (JSON Schema v1)
+                → Admin publica FormDefinition
+                → Admin cria ExecutionTemplate
+                   (mapeamento: campos form → payload AWX/OO)
+```
+
+### 2️⃣ Solicitação (Usuário)
+```
+Usuário preenche formulário → POST /api/requests
+                            → Cria Request (status=Pending)
+                            → Publica RequestCreatedEvent
+```
+
+### 3️⃣ Orquestração (Orchestrator)
+```
+Recebe RequestCreatedEvent
+                    ↓
+Cria JobExecution (status=pending)
+                    ↓
+Prepara payload (form fields + sistema + fixos)
+                    ↓
+HTTP POST para AWX/OO
+         ↓                    ↓
+      SUCESSO            FALHA (rede, SSL, etc)
+         ↓                    ↓
+Salva AwxOoJobId      LaunchAttempts++
+Muda para "running"   Agenda retry (5s, 10s, 20s...)
+Publica evento        Muda para "retry_pending"
+         ↓                    ↓
+        5s depois         Próxima tentativa
+   Inicia polling       (máx 5 tentativas)
+```
+
+### 4️⃣ Polling (PollingWorker — a cada 5s)
+```
+Para cada JobExecution em "running" ou "retry_pending":
+
+SE "retry_pending":
+   ├─ Se NextLaunchAttemptAtUtc <= now:
+   │  └─ Tenta relançar SendToAwxOoAsync()
+   └─ Se LaunchAttempts >= MaxAttempts:
+      └─ Marca como "failed" + publica evento
+
+SE "running":
+   ├─ HTTP GET para consultar status em AWX/OO
+   ├─ Atualiza AwxOoExecutionStatus
+   └─ Se status é "successful" ou "COMPLETED":
+      └─ Marca como "success" + publica evento
+```
+
+### 5️⃣ Feedback (Requests)
+```
+Recebe RequestStatusUpdatedEvent
+                    ↓
+Atualiza Request (status=Running/Success/Failed)
+                    ↓
+Usuário vê atualização no dashboard
+```
+
+---
+
+## 🛠️ Recursos Principais
+
+### ✅ SSL Bypass (Certificados Inválidos)
+Para ambientes com certificados auto-assinados:
+```bash
+# Ativar em dev/test
+ALLOW_INVALID_SSL=true podman-compose up -d
+```
+
+Configura `AllowInvalidSsl=true` em ambos `AwxClient` e `OoClient`.
+
+---
+
+### ✅ Retry Automático com Backoff Exponencial
+Quando o disparo falha por rede, timeout ou erro transitório:
+
+1. **1ª tentativa falha** → agenda 5s depois
+2. **2ª tentativa falha** → agenda 10s depois
+3. **3ª tentativa falha** → agenda 20s depois
+4. **4ª tentativa falha** → agenda 40s depois
+5. **5ª tentativa falha** → agenda 80s depois (máx 120s)
+6. **5 tentativas esgotadas** → marca como `failed`
+
+Configurável em `appsettings.json`:
+```json
+"Orchestrator": {
+  "LaunchRetry": {
+    "MaxAttempts": 5,
+    "BaseDelaySeconds": 5,
+    "MaxDelaySeconds": 120
+  }
+}
+```
+
+---
+
+### ✅ Polling Contínuo
+**PollingWorker** (BackgroundService) roda continuamente:
+- Executa a cada **5 segundos**
+- Máximo **1440 tentativas** = 2 horas de timeout
+- Respeita intervalo: não consulta 2 vezes em menos de 5s
+- Aguarda relançamento se em `retry_pending`
+
+---
+
+### ✅ Mapeamento Visual de Payload
+Admin configura como os dados fluem:
+
+```json
+{
+  "fieldMappings": [
+    {
+      "payloadFieldName": "username",
+      "sourceType": 0,  // 0=FormField, 1=SystemField, 2=Fixed
+      "sourceValue": "email"  // Campo do form
+    },
+    {
+      "payloadFieldName": "role",
+      "sourceType": 2,  // Fixed
+      "sourceValue": "Admin"  // Valor estático
+    }
+  ]
+}
+```
+
+---
+
+## 📊 Modelo de Dados (Principal)
+
+### JobExecution (Orchestrator)
+Representa **uma execução em AWX/OO**:
+
+```csharp
+public class JobExecution
+{
+    public Guid Id { get; set; }
+    public Guid RequestId { get; set; }           // FK para Request
+    
+    // Alvo
+    public int ExecutionTargetType { get; set; } // 0=AWX, 1=OO
+    public string ExecutionResourceId { get; set; } // Template ID ou Flow UUID
+    
+    // Status
+    public string ExecutionStatus { get; set; }  // pending/running/retry_pending/success/failed
+    public string? AwxOoJobId { get; set; }      // ID da execução remota
+    public string? AwxOoExecutionStatus { get; set; } // Status raw (successful, COMPLETED, etc)
+    
+    // Retry
+    public int LaunchAttempts { get; set; }      // 0-5
+    public DateTime? NextLaunchAttemptAtUtc { get; set; }
+    public string? LastLaunchError { get; set; }
+    
+    // Polling
+    public int PollingAttempts { get; set; }     // 0-1440
+    public DateTime? LastPolledAtUtc { get; set; }
+    
+    // Auditoria
+    public string? ExecutionPayload { get; set; } // JSON enviado
+    public string? ExecutionResponse { get; set; } // JSON recebido
+    public DateTime? CompletedAtUtc { get; set; }
+    public string? ErrorMessage { get; set; }
+}
+```
+
+### Request (Requests)
+Rastreia a **solicitação de um usuário**:
+
+```csharp
+public class Request
+{
+    public Guid Id { get; set; }
+    public Guid OfferId { get; set; }           // Qual serviço foi solicitado
+    public Guid FormDefinitionId { get; set; }  // Qual formulário foi preenchido
+    public string UserId { get; set; }          // Quem solicitou
+    public string FormData { get; set; }        // JSON com respostas
+    public RequestStatus Status { get; set; }   // Pending/Running/Success/Failed
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime? CompletedAtUtc { get; set; }
+}
+```
+
+---
+
+## 🔌 Eventos Compartilhados
+
+### RequestCreatedEvent (Requests → Orchestrator)
+Publicado quando usuário cria solicitação:
+```csharp
+public record RequestCreatedEvent
+{
+    public Guid RequestId { get; init; }
+    public Guid OfferId { get; init; }
+    public Guid FormDefinitionId { get; init; }
+    public int ExecutionTargetType { get; init; } // 0=AWX, 1=OO
+    public string ExecutionResourceId { get; init; }
+    public string UserId { get; init; }
+    public string FormData { get; init; }        // JSON
+    public DateTime CreatedAtUtc { get; init; }
+}
+```
+
+### RequestStatusUpdatedEvent (Orchestrator → Requests)
+Publicado quando status muda:
+```csharp
+public record RequestStatusUpdatedEvent
+{
+    public Guid RequestId { get; init; }
+    public int Status { get; init; }                 // 1=Running, 2=Success, 3=Failed
+    public int? ResultType { get; init; }           // Para OO: 0=RESOLVED, 1=DIAGNOSED, 2=NO_ACTION_TAKEN
+    public string? AwxOoExecutionStatus { get; init; }
+    public string? ExecutionId { get; init; }
+    public string? ErrorMessage { get; init; }
+    public DateTime UpdatedAtUtc { get; init; }
+}
+```
+
+---
+
+## 🧰 Stack Tecnológica
+
+### Backend
+- **.NET 8** — Linguagem runtime
+- **Entity Framework Core 8** — ORM
+- **PostgreSQL 16** — Banco (com JSONB)
+- **MassTransit 8.1** — Message bus pattern
+- **RabbitMQ 3** — Message broker
+- **Polly 8.2** — Retry policies (exponential backoff)
+- **FluentValidation** — DTOs
+- **Swagger/OpenAPI** — Documentação
+
+### Frontend
+- **Next.js 14** — React framework
+- **Ant Design** — UI components
+- **Uniforms** — JSON Schema rendering
+- **Tailwind CSS** — Styling
+
+### DevOps
+- **Docker** — Containerização
+- **Docker Compose** — Orquestração local
+- **NGINX** — Reverse proxy (frontend)
+
+---
+
+## 📂 Estrutura do Repositório
+
+```
+ORCA/
+├── README.md                          # Este arquivo
+├── README_Old.md                      # Versão anterior do projeto
+├── docker-compose.yml                 # Stack completa
+├── dev.sh / SUMMARY.sh                # Scripts auxiliares
+│
+├── services/                          # Microserviços
+│   ├── Orca.Catalog/                 # Service: Ofertas
+│   ├── Orca.Forms/                   # Service: Schemas JSON + ExecutionTemplate
+│   ├── Orca.Identity/                # Service: OIDC + LDAP + Roles
+│   ├── Orca.Requests/                # Service: Solicitações + histórico
+│   ├── Orca.Orchestrator/            # Service: AWX/OO + polling + retry
+│   │   ├── Orca.Orchestrator.Api/
+│   │   ├── Orca.Orchestrator.Application/
+│   │   ├── Orca.Orchestrator.Domain/
+│   │   └── Orca.Orchestrator.Infrastructure/
+│   │
+│   └── Orca.SharedContracts/         # Eventos compartilhados
+│       └── Events/
+│           ├── RequestCreatedEvent.cs
+│           └── RequestStatusUpdatedEvent.cs
+│
+├── web/                               # Frontend Next.js
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   └── api/
+│   └── package.json
+│
+└── tests/                             # Testes unitários/integração
+```
+
+---
+
+## 🚀 Como Executar
+
+### ✅ Com Docker Compose (Recomendado)
+
+```bash
+cd /home/danielbachiega/Documentos/ORCA
+
+# Build de todas as imagens
+podman-compose build --no-cache
+
+# Subir stack completa
+podman-compose up -d
+
+# Conferir logs
+podman-compose logs -f orchestrator-api
+
+# Parar tudo
+podman-compose down
+```
+
+**Endpoints disponíveis:**
+- Catalog: http://localhost:5001/swagger
+- Identity: http://localhost:5002/swagger 
+- Forms: http://localhost:5003/swagger
+- Requests: http://localhost:5004/swagger
+- Orchestrator: http://localhost:5005/swagger 
+- Frontend: http://localhost:3000 (Ainda não implementado)
+- RabbitMQ: http://localhost:15672 (guest/guest)
+
+---
+
+## 🔐 Primeiro Login (SuperAdmin)
+
+O Identity Service já vem com um **usuário administrativo padrão**:
+
+| Campo | Valor |
+|-------|-------|
+| Username | `superadmin` |
+| Email | `admin@orca.local` |
+| Roles | Admin (todos os acessos) |
+| Grupos LDAP | Admins |
+
+**Como fazer login:**
+
+```bash
+# Gere um JWT mock válido em https://jwt.io com:
+# {
+#   "preferred_username": "superadmin",
+#   "email": "admin@orca.local",
+#   "sub": "superadmin"
+# }
+
+curl -X POST http://localhost:5002/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"idToken": "seu-jwt-aqui"}'
+```
+
+Você receberá um `sessionToken` para usar nas próximas requisições.
+
+📖 **Documentação completa:** [services/Orca.Identity/README.md](services/Orca.Identity/README.md)
+
+### ✅ Localmente (Desenvolvimento)
+
+```bash
+# Catalog
+cd services/Orca.Catalog/Orca.Catalog.Api
+dotnet run
+
+# Forms (terminal novo)
+cd services/Orca.Forms/Orca.Forms.Api
+dotnet run
+
+# ... etc
+```
+
+**Requisitos:**
+- .NET 8 SDK
+- PostgreSQL 16 rodando
+- RabbitMQ rodando
+
+---
+
+## 🧪 Cenários de Teste
+
+### 1️⃣ Criar uma Oferta
+```bash
+curl -X POST http://localhost:5001/api/offers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "user-provision",
+    "name": "User Provisioning",
+    "description": "Criar usuário no AD",
+    "tags": ["ldap", "onboarding"]
+  }'
+```
+
+### 2️⃣ Criar FormDefinition
+```bash
+curl -X POST http://localhost:5003/api/form-definitions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "offerId": "<OFFER_ID>",
+    "version": 1,
+    "schemaJson": "{\"title\": \"Form\", \"fields\": [...]}",
+    "isPublished": false
+  }'
+```
+
+### 3️⃣ Criar ExecutionTemplate (AWX)
+```bash
+curl -X POST http://localhost:5003/api/execution-templates \
+  -H "Content-Type: application/json" \
+  -d '{
+    "formDefinitionId": "<FORM_ID>",
+    "targetType": 0,
+    "resourceType": 0,
+    "resourceId": "12345",
+    "fieldMappings": [
+      {"payloadFieldName": "email", "sourceType": 0, "sourceValue": "email"}
+    ]
+  }'
+```
+
+### 4️⃣ Criar Solicitação (Usuário)
+```bash
+curl -X POST http://localhost:5004/api/requests \
+  -H "Content-Type: application/json" \
+  -d '{
+    "offerId": "<OFFER_ID>",
+    "formDefinitionId": "<FORM_ID>",
+    "userId": "user@example.com",
+    "formData": "{\"email\": \"newuser@example.com\", \"department\": \"ti\"}"
+  }'
+```
+
+### 5️⃣ Monitorar Execução
+```bash
+# Ver JobExecutions pendentes
+curl http://localhost:5005/api/job-executions
+
+# Ver detalhes de uma execução
+curl http://localhost:5005/api/job-executions/{id}
+
+# Ver logs do Orchestrator
+podman logs -f orca-orchestrator-api | grep -E "(retry|Relançando|Agendando)"
+```
+
+---
+
+## 🔍 Troubleshooting
+
+### SSL Certificate Error
+**Sintoma:** `Handshake failure` ou `unable to verify first certificate`
+
+**Solução:**
+```bash
+ALLOW_INVALID_SSL=true podman-compose up -d
+```
+
+Ou em `appsettings.json`:
+```json
+"ExternalServices": {
+  "AllowInvalidSsl": true
+}
+```
+
+---
+
+### Retry não acontece
+**Sintoma:** `ExecutionStatus=failed` imediatamente
+
+**Verificar:**
+```bash
+# Ver logs
+podman logs orca-orchestrator-api | grep "SendToAwxOoAsync"
+
+# Checar banco
+podman exec orca-postgres psql -U orca -d orca_orchestrator -c \
+  "SELECT \"LaunchAttempts\", \"ExecutionStatus\" FROM \"JobExecutions\" 
+   WHERE \"ExecutionStatus\"='retry_pending' LIMIT 3;"
+```
+
+---
+
+### PollingWorker não roda
+**Verificar:**
+```bash
+podman logs orca-orchestrator-api | grep "PollingWorker"
+```
+
+---
+
+## 📚 Documentação Detalhada
+
+Cada serviço tem seu próprio README com detalhes específicos:
+
+- [Orca.Catalog](services/Orca.Catalog/README.md) — CRUD de ofertas
+- [Orca.Forms](services/Orca.Forms/README.md) — Schemas JSON e mapeamento
+- [Orca.Identity](services/Orca.Identity/README.md) — OIDC, LDAP, RBAC
+- [Orca.Requests](services/Orca.Requests/README.md) — Solicitações e histórico
+- [Orca.Orchestrator](services/Orca.Orchestrator/README.md) — **Disparo, polling, retry**
+- [Orca.SharedContracts](services/Orca.SharedContracts/README.md) — Message contracts
+
+---
+
+## 🔗 Integração com AWX/OO
+
+### AWX (Ansible Automation Platform)
+
+**Disparar:**
+```http
+POST https://awx.example.com/api/v2/job_templates/{id}/launch/
+Authorization: Basic base64(username:password)
+Content-Type: application/json
+
+{
+  "extra_vars": {
+    "email": "newuser@example.com",
+    "department": "ti"
+  }
+}
+```
+
+**Resposta:** `{"id": 98765, "status": "pending"}`
+
+**Consultar status:**
+```http
+GET https://awx.example.com/api/v2/jobs/{id}/
+Authorization: Basic base64(username:password)
+```
+
+---
+
+### OO (Operations Orchestration)
+
+**Disparar:**
+```http
+POST https://oo.example.com/executions
+Authorization: Basic base64(username:password)
+Content-Type: application/json
+
+{
+  "flowUuid": "c1234567-89ab-cdef-0123-456789abcdef",
+  "inputs": {"email": "newuser@example.com"}
+}
+```
+
+**Resposta:** `12345678901` (string numérico)
+
+**Consultar status:**
+```http
+GET https://oo.example.com/executions/{id}/execution-log
+Authorization: Basic base64(username:password)
+```
+
+---
+
+## 🎓 Conceitos Chave
+
+### Clean Architecture
+Cada serviço segue o padrão:
+- **Domain** — Entidades e contratos
+- **Application** — Casos de uso, DTOs, validação
+- **Infrastructure** — EF Core, HTTP clients, banco
+- **Api** — Controllers, dependências
+
+### Event-Driven
+Serviços se comunicam via **MassTransit + RabbitMQ**:
+- Desacoplamento de tempo
+- Escalabilidade horizontal
+- Retry automático de mensagens
+
+### RBAC Dinâmico
+Roles mapeadas de **grupos AD** no login:
+- Sem hardcode
+- Sincronizado com Active Directory
+- Configurável via admin UI
+
+---
+
+## 📄 Licença
+
+Propriedade privada. Uso interno apenas.
+
+---
+
+## 🤝 Contribuindo
+
+1. Faça checkout de `develop`
+2. Crie branch: `git checkout -b feat/sua-feature`
+3. Commit com conventional commits
+4. Push e abra PR para `develop`
+
+---
+
+## 🆘 Suporte
+
+Para dúvidas ou problemas:
+1. Verifique os READMEs específicos de cada serviço
+2. Consulte a documentação Swagger (`/swagger`)
+3. Verifique os logs: `podman logs -f <container>`
+4. Inspecione o banco: `psql -U orca -d orca_<service>`
+
+* **Criadores de ofertas:** Definem formulários (JSON Schema) e mapeiam respostas para payloads AWX/OO de forma visual.
+* **Usuários:** Jornada simplificada para solicitar e acompanhar o status de automações em tempo real.
+* **Segurança:** RBAC robusto baseado em grupos do **Windows AD (via LDAP)**.
+* **Arquitetura:** Microserviços em .NET 8+, Clean Architecture e mensageria.
 
 ---
 
 ## 👥 Atores e Permissões
 
 ### 1) Usuário Solicitante (Requester)
-- **Vê** apenas as ofertas vinculadas às **roles** para as quais ele tem pertença via **grupo no Windows AD**.
-- **Solicita** ofertas disponíveis.
-- **Acompanha** o status das execuções (tempo real) e **consulta o histórico** de pedidos anteriores.
+* Acessa apenas ofertas permitidas pelas suas roles.
+* As permissões são resolvidas via **LDAP no momento do login** e mantidas em cache para a sessão.
+* Acompanha o histórico e status das solicitações.
 
 ### 2) Administrador de Catálogo (Admin/Publisher)
-- **Cria** e **edita** formulários (JSON Schema, UI schema, regras condicionais).
-- **Publica**/despublica ofertas (versionando schema e mapeamentos).
-- **Define roles da aplicação** e **vincula cada role a um ou mais grupos do Windows AD**.
-- **Configura a visibilidade** das ofertas associando **roles** (logo, toda pessoa em grupos AAD vinculados àquela role verá a oferta).
-- **Gerencia** mappings para AWX/OO, auditoria e governança.
-
-> **Modelo de RBAC**  
-> - **App Roles (ORCA)**: criadas e geridas no contexto da aplicação.  
-> - **Vínculo Role ↔ Grupos AAD**: cada role do ORCA aponta para um ou mais **Group Object IDs** no Windows AD.  
-> - **Oferta ↔ Roles**: uma oferta é visível/executável para usuários que possuam qualquer uma das roles associadas (via pertença aos grupos AAD vinculados).
+* **Formulários:** Cria schemas dinâmicos (Draft/Published) usando JSON Schema.
+* **Execution Template (Configuração do Alvo):**
+    * Define se o alvo é **AWX** (Job Template ou Workflow) ou **OO**.
+    * Configura credenciais de serviço (Basic Auth).
+* **Mapeamento Visual de Payload:**
+    * Interface para relacionar chaves do payload com:
+        1.  **Campos do Formulário**: Seleção dinâmica baseada no formulário publicado.
+        2.  **Contexto do Sistema**: Campos automáticos (ex: `requester_login`).
+        3.  **Parâmetros Fixos**: Valores estáticos definidos manualmente que não dependem do formulário.
 
 ---
 
 ## 🏗️ Arquitetura — Visão Geral
 
-- **API Gateway (YARP)**  
-  - OIDC com **Windows AD (Entra ID)**: valida tokens, aplica policies e roteia.
-  - Propaga identidade/claims por cabeçalhos confiáveis (`x-user-oid`, `x-user-upn`, `x-user-groups`, `x-correlation-id`).
+* **API Gateway (YARP):** Validação OIDC e roteamento de tráfego.
+* **Identity/RBAC Service:** No ato do login, consulta o **Windows AD via LDAP**, resolve os grupos do usuário e mapeia para as Roles internas do ORCA.
+* **Orchestrator Service:** * Processa o mapeamento de dados e dispara chamadas REST (Basic Auth) para AWX/OO.
+    * **Monitoramento:** Realiza **polling de 5 em 5 segundos** para atualizar o status da execução.
+* **BFF (Backend for Frontend):** Consolida dados dos serviços e gerencia notificações em tempo real (SignalR).
 
-- **BFF (Backend for Frontend)**  
-  - Agrega dados e simplifica contratos para o Frontend.
+---
 
-- **Microserviços ORCA**
-  - **Catalog Service**: ofertas (draft/published), versionamento, visibilidade por roles.
-  - **Forms Service**: armazenamento de **FormDefinition** (JSON Schema, UI schema, regras).
-  - **Orchestrator Service**: mapeamento de respostas → **AWX/OO**, disparo e tracking.
-  - **Requests/History Service**: solicitações, execuções, status, auditoria.
-  - **Identity/RBAC Service**: gestão de **roles do ORCA** e **vínculo com grupos do AAD**; resolução de visibilidade.
- 
-- **Mensageria**: RabbitMQ (eventos assíncronos, outbox, DLQ).
-- **Bancos**: PostgreSQL (JSONB), Redis (cache).
-- **Frontend**: Next.js + Ant Design + Uniforms (render dinâmico de JSON Schema).
-- **Observabilidade**: OpenTelemetry (traces, métricas, logs).
+## 🔄 Fluxo de Execução
+
+1.  **Solicitação:** Usuário preenche o formulário dinâmico e submete.
+2.  **Preparação:** O Orchestrator monta o JSON final cruzando os dados do formulário + campos de sistema + campos fixos.
+3.  **Disparo:** Realiza o POST para a API do AWX ou OO.
+4.  **Tracking:** O sistema inicia um loop de verificação (polling de 5s) para atualizar o status da `Run`.
+5.  **Feedback:** O usuário acompanha a mudança de status (Pending, Running, Success, Failed) no dashboard.
 
 ---
 
 ## 🧰 Stack Tecnológica
 
-**Frontend**
-- Next.js (TypeScript), Ant Design, Uniforms (+ `uniforms-antd`)
-- TanStack Query, MSAL (Windows AD), SignalR
-
-**Backend (.NET 8+)**
-- ASP.NET Core Minimal APIs, EF Core (Npgsql), FluentValidation
-- MassTransit (RabbitMQ), Polly, Refit, AutoMapper
-- OpenTelemetry, YARP
-
-**Infra**
-- Docker/Compose, Kubernetes (Ingress + TLS), Key Vault/Secrets
-- Prometheus/Grafana, ELK/OpenSearch
+* **Frontend:** Next.js 14, Ant Design, Uniforms (JSON Schema rendering).
+* **Backend:** .NET 8 (Minimal APIs), Entity Framework Core (PostgreSQL com JSONB).
+* **Comunicação:** RabbitMQ (MassTransit) para fluxos assíncronos.
+* **Integração:** Protocolo LDAP para resolução de grupos no login.
 
 ---
 
-## 📂 Estrutura do Repositório (proposta)
+## 📂 Estrutura do Repositório (Destaque)
 
+```text
+src/
+├── Gateway/       # YARP Gateway
+├── Bff/           # Agregação para o Frontend
+├── Identity/      # Lógica LDAP e Mapeamento de Roles
+├── Catalog/       # Gestão de Ofertas e Visibilidade
+├── Forms/         # Engine de JSON Schema
+├── Orchestrator/  # Disparos, Mapping e Worker de Polling
+└── Frontend/      # Next.js Application
 ```
-/
-├─ deploy/
-│  ├─ compose/
-│  └─ k8s/
-├─ docs/
-├─ src/
-│  ├─ Gateway/
-│  ├─ Bff/
-│  ├─ Catalog/
-│  │  ├─ Catalog.Domain/
-│  │  ├─ Catalog.Application/
-│  │  ├─ Catalog.Infrastructure/
-│  │  └─ Catalog.Api/
-│  ├─ Forms/
-│  │  ├─ Forms.Domain/
-│  │  ├─ Forms.Application/
-│  │  ├─ Forms.Infrastructure/
-│  │  └─ Forms.Api/
-│  ├─ Orchestrator/
-│  │  ├─ Orchestrator.Domain/
-│  │  ├─ Orchestrator.Application/
-│  │  ├─ Orchestrator.Infrastructure/
-│  │  └─ Orchestrator.Api/
-│  ├─ Requests/
-│  │  ├─ Requests.Domain/
-│  │  ├─ Requests.Application/
-│  │  ├─ Requests.Infrastructure/
-│  │  └─ Requests.Api/
-│  └─ Frontend/
-└─ tests/
-```
+## 🚀 Roadmap (Core MVP)
 
-**Padrão por serviço (Clean Architecture)**  
-- `Domain` → Entidades, Value Objects, interfaces, eventos.  
-- `Application` → Casos de uso, DTOs, validações.  
-- `Infrastructure` → EF Core/Migrations, brokers, repositórios, adapters.  
-- `Api` → Endpoints, DI, Autorização/Policies.
-
----
-
-## 🔐 Segurança, Identidade e RBAC
-
-### Autenticação (Windows AD)
-- Fluxo **Authorization Code + PKCE** no Front.
-- Gateway valida JWT e injeta cabeçalhos confiáveis (`x-user-oid`, `x-user-upn`, `x-user-groups`, `x-correlation-id`).
-
-### Autorização
-- **Roles do ORCA** (no contexto do app) definidas pelo Admin.
-- **Vínculo Role ↔ Grupos AAD** (por **Object ID**). Exemplo:
-  ```json
-  {
-    "roleName": "CATALOG_REQUESTER_COMPUTE",
-    "aadGroups": [
-      "11111111-1111-1111-1111-111111111111",
-      "22222222-2222-2222-2222-222222222222"
-    ]
-  }
-  ```
-- **Oferta ↔ Roles**: cada oferta inclui a lista de roles autorizadas:
-  ```json
-  {
-    "offerId": "GUID",
-    "visibleToRoles": ["CATALOG_REQUESTER_COMPUTE", "CATALOG_REQUESTER_STORAGE"]
-  }
-  ```
-- **Resolução de acesso**: o serviço de Identity/RBAC resolve, para o usuário logado (via `groups` claim do AAD), quais **roles** do ORCA ele efetivamente possui (por vínculo Role↔Group). A partir das roles resolvidas, o Catalog devolve apenas as ofertas compatíveis.
-
----
-
-## 🗃️ Modelo de Dados (simplificado)
-
-**roles** (ORCA)
-- `id`, `name` (ex.: `CATALOG_REQUESTER_COMPUTE`)
-- `aad_groups (jsonb)` → array de Object IDs de grupos AAD
-
-**offers**
-- `id`, `name`, `description`, `category`, `status (draft|published)`, `version`
-- `visible_to_roles (jsonb)` → array de nomes de roles do ORCA
-- `created_by`, `created_at`
-
-**form_definitions**
-- `id`, `offer_id`, `version`
-- `json_schema (jsonb)`, `ui_schema (jsonb)`, `rules (jsonb)`
-
-**execution_templates**
-- `id`, `offer_id`, `target_system (awx|oo)`, `external_identifier`
-- `payload_mapping (jsonb)` (JSONPath)
-
-**requests**
-- `id`, `offer_id`, `form_version`, `requester_oid`, `requester_upn`
-- `answers (jsonb)`, `status`, timestamps
-
-**runs**
-- `id`, `request_id`, `target_system`, `external_run_id`
-- `status`, `logs_url`, timestamps
-
-**audit_logs**, **outbox_messages**
-
----
-
-## 🔄 Fluxos Essenciais
-
-### (Admin) Criar ofertas e configurar RBAC
-1. **Criar Role do ORCA** e **vincular** a grupos do AAD (um ou mais).
-2. **Criar Oferta** em **draft**.
-3. Definir **FormDefinition** (JSON Schema + UI schema + regras condicionais).
-4. Definir **ExecutionTemplate** (AWX/OO + `payload_mapping` via JSONPath).
-5. Associar **visible_to_roles** na oferta.
-6. **Publicar** a oferta (versionamento).
-
-### (Requester) Solicitar e acompanhar
-1. Usuário loga (AAD) e o sistema **resolve roles** via grupos AAD.
-2. Usuário vê **apenas** as ofertas com roles compatíveis.
-3. Preenche formulário dinâmico (condições).
-4. Submete → cria **Request** e emite `StartExecution`.
-5. **Orchestrator** aplica mapping e dispara **AWX/OO**.
-6. **Runs** são gravadas e status é atualizado (webhook/polling).
-7. Usuário acompanha em **Meu Histórico** (SignalR/polling).
-
----
-
-## 🧪 Qualidade e Boas Práticas
-
-- **Clean Architecture** e **DDD leve**.
-- **Outbox & DLQ** para consistência e resiliência.
-- **Polly** (retries/circuit breaker) em integrações.
-- **OpenTelemetry**: tracing distribuído, métricas e logs estruturados.
-- **Idempotência** por `RequestId` nas chamadas AWX/OO.
-- **Validação**: AJV (front) + validação server-side (FluentValidation/Schema).
-
----
-
-## 🚀 Como Rodar (Dev)
-
-Pré-requisitos:
-- Docker & Docker Compose
-- Node 18+ / PNPM (ou NPM/Yarn)
-- .NET SDK 8+
-
-```bash
-# 1) Variáveis (ajuste .env)
-cp deploy/compose/.env.example deploy/compose/.env
-
-# 2) Subir stack
-docker compose -f deploy/compose/docker-compose.yml up -d --build
-
-# 3) Frontend
-cd src/Frontend
-pnpm install
-pnpm dev  # ou npm run dev
-```
-
-**Windows AD (local)**: configure **Redirect URIs** para `http://localhost:3000` e callback do MSAL.
-
----
-
-## 🔭 Roadmap
-
-**MVP**
-- Login AAD, resolução de roles via grupos AAD
-- Catálogo com visibilidade por **visible_to_roles**
-- Form builder (JSON Schema + regras)
-- Execução via **AWX**
-- Histórico (requests + runs) com status
-- Upload de imagem da oferta (substituir URL por upload persistido no banco)
-
-**Evolução**
-- Integração **OO**
-- Admin de Roles (UI) + vínculo com grupos AAD
-- Notificações (Teams/Email)
-- Auditoria avançada (consulta e export)
-- Templates de mapeamento reutilizáveis
-- Feature Flags
-
----
-
-## 📖 Glossário
-
-- **Role (ORCA)**: papel lógico da aplicação, vinculado a grupos AAD.
-- **Grupo (AAD)**: entidade do Windows AD; pertença define roles do ORCA.
-- **Oferta**: item publicável/solicitável do catálogo.
-- **FormDefinition**: schema declarativo do formulário (JSON Schema + regras).
-- **ExecutionTemplate**: mapeamento das respostas para payload AWX/OO.
-- **Request**: solicitação feita por um usuário.
-- **Run**: execução concreta no alvo (AWX/OO).
+- [x] **Auth & RBAC**: ✅ Login OIDC + Consulta LDAP + Mapeamento dinâmico de grupos → roles (Clean Architecture)
+- [ ] **Designer de Mapeamento**: Interface UI para configurar o payload (Form Fields + System Fields + Fixed).
+- [x] **Engine de Orquestração**: ✅ Implementação do disparo Basic Auth e loop de Polling (5s) + Retry exponencial.
+- [ ] **History Dashboard**: Visualização de status e auditoria de solicitações.

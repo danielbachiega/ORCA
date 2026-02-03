@@ -5,6 +5,8 @@ using Orca.Forms.Infrastructure;
 using Orca.Forms.Infrastructure.Repositories;
 using Orca.Forms.Domain.Repositories;
 using Orca.Forms.Application.FormDefinitions;
+using Orca.Forms.Api.Middleware;
+using Orca.Forms.Application.ExecutionTemplates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,13 +14,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
-    .WithOrigins("http://localhost:8080", "http://localhost:80", "http://localhost")
+    .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:80", "http://localhost")
     .AllowAnyHeader()
     .AllowAnyMethod()));
 builder.Services.AddControllers();
 builder.Services.AddValidatorsFromAssemblyContaining<FormDefinitionValidator>();
 builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddHealthChecks();
+builder.Services.AddScoped<IFormDefinitionService, FormDefinitionService>();
+builder.Services.AddScoped<IExecutionTemplateService, ExecutionTemplateService>();
+
+// ProblemDetails (RFC 7807)
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+    };
+});
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Registrar DbContext
 builder.Services.AddDbContext<FormsContext>(options =>
@@ -26,6 +42,7 @@ builder.Services.AddDbContext<FormsContext>(options =>
 
 // Registrar repositórios e serviços
 builder.Services.AddScoped<IFormDefinitionRepository, FormDefinitionRepository>();
+builder.Services.AddScoped<IExecutionTemplateRepository, ExecutionTemplateRepository>();
 
 var app = builder.Build();
 
@@ -33,11 +50,17 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<FormsContext>();
-    dbContext.Database.Migrate();
+    if (app.Environment.IsDevelopment()) {
+        dbContext.Database.Migrate();
+    }
 }
 
 app.UseRouting();
 app.UseCors("DevCors");
+
+// Exception handling (ProblemDetails)
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -45,8 +68,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 app.MapControllers();

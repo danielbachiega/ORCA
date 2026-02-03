@@ -5,6 +5,7 @@ namespace Orca.Forms.Domain.Repositories;
 public interface IFormDefinitionRepository
 {
     Task<IEnumerable<FormDefinition>> GetAllAsync();
+    Task<FormDefinition?> GetPublishedByOfferIdAsync(Guid offerId);
     Task<FormDefinition?> GetByIdAsync(Guid id);
     Task<IEnumerable<FormDefinition>> GetByOfferIdAsync(Guid offerId);
     Task<FormDefinition> CreateAsync(FormDefinition formDefinition);
