@@ -6,7 +6,9 @@ public record OfferSummaryDto(
     string Name,
     string? Description,
     string[] Tags,
-    bool Active);
+    bool Active,
+    DateTime CreatedAtUtc,
+    DateTime? UpdatedAtUtc);
 
 public record OfferDetailsDto(
     Guid Id,
@@ -15,6 +17,8 @@ public record OfferDetailsDto(
     string? Description,
     string[] Tags,
     bool Active,
+    DateTime CreatedAtUtc,
+    DateTime? UpdatedAtUtc,
     string[] VisibleToRoles);
 
 // === DTOs de Entrada ===

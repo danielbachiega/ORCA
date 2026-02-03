@@ -18,6 +18,8 @@ export interface User {
   firstName?: string;
   lastName?: string;
   isActive: boolean;
+  roles?: Role[];
+  ldapGroups?: string[];
 }
 
 export interface Role {
@@ -34,14 +36,11 @@ export interface LoginRequest {
 export interface LoginResponse {
   sessionToken: string;
   user: User;
-  roles: Role[];
+  roles?: Role[];
   expiresAtUtc: string;
 }
 
-export interface AuthMeResponse {
-  user: User;
-  roles: Role[];
-}
+export type AuthMeResponse = User;
 
 // ============================================
 // CATALOG SERVICE TYPES
@@ -49,12 +48,15 @@ export interface AuthMeResponse {
 
 export interface Offer {
   id: string;
+  slug: string;
   name: string;
-  description: string;
-  formSchemaJson: string; // JSON Schema stringified
-  isPublished: boolean;
+  description?: string;
+  tags: string[];
+  active: boolean;
   createdAtUtc: string;
-  updatedAtUtc: string;
+  updatedAtUtc?: string;
+  formSchemaJson?: string; // TODO: adicionar ao backend
+  visibleToRoles?: string[]; // Role names que podem ver a oferta
 }
 
 export interface OfferDetails extends Offer {

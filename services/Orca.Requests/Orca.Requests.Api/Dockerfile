@@ -6,11 +6,13 @@ COPY ["services/Orca.Requests/Orca.Requests.Api/Orca.Requests.Api.csproj", "serv
 COPY ["services/Orca.Requests/Orca.Requests.Application/Orca.Requests.Application.csproj", "services/Orca.Requests/Orca.Requests.Application/"]
 COPY ["services/Orca.Requests/Orca.Requests.Domain/Orca.Requests.Domain.csproj", "services/Orca.Requests/Orca.Requests.Domain/"]
 COPY ["services/Orca.Requests/Orca.Requests.Infrastructure/Orca.Requests.Infrastructure.csproj", "services/Orca.Requests/Orca.Requests.Infrastructure/"]
+COPY ["services/Orca.SharedContracts/Orca.SharedContracts.csproj", "services/Orca.SharedContracts/"]
 
 RUN dotnet restore "services/Orca.Requests/Orca.Requests.Api/Orca.Requests.Api.csproj"
 
 # Copiar código e compilar
 COPY services/Orca.Requests/ services/Orca.Requests/
+COPY services/Orca.SharedContracts/ services/Orca.SharedContracts/
 WORKDIR "/src/services/Orca.Requests/Orca.Requests.Api"
 RUN dotnet build "Orca.Requests.Api.csproj" -c Release -o /app/build
 

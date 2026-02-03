@@ -26,8 +26,23 @@ public class Offer
     public bool Active { get; set; }           // Visibilidade
     public DateTime CreatedAtUtc { get; set; }
     public DateTime? UpdatedAtUtc { get; set; }
+    public ICollection<OfferRole> VisibleToRoles { get; set; }  // RBAC
 }
 ```
+
+### Entidade: OfferRole (Controle de Acesso)
+
+```csharp
+public class OfferRole
+{
+    public Guid Id { get; set; }
+    public Guid OfferId { get; set; }
+    public string RoleName { get; set; }  // Ex: "Admin", "Editor", "Consumer"
+    public Offer Offer { get; set; }
+}
+```
+
+**Nota:** Ofertas sem roles definidos são visíveis para todos usuários autenticados.
 
 ## 🏗️ Arquitetura (Clean Architecture)
 
@@ -80,7 +95,8 @@ Listar todas as ofertas ativas.
     "tags": ["ldap", "onboarding"],
     "active": true,
     "createdAtUtc": "2026-01-15T10:30:00Z",
-    "updatedAtUtc": null
+    "updatedAtUtc": null,
+    "visibleToRoles": ["Admin", "Editor"]
   }
 ]
 ```
@@ -92,6 +108,19 @@ Obter oferta específica.
 
 **Response (404 Not Found):** Se não existir
 
+### GET /api/offers/by-roles?roles=Admin&roles=Editor
+Filtrar ofertas visíveis para determinadas roles.
+
+**Query Params:**
+- `roles`: Array de nomes de roles (pode repetir o parâmetro)
+
+**Response (200 OK):** Array de ofertas que o usuário com essas roles pode ver
+
+**Exemplo:**
+```bash
+curl "http://localhost:5001/api/offers/by-roles?roles=Admin&roles=Editor"
+```
+
 ### POST /api/offers
 Criar nova oferta.
 
@@ -101,7 +130,8 @@ Criar nova oferta.
   "slug": "user-provisioning",
   "name": "User Provisioning",
   "description": "Criar novo usuário no AD",
-  "tags": ["ldap", "onboarding"]
+  "tags": ["ldap", "onboarding"],
+  "visibleToRoles": ["Admin", "Editor"]
 }
 ```
 
@@ -115,7 +145,8 @@ Criar nova oferta.
   "tags": ["ldap", "onboarding"],
   "active": true,
   "createdAtUtc": "2026-01-24T19:30:00Z",
-  "updatedAtUtc": null
+  "updatedAtUtc": null,
+  "visibleToRoles": ["Admin", "Editor"]
 }
 ```
 
@@ -146,6 +177,9 @@ Deletar oferta (soft delete — apenas marca como inativa).
 - **Description:** Opcional, máx 500 caracteres
 - **Tags:** Mínimo 1, máximo 5 tags
 - **Active:** Default = true
+- **VisibleToRoles:** Opcional, array de nomes de roles válidos (ex: "Admin", "Editor", "Consumer")
+  - Se vazio ou null: oferta visível para todos usuários autenticados
+  - Se preenchido: apenas usuários com roles especificados podem ver
 
 ## 🔄 Fluxo Típico
 
@@ -172,6 +206,21 @@ CREATE TABLE "Offers" (
     "UpdatedAtUtc" timestamp with time zone
 );
 ```
+
+### Migrations Recentes
+
+#### 20260202000000_RenameUpdateAtUtcColumn
+**Data:** 02/02/2026  
+**Descrição:** Corrigido nome da coluna de `UpdateAtUtc` para `UpdatedAtUtc` para manter consistência com padrão `CreatedAtUtc`.
+
+**Motivo:** O nome anterior tinha typo (faltava o "d"). A correção garante:
+- ✅ Consistência de nomenclatura (Created**At**Utc → Updated**At**Utc)
+- ✅ Alinhamento com DTOs do frontend (`createdAtUtc`, `updatedAtUtc`)
+- ✅ Melhor legibilidade e manutenibilidade
+
+**Impacto:** Breaking change no schema do banco. Requer rebuild dos containers.
+
+**Aplicação:** A migration é aplicada automaticamente ao subir o container via `dbContext.Database.Migrate()` no `Program.cs`.
 
 ## 🚀 Como Executar
 

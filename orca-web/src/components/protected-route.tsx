@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth.context';
 import { Spin } from 'antd';
@@ -24,6 +24,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const router = useRouter();
   const { isAuthenticated, isLoading, roles } = useAuth();
 
+  // Redirecionar se não autenticado (usando useEffect para evitar renderização durante o render)
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
   // Ainda carregando sessão
   if (isLoading) {
     return (
@@ -34,17 +41,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Não autenticado, redirecionar
+  // Não autenticado
   if (!isAuthenticated) {
-    router.push('/login');
     return null;
   }
 
   // Validar roles (opcional)
   if (requiredRoles && requiredRoles.length > 0) {
     console.log('🔐 Validando roles:', { requiredRoles, userRoles: roles });
-    const hasRequiredRole = roles.some((role) =>
-      requiredRoles.includes(role.name)
+    const requiredRoleNames = requiredRoles.map((role) => role.toLowerCase());
+    const userRoleNames = (roles || []).map((role) => role.name.toLowerCase());
+    const hasRequiredRole = userRoleNames.some((roleName) =>
+      requiredRoleNames.includes(roleName)
     );
 
     if (!hasRequiredRole) {

@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { catalogService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { useAuth } from '@/lib/contexts/auth.context';
 import {
   Layout,
   Card,
@@ -34,6 +35,11 @@ const { Content } = Layout;
 
 function DashboardContent() {
   const router = useRouter();
+  const { roles } = useAuth();
+
+  const isAdmin = roles && roles.length > 0 && roles.some((r) =>
+    r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
+  );
 
   // TanStack Query - Buscar ofertas
   const {
@@ -62,6 +68,22 @@ function DashboardContent() {
               <h1>Minhas Ofertas</h1>
               <p>Selecione uma oferta para preencher formulário e criar requisição</p>
             </div>
+            <Space>
+              {isAdmin && (
+                <Button
+                  type="default"
+                  onClick={() => router.push('/dashboard/admin/offers/new')}
+                >
+                  Criar Nova Oferta
+                </Button>
+              )}
+              <Button
+                type="primary"
+                onClick={() => router.push('/dashboard/requests')}
+              >
+                Minhas Requisições
+              </Button>
+            </Space>
           </div>
 
           {/* Erro */}
@@ -121,9 +143,9 @@ function DashboardContent() {
                     <div style={{ marginTop: '16px' }}>
                       <Space orientation="vertical" style={{ width: '100%' }}>
                         <Badge
-                          status={offer.isPublished ? 'success' : 'default'}
+                          status={offer.active ? 'success' : 'default'}
                           text={
-                            offer.isPublished ? 'Publicada' : 'Rascunho'
+                            offer.active ? 'Ativa' : 'Inativa'
                           }
                         />
                         <Button

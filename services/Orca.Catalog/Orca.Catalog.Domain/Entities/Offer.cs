@@ -8,6 +8,6 @@ public class Offer
     public string[] Tags { get; set; } = Array.Empty<string>();
     public bool Active { get; set; } = true;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdateAtUtc { get; set; }
+    public DateTime? UpdatedAtUtc { get; set; }
     public ICollection<OfferRole> VisibleToRoles { get; set; } = new List<OfferRole>(); 
 }

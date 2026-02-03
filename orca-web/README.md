@@ -1,161 +1,295 @@
 # 🚀 ORCA Web Frontend
 
-Next.js 14 com **App Router**, **Ant Design**, **TanStack Query** e **arquitetura clean**.
+Frontend moderno do ORCA - Sistema de Orquestração de Requisições de Catálogo Automatizado.
+
+Built with Next.js 14, TypeScript, Ant Design e Clean Architecture.
+
+## 📋 Índice
+
+- [Visão Geral](#visão-geral)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Arquitetura](#arquitetura)
+- [Quick Start](#quick-start)
+- [Funcionalidades](#funcionalidades)
+- [Documentação](#documentação)
+
+## 🎯 Visão Geral
+
+O ORCA Web é o frontend da plataforma ORCA, permitindo que usuários:
+
+- **Consumidores**: Naveguem ofertas e criem requisições
+- **Editores**: Gerenciem ofertas e formulários
+- **Admins**: Controlem acessos, roles e configurações
+
+### Features Implementadas ✅
+
+- ✅ Autenticação LDAP com sessão JWT
+- ✅ Dashboard com listagem de ofertas
+- ✅ Detalhes de ofertas
+- ✅ Criação de requisições
+- ✅ Listagem de minhas requisições com paginação
+- ✅ Admin: Criar/Editar ofertas
+- ✅ Admin: Controle de visibilidade por roles
+- ✅ Protected routes com RBAC
+- ✅ Error handling e loading states
+- ✅ Cache inteligente com TanStack Query
+
+### Em Desenvolvimento 🚧
+
+- 🚧 Designer de formulários visual (JSON Schema)
+- 🚧 Renderização dinâmica de formulários
+- 🚧 Integração com AWX/Operations Orchestration
+- 🚧 Histórico de execuções
+- 🚧 Dashboard analytics
+
+## 💻 Stack Tecnológico
+
+### Core
+- **Next.js 14.2+** - React framework com App Router
+- **TypeScript 5+** - Type safety com strict mode
+- **React 18+** - Latest features (Suspense, Server Components)
+
+### UI/UX
+- **Ant Design 5.x** - Biblioteca de componentes enterprise
+- **Tailwind CSS 3.x** - Utility-first CSS
+- **Lucide Icons** - Icon system
+
+### State Management
+- **TanStack Query v5** - Server state management
+- **React Context API** - Client state (auth)
+
+### HTTP & APIs
+- **Axios** - HTTP client
+- **ApiClient Pattern** - Abstração sobre microserviços
+
+### Development
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **TypeScript Strict** - Zero type errors
 
 ## 🏗️ Arquitetura
 
+Implementamos **Clean Architecture** adaptada para React/Next.js:
+
 ```
 src/
-├── app/                    # Next.js App Router (páginas)
-│   ├── layout.tsx         # Root layout com providers
-│   ├── page.tsx           # Home (redireciona pra login/dashboard)
-│   ├── login/             # Página de autenticação
-│   └── dashboard/         # Dashboard protegido
+├── app/                           # 📱 Presentation Layer (Next.js App Router)
+│   ├── layout.tsx                # Root layout com providers
+│   ├── page.tsx                  # Home → redirect
+│   ├── login/                    # Autenticação
+│   │   └── page.tsx
+│   └── dashboard/                # Features protegidas
+│       ├── page.tsx              # Lista de ofertas
+│       ├── offers/
+│       │   └── [id]/
+│       │       ├── page.tsx      # Detalhes da oferta
+│       │       └── request/
+│       │           └── page.tsx  # Criar requisição
+│       ├── requests/
+│       │   └── page.tsx          # Minhas requisições
+│       └── admin/
+│           └── offers/
+│               ├── new/
+│               │   └── page.tsx  # Criar oferta
+│               └── [id]/
+│                   └── edit/
+│                       └── page.tsx # Editar oferta
 │
-├── lib/                    # Domain & Infrastructure
-│   ├── contexts/          # React Contexts (Auth)
-│   ├── types/             # TypeScript interfaces centralizadas
-│   ├── constants/         # API URLs, storage keys, labels
-│   ├── utils/             # ApiClient abstrato, QueryClient
-│   └── providers.tsx      # Wrapper de providers globais
+├── components/                    # 🧩 Reusable UI Components
+│   ├── app-header.tsx            # Header com navegação
+│   ├── protected-route.tsx       # RBAC wrapper
+│   ├── features/                 # Feature-specific components
+│   ├── layouts/                  # Layout components
+│   └── ui/                       # Generic UI components
 │
-├── services/              # Application Layer
-│   ├── identity.service.ts    # Login, logout, me
-│   ├── catalog.service.ts     # Ofertas CRUD
-│   ├── requests.service.ts    # Requisições do usuário
-│   └── index.ts               # Barrel exports
+├── services/                      # 🔌 Application Layer
+│   ├── index.ts                  # Barrel exports
+│   ├── identity.service.ts       # Auth & Users
+│   ├── catalog.service.ts        # Ofertas CRUD
+│   ├── requests.service.ts       # Requisições
+│   └── api/                      # Service implementations
 │
-└── components/            # Reusable UI
-    ├── protected-route.tsx    # Proteção de rotas
-    └── app-header.tsx         # Header com user info
+├── lib/                           # 🏛️ Domain & Infrastructure
+│   ├── types/                    # Domain models
+│   │   └── index.ts              # Centralized types
+│   ├── contexts/                 # React Contexts
+│   │   └── auth.context.tsx     # Auth state
+│   ├── constants/                # Configuration
+│   │   └── index.ts              # API URLs, keys
+│   ├── utils/                    # Infrastructure
+│   │   ├── api-client.ts         # HTTP abstraction
+│   │   └── query-client.ts       # TanStack Query config
+│   └── providers.tsx             # Global providers wrapper
+│
+└── hooks/                         # 🎣 Custom React Hooks
+    └── (future: useDebounce, useLocalStorage, etc)
 ```
 
-## 🎯 Stack Técnico
+### Camadas e Responsabilidades
 
-- **Next.js 14** - React framework com App Router
-- **TypeScript** - Type safety estrito
-- **Ant Design** - Componentes UI profissionais
-- **TanStack Query** - Gerenciamento de cache/dados da API
-- **React Context API** - Autenticação e estado
-- **Axios** - HTTP client
-- **Tailwind CSS** - Styling
+#### 1. **Presentation Layer** (`/app`)
+- Next.js pages e layouts
+- Renderização de UI
+- Navegação e roteamento
+- **Regra**: Não faz lógica de negócio, apenas orquestra components e services
 
-## 🔐 Autenticação
+#### 2. **Application Layer** (`/services`)
+- Lógica de negócio
+- Comunicação com APIs
+- Transformação de dados
+- **Regra**: Usa ApiClient, retorna tipos do Domain
 
-### Fluxo
-```
-1. Usuário preenche username + password
-2. Frontend POST /api/auth/login
-3. Identity valida credenciais em LDAP
-4. Retorna sessionToken + user + roles
-5. Frontend salva em localStorage e estado (Context)
-6. Todas requisições têm Authorization: Bearer {token}
-```
+#### 3. **Domain Layer** (`/lib/types`)
+- Modelos de domínio (interfaces TypeScript)
+- Regras de negócio puras
+- **Regra**: Zero dependência externa
 
-### Credenciais de Teste
-```
-superadmin / Orca@2026
-admin / admin123
-editor / editor123
-consumer / consumer123
-```
+#### 4. **Infrastructure Layer** (`/lib/utils`, `/lib/contexts`)
+- ApiClient HTTP
+- Query client config
+- Context providers
+- **Regra**: Implementações técnicas, substituíveis
 
-## 🚀 Como Executar
+## 🚀 Quick Start
 
-### Development
+### Pré-requisitos
+
+- Node.js 18+ 
+- npm ou yarn
+- Backend APIs rodando (Identity, Catalog, Requests)
+
+### Instalação
+
 ```bash
+# Clone o repositório
+git clone <repo-url>
+cd orca-web
+
+# Instale dependências
+npm install
+
+# Configure variáveis de ambiente
+cp .env.example .env.local
+# Edite .env.local com as URLs dos microserviços
+
+# Execute em desenvolvimento
 npm run dev
-# http://localhost:3000
 ```
 
-### Production Build
+Acesse: http://localhost:3000
+
+### Build de Produção
+
 ```bash
 npm run build
 npm run start
 ```
 
 ### Docker
+
 ```bash
 docker build -t orca-web .
 docker run -p 3000:3000 orca-web
 ```
 
-## 📝 Principais Componentes
+## 🔐 Autenticação
 
-### LoginPage (`/login`)
-- Form username + password
-- Integração com `identityService.login()`
-- Exibe credenciais de teste
+### Fluxo de Login
 
-### Dashboard (`/dashboard`)
-- Protegido por `<ProtectedRoute>`
-- Lista de ofertas com TanStack Query
-- Grid de cards com detalhes
-
-### AppHeader
-- Exibe usuário logado + roles
-- Dropdown com logout
-- Navegação pra home
-
-## 🔌 Camada de API Abstrata
-
-**Por quê abstrata?**
-- Hoje: localhost:5001-5005 (direto nos microserviços)
-- Amanhã: localhost:3000/api (gateway/BFF)
-- Mudando AQUI = 1 arquivo, não 50 componentes!
-
-```typescript
-// ApiClient genérico
-const client = new ApiClient({ baseURL: 'http://localhost:5002' });
-await client.get<User>('/api/auth/me');
-
-// Services usam ApiClient
-export class IdentityService {
-  async login(username: string, password: string) {
-    return this.client.post('/api/auth/login', { username, password });
-  }
-}
+```
+┌─────────┐      POST /api/auth/login       ┌──────────┐
+│ Browser │ ──────────────────────────────> │ Identity │
+│         │  { username, password }          │   API    │
+└─────────┘                                  └──────────┘
+     │                                            │
+     │         ┌──────────────────────────────────┘
+     │         │ Valida LDAP, busca roles
+     │         └──────────────────────────────────┐
+     │                                            │
+     │    { sessionToken, user, roles }          ▼
+     │ <──────────────────────────────────  ┌──────────┐
+     │                                       │   LDAP   │
+     │                                       └──────────┘
+     ▼
+┌─────────────────────────────────────┐
+│ 1. Salva token em localStorage      │
+│ 2. Salva user/roles em Context      │
+│ 3. ApiClient injeta em Authorization│
+└─────────────────────────────────────┘
 ```
 
-## 🎨 Decisões Arquiteturais
+### Credenciais de Teste
 
-| Decisão | Por Quê | Benefício |
-|---------|---------|-----------|
-| **ApiClient Abstrato** | Facilita migração pra Gateway | Baixo acoplamento |
-| **Context API** | Autenticação = 1 estado simples | Sem overhead Redux |
-| **TanStack Query** | Gerencia server state | Cache automático |
-| **TypeScript Estrito** | Backend .NET é tipado | Erros em dev time |
-| **Ant Design** | Full library + profissional | Componentes prontos |
+| Username | Password | Roles | Acesso |
+|----------|----------|-------|--------|
+| superadmin | Orca@2026 | Admin, Editor | Total |
+| admin | admin123 | Admin, Editor | Criar/editar ofertas |
+| editor | editor123 | Editor | Criar ofertas |
+| consumer | consumer123 | Consumer | Ver e requisitar |
 
-## 📚 Configuração
+### Proteção de Rotas
 
-### Environment Variables
+```tsx
+// Qualquer usuário autenticado
+<ProtectedRoute>
+  <DashboardPage />
+</ProtectedRoute>
+
+// Apenas admin/superadmin
+<ProtectedRoute requiredRoles={['admin', 'superadmin']}>
+  <CreateOfferPage />
+</ProtectedRoute>
+```
+
+## 📚 Documentação
+
+Para guias detalhados, consulte:
+
+- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - Arquitetura completa e padrões
+- **[DEVELOPMENT_GUIDE.md](./docs/DEVELOPMENT_GUIDE.md)** - Como desenvolver novas features
+- **[API_ABSTRACTION.md](./docs/API_ABSTRACTION.md)** - ApiClient e Services
+- **[COMPONENTS.md](./docs/COMPONENTS.md)** - Guia de componentes
+- **[TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** - Resolução de problemas comuns
+- **[TESTING.md](./docs/TESTING.md)** - Guia de testes
+
+## 🌐 Environment Variables
+
 ```bash
+# APIs Backend
 NEXT_PUBLIC_IDENTITY_API=http://localhost:5002
 NEXT_PUBLIC_CATALOG_API=http://localhost:5001
 NEXT_PUBLIC_REQUESTS_API=http://localhost:5004
 NEXT_PUBLIC_ORCHESTRATOR_API=http://localhost:5005
 ```
 
-## 🔄 Próximas Etapas
-
-- [ ] Página de detalhes da oferta
-- [ ] Formulário dinâmico (JSON Schema + Uniforms)
-- [ ] Submissão de requisição
-- [ ] Listagem de minhas requisições
-- [ ] Admin: CRUD de ofertas
-- [ ] Designer de formulários visual
-- [ ] Mapeamento LDAP groups → roles
-
 ## 🧪 Testes
 
 ```bash
-npm run lint      # ESLint
-npm run build     # Type check + build
+# Lint
+npm run lint
+
+# Type check
+npm run type-check
+
+# Build (valida tudo)
+npm run build
 ```
 
-## 📖 Documentação Relacionada
+## 📖 Links Relacionados
 
-- [Identity Service](../services/Orca.Identity/README.md) - Autenticação e RBAC
-- [Catalog Service](../services/Orca.Catalog/README.md) - Ofertas
-- [Requests Service](../services/Orca.Requests/README.md) - Solicitações
+- [Backend Identity Service](../services/Orca.Identity/README.md)
+- [Backend Catalog Service](../services/Orca.Catalog/README.md)
+- [Backend Requests Service](../services/Orca.Requests/README.md)
+- [Backend Orchestrator Service](../services/Orca.Orchestrator/README.md)
+
+## 🤝 Contribuindo
+
+1. Leia o [DEVELOPMENT_GUIDE.md](./docs/DEVELOPMENT_GUIDE.md)
+2. Crie uma branch: `git checkout -b feature/nova-feature`
+3. Commit suas mudanças: `git commit -m 'feat: adiciona nova feature'`
+4. Push: `git push origin feature/nova-feature`
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Proprietário - ORCA Platform

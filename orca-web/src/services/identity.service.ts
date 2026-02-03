@@ -7,7 +7,7 @@
 
 import { ApiClient } from '@/lib/utils/api-client';
 import { API_CONFIG } from '@/lib/constants';
-import { LoginResponse, AuthMeResponse } from '@/lib/types';
+import { LoginResponse, AuthMeResponse, Role } from '@/lib/types';
 
 class IdentityService {
   private client: ApiClient;
@@ -44,6 +44,14 @@ class IdentityService {
    */
   async logout(): Promise<void> {
     await this.client.post('/api/auth/logout');
+  }
+
+  /**
+   * GET /api/roles
+   * Listar todas as roles disponíveis
+   */
+  async listRoles(): Promise<Role[]> {
+    return this.client.get<Role[]>('/api/roles');
   }
 
   /**

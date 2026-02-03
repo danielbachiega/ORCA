@@ -55,6 +55,7 @@ public class LdapClient : ILdapClient
 
         var mockGroups = username switch
         {
+            "superadmin" => new List<string> { "Admins", "TI" },
             "admin" => new List<string> { "Admins", "TI", "Developers" },
             "editor" => new List<string> { "Editors", "Developers" },
             "consumer" => new List<string> { "Users" },

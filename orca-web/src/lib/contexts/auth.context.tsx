@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           try {
             const response = await identityService.getMe();
             console.log('✅ getMe response:', response);
-            setUser(response.user);
+            setUser(response);
             setRoles(response.roles || []);
           } catch (err) {
             console.error('❌ getMe error:', err);
@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Salvar em estado
       setSessionToken(response.sessionToken);
       setUser(response.user);
-      setRoles(response.roles);
+      setRoles(response.roles || response.user.roles || []);
 
       // Salvar em localStorage pra persistência
       localStorage.setItem(TOKEN_STORAGE_KEY, response.sessionToken);

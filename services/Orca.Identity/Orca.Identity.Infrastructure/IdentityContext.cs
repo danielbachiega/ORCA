@@ -116,15 +116,26 @@ public class IdentityContext : DbContext
 
         // Seed de Super User
         var superUserId = Guid.Parse("99999999-9999-9999-9999-999999999999");
+        var adminUserId = Guid.Parse("88888888-8888-8888-8888-888888888888");
 
         // ⚠️ CREDENCIAIS MOCK (LdapClient):
-        // Username: "superadmin"
-        // Password: "Orca@2026"
+        // Username: "superadmin" / Password: "Orca@2026"
+        // Username: "admin" / Password: "admin123"
         builder.Entity<User>().HasData(
             new User
             {
                 Id = superUserId,
                 Username = "superadmin",
+                Email = "admin@orca.local",
+                LdapGroups = new List<string> { "Admins" },
+                RoleIds = new List<Guid> { adminRoleId },
+                LastLoginAtUtc = DateTime.UtcNow,
+                IsActive = true
+            },
+            new User
+            {
+                Id = adminUserId,
+                Username = "admin",
                 Email = "admin@orca.local",
                 LdapGroups = new List<string> { "Admins" },
                 RoleIds = new List<Guid> { adminRoleId },

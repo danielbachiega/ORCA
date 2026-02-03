@@ -38,14 +38,15 @@ export const AppHeader: React.FC = () => {
     {
       type: 'divider',
     },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: 'Sair',
-      onClick: handleLogout,
-      danger: true,
-    },
   ];
+
+  menuItems.push({
+    key: 'logout',
+    icon: <LogoutOutlined />,
+    label: 'Sair',
+    onClick: handleLogout,
+    danger: true,
+  });
 
   return (
     <Header
@@ -72,17 +73,16 @@ export const AppHeader: React.FC = () => {
       </Space>
 
       {/* User Info */}
-      <Space>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '14px', fontWeight: '500' }}>
+      <Space align="center" size="middle">
+        <div style={{ textAlign: 'right', lineHeight: '1.4' }}>
+          <div style={{ fontSize: '14px', fontWeight: '500', margin: '0' }}>
             {user?.firstName || user?.username}
           </div>
-          <div style={{ fontSize: '12px', color: '#999' }}>
+          <div style={{ fontSize: '12px', color: '#999', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', margin: '0' }}>
             <Badge
               count={roles?.length || 0}
               style={{ backgroundColor: '#52c41a' }}
             />
-            {' '}
             role{(roles?.length || 0) !== 1 ? 's' : ''}
           </div>
         </div>
