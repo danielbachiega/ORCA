@@ -84,9 +84,9 @@ function CreateOfferContent() {
     },
     onSuccess: (data) => {
       message.success('Oferta criada com sucesso!');
-      // Redirecionar pra página de designer de formulário
+      // Redirecionar pra página de detalhes da oferta
       setTimeout(() => {
-        router.push(`/dashboard/admin/offers/${data.id}/form-designer`);
+        router.push(`/dashboard/offers/${data.id}`);
       }, 1000);
     },
     onError: (err) => {

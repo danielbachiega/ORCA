@@ -52,24 +52,59 @@ function DashboardContent() {
     r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
   );
 
-  // TanStack Query - Buscar ofertas
+  const isEditor = roles && roles.length > 0 && roles.some((r) =>
+    r.name.toLowerCase() === 'editor'
+  );
+
+  const isConsumer = !isAdmin && !isEditor;
+
+  const canViewDetails = isAdmin || isEditor;
+
+  // TanStack Query - Buscar ofertas baseado em roles
   const {
     data: offers = [],
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery({
-    queryKey: ['offers'],
+    queryKey: ['offers', roles],
     queryFn: async () => {
-      const result = await catalogService.listOffers();
-      console.log('✅ catalogService.listOffers():', result);
+      if (!roles || roles.length === 0) {
+        console.log('⚠️ Nenhuma role encontrada, retornando lista vazia');
+        return [];
+      }
+
+      const roleNames = roles.map(r => r.name);
+      console.log('📋 Buscando ofertas para roles:', roleNames);
+      
+      const result = await catalogService.listOffersByRoles(roleNames);
+      console.log('✅ catalogService.listOffersByRoles():', result);
+      result.forEach(offer => {
+        console.log(`  - ${offer.name}: active=${offer.active}, visibleToRoles=${JSON.stringify(offer.visibleToRoles)}`);
+      });
       return result;
     },
+    staleTime: 0,
+    enabled: !!roles && roles.length > 0,
   });
+
+  // Refetch ao entrar na página (garantir dados frescos)
+  React.useEffect(() => {
+    console.log('🔍 Dashboard - isConsumer:', isConsumer);
+    console.log('👤 Roles do usuário:', roles?.map(r => r.name).join(', '));
+    refetch();
+  }, [refetch, isConsumer, roles]);
 
   // Filtrar ofertas baseado em busca e tag selecionada
   const filteredOffers = useMemo(() => {
     return offers.filter((offer) => {
+      // Consumers não veem ofertas inativas
+      if (isConsumer && !offer.active) {
+        console.log(`⏭️ Filtrando oferta inativa para consumer: ${offer.name} (active: ${offer.active})`);
+        return false;
+      }
+
       const matchesSearch =
         searchTerm === '' ||
         offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,7 +117,7 @@ function DashboardContent() {
 
       return matchesSearch && matchesTag;
     });
-  }, [offers, searchTerm, selectedTag]);
+  }, [offers, searchTerm, selectedTag, isConsumer]);
 
   // Agrupar ofertas por tags
   const offersByTag = useMemo(() => {
@@ -105,7 +140,11 @@ function DashboardContent() {
       key={offer.id}
       hoverable
       className={styles.offerCard}
-      onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
+      onClick={() => {
+        if (canViewDetails) {
+          router.push(`/dashboard/offers/${offer.id}`);
+        }
+      }}
       cover={
         <div className={styles.cardCover}>
           <BugOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
@@ -133,13 +172,31 @@ function DashboardContent() {
             status={offer.active ? 'success' : 'default'}
             text={offer.active ? 'Ativa' : 'Inativa'}
           />
-          <Button
-            type="primary"
-            block
-            icon={<ArrowRightOutlined />}
-          >
-            Ver Detalhes
-          </Button>
+          {canViewDetails && (
+            <Button
+              type="primary"
+              block
+              icon={<ArrowRightOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/dashboard/offers/${offer.id}`);
+              }}
+            >
+              Ver Detalhes
+            </Button>
+          )}
+          {isConsumer && (
+            <Button
+              type="primary"
+              block
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/dashboard/offers/${offer.slug}/request`);
+              }}
+            >
+              Solicitar
+            </Button>
+          )}
         </Space>
       </div>
     </Card>
@@ -149,7 +206,6 @@ function DashboardContent() {
   const renderListItem = (offer: Offer) => (
     <List.Item
       key={offer.id}
-      onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
       style={{ cursor: 'pointer', padding: '16px', borderRadius: '4px' }}
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fafafa')}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -181,7 +237,23 @@ function DashboardContent() {
             status={offer.active ? 'success' : 'default'}
             text={offer.active ? 'Ativa' : 'Inativa'}
           />
-          <Button type="primary" icon={<ArrowRightOutlined />} />
+          {canViewDetails && (
+            <Button
+              type="primary"
+              icon={<ArrowRightOutlined />}
+              onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
+            >
+              Ver Detalhes
+            </Button>
+          )}
+          {isConsumer && (
+            <Button
+              type="primary"
+              onClick={() => router.push(`/dashboard/offers/${offer.slug}/request`)}
+            >
+              Solicitar
+            </Button>
+          )}
         </Space>
       </div>
     </List.Item>

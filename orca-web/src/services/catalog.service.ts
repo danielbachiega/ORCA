@@ -27,6 +27,16 @@ class CatalogService {
   }
 
   /**
+   * GET /api/offers/by-roles?roles=role1&roles=role2
+   * Listar ofertas visíveis para as roles fornecidas
+   */
+  async listOffersByRoles(roles: string[]): Promise<Offer[]> {
+    const params = new URLSearchParams();
+    roles.forEach(role => params.append('roles', role));
+    return this.client.get<Offer[]>(`/api/offers/by-roles?${params.toString()}`);
+  }
+
+  /**
    * GET /api/offers/{id}
    * Obter detalhes de uma oferta específica
    * Inclui: nome, descrição, JSON Schema do formulário

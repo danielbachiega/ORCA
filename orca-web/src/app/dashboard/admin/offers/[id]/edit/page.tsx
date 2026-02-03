@@ -98,6 +98,7 @@ function EditOfferContent() {
     error: submitError,
   } = useMutation({
     mutationFn: async (values: EditOfferFormValues) => {
+      console.log('📝 Atualizando oferta com valores:', values);
       const result = await catalogService.updateOffer(offerId, {
         id: offerId,
         name: values.name,
@@ -108,6 +109,7 @@ function EditOfferContent() {
         visibleToRoles: values.visibleToRoles || [],
       });
 
+      console.log('✅ Resposta da atualização:', result);
       return result;
     },
     onSuccess: (data) => {
