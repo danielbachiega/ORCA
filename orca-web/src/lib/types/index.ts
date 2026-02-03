@@ -94,17 +94,30 @@ export interface Request {
   offerId: string;
   userId: string;
   status: RequestStatus;
-  formDataJson: string; // Dados preenchidos
+  offerName?: string;
+  formData?: string;
+  formDataJson?: string; // Compatibilidade
+  executionTargetType?: number;
+  executionResourceType?: number | null;
+  executionResourceId?: string;
+  executionId?: string;
+  awxOoExecutionStatus?: string;
   executionResultType?: ExecutionResultType;
   errorMessage?: string;
   createdAtUtc: string;
-  updatedAtUtc: string;
+  updatedAtUtc?: string;
+  startedAtUtc?: string;
+  completedAtUtc?: string;
 }
 
 export interface CreateRequestDto {
   offerId: string;
+  formDefinitionId: string;
   userId: string;
   formData: Record<string, unknown>; // Dados do formulário preenchidos
+  executionTargetType: number; // 0 = AWX, 1 = OO
+  executionResourceType?: number | null; // 0 = JobTemplate, 1 = Workflow (null para OO)
+  executionResourceId: string; // ID do job/workflow/flow
 }
 
 export interface RequestListResponse {

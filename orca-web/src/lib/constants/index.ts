@@ -6,6 +6,7 @@
 export const API_CONFIG = {
   IDENTITY: process.env.NEXT_PUBLIC_IDENTITY_API || 'http://localhost:5002',
   CATALOG: process.env.NEXT_PUBLIC_CATALOG_API || 'http://localhost:5001',
+  FORMS: process.env.NEXT_PUBLIC_FORMS_API || 'http://localhost:5003',
   REQUESTS: process.env.NEXT_PUBLIC_REQUESTS_API || 'http://localhost:5004',
   ORCHESTRATOR: process.env.NEXT_PUBLIC_ORCHESTRATOR_API || 'http://localhost:5005',
 };

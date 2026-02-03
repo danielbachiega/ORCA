@@ -12,7 +12,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { catalogService, requestsService } from '@/services';
+import { catalogService, formsService, requestsService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
 import { useAuth } from '@/lib/contexts/auth.context';
@@ -260,6 +260,27 @@ function RequestFormContent() {
     enabled: !!offer?.id,
   });
 
+  // Buscar ExecutionTemplate da oferta
+  const {
+    data: executionTemplate,
+    isLoading: isLoadingTemplate,
+  } = useQuery({
+    queryKey: ['execution-template', publishedForm?.id],
+    queryFn: async () => {
+      if (!publishedForm?.id) return null;
+      console.log('🔍 Buscando ExecutionTemplate para FormDefinition:', publishedForm.id);
+      try {
+        const result = await formsService.getExecutionTemplateByFormDefinitionId(publishedForm.id);
+        console.log('✅ ExecutionTemplate recebido:', result);
+        return result;
+      } catch (error) {
+        console.warn('⚠️ ExecutionTemplate não encontrado:', error);
+        return null;
+      }
+    },
+    enabled: !!publishedForm?.id,
+  });
+
   // Pegar apenas o formulário publicado (agora já vem do endpoint correto)
   const hasPublishedForm = useMemo(() => {
     console.log('📋 Formulário publicado:', publishedForm);
@@ -337,12 +358,29 @@ function RequestFormContent() {
   } = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Usuário não autenticado');
-
       if (!offer?.id) throw new Error('Oferta inválida');
+      if (!publishedForm?.id) throw new Error('Formulário não encontrado');
+      if (!executionTemplate) throw new Error('Configuração de execução não encontrada');
+
+      console.log('📋 FormData original:', formData);
+      console.log('🔄 ExecutionTemplate:', executionTemplate);
+
+      // Aplicar field mapping se existir
+      let payload = formData;
+      if (executionTemplate.fieldMappings && executionTemplate.fieldMappings.length > 0) {
+        payload = formsService.applyFieldMapping(formData, executionTemplate.fieldMappings);
+      }
+
+      console.log('✅ Payload final:', payload);
+
       const result = await requestsService.createRequest({
         offerId: offer.id,
+        formDefinitionId: publishedForm.id,
         userId: user.id,
-        formData,
+        formData: payload,
+        executionTargetType: executionTemplate.targetType,
+        executionResourceType: executionTemplate.resourceType || undefined,
+        executionResourceId: executionTemplate.resourceId,
       });
 
       console.log('✅ requestsService.createRequest():', result);
@@ -394,7 +432,7 @@ function RequestFormContent() {
           />
 
           {/* Loading */}
-          {(isLoadingOffer || isLoadingForm) && (
+          {(isLoadingOffer || isLoadingForm || isLoadingTemplate) && (
             <Card loading style={{ marginBottom: '24px' }}>
               <Skeleton active paragraph={{ rows: 4 }} />
             </Card>
@@ -446,8 +484,19 @@ function RequestFormContent() {
             />
           )}
 
+          {/* Warning - ExecutionTemplate não encontrado */}
+          {offer && !isLoadingOffer && !isLoadingForm && !isLoadingTemplate && !executionTemplate && (
+            <Alert
+              title="Configuração de Execução Não Encontrada"
+              description="Esta oferta não tem uma configuração de execução (ExecutionTemplate). Contate o administrador."
+              type="warning"
+              showIcon
+              style={{ marginBottom: '24px' }}
+            />
+          )}
+
           {/* Formulário */}
-          {offer && !isLoadingOffer && !isLoadingForm && !isErrorForm && (
+          {offer && !isLoadingOffer && !isLoadingForm && !isLoadingTemplate && !isErrorForm && executionTemplate && (
             <div className={styles.formContainer}>
               {/* Header */}
               <Card style={{ marginBottom: '24px' }}>

@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { requestsService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { useAuth } from '@/lib/contexts/auth.context';
 import {
   Layout,
   Card,
@@ -47,6 +48,7 @@ const statusLabels: Record<RequestStatus, string> = {
 
 function MyRequestsContent() {
   const router = useRouter();
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -57,12 +59,17 @@ function MyRequestsContent() {
     isError,
     error,
   } = useQuery({
-    queryKey: ['requests', page],
+    queryKey: ['requests', 'user', user?.id, page],
     queryFn: async () => {
-      const result = await requestsService.listRequests(page, pageSize);
-      console.log('✅ requestsService.listRequests():', result);
+      if (!user?.id) {
+        return { items: [], total: 0, page, pageSize };
+      }
+
+      const result = await requestsService.listRequestsByUser(user.id, page, pageSize);
+      console.log('✅ requestsService.listRequestsByUser():', result);
       return result;
     },
+    enabled: !!user?.id,
   });
 
   const handleViewDetails = (requestId: string) => {

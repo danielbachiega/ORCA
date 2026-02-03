@@ -60,10 +60,21 @@ class RequestsService {
     page: number = 1,
     pageSize: number = 10
   ): Promise<RequestListResponse> {
-    return this.client.get<RequestListResponse>(
+    const response = await this.client.get<RequestListResponse | Request[]>(
       `/api/requests/user/${userId}`,
       { params: { page, pageSize } }
     );
+
+    if (Array.isArray(response)) {
+      return {
+        items: response,
+        total: response.length,
+        page,
+        pageSize,
+      };
+    }
+
+    return response;
   }
 
   /**
@@ -76,10 +87,21 @@ class RequestsService {
     page: number = 1,
     pageSize: number = 10
   ): Promise<RequestListResponse> {
-    return this.client.get<RequestListResponse>(
+    const response = await this.client.get<RequestListResponse | Request[]>(
       `/api/requests/user/${userId}/offer/${offerId}`,
       { params: { page, pageSize } }
     );
+
+    if (Array.isArray(response)) {
+      return {
+        items: response,
+        total: response.length,
+        page,
+        pageSize,
+      };
+    }
+
+    return response;
   }
 
   /**
@@ -89,8 +111,12 @@ class RequestsService {
   async createRequest(dto: CreateRequestDto): Promise<Request> {
     return this.client.post<Request>('/api/requests', {
       offerId: dto.offerId,
+      formDefinitionId: dto.formDefinitionId,
       userId: dto.userId,
       formData: JSON.stringify(dto.formData), // Backend espera string JSON
+      executionTargetType: dto.executionTargetType,
+      executionResourceType: dto.executionResourceType,
+      executionResourceId: dto.executionResourceId,
     });
   }
 
