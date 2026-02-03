@@ -12,11 +12,12 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { catalogService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
 import { FormsManagementModal } from '@/components/forms-management-modal';
+import { ExecutionTemplateModal } from '@/components/execution-template-modal';
 import type { FormField } from '@/components/form-builder';
 import { useAuth } from '@/lib/contexts/auth.context';
 import {
@@ -48,9 +49,6 @@ interface FormDefinition {
   createdAtUtc: string;
   updatedAtUtc?: string;
   schemaJson?: string;
-  executionTargetType?: 0 | 1 | null;
-  executionResourceType?: 0 | 1 | null;
-  executionResourceId?: string | null;
 }
 
 function OfferDetailsContent() {
@@ -58,14 +56,14 @@ function OfferDetailsContent() {
   const params = useParams();
   const offerId = params.id as string;
   const { roles } = useAuth();
+  const queryClient = useQueryClient();
   const [formsModalVisible, setFormsModalVisible] = useState(false);
   const [formsModalMode, setFormsModalMode] = useState<'create' | 'edit'>('create');
   const [editingForm, setEditingForm] = useState<FormDefinition | null>(null);
   const [modalFields, setModalFields] = useState<FormField[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
-  const [executionTargetType, setExecutionTargetType] = useState<0 | 1 | null>(null);
-  const [executionResourceType, setExecutionResourceType] = useState<0 | 1 | null>(null);
-  const [executionResourceId, setExecutionResourceId] = useState<string | null>(null);
+  const [automationModalVisible, setAutomationModalVisible] = useState(false);
+  const [automationFormId, setAutomationFormId] = useState<string | null>(null);
   const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
 
   const isAdmin = roles && roles.length > 0 && roles.some((r) =>
@@ -117,9 +115,11 @@ function OfferDetailsContent() {
         { method: 'POST' }
       );
       if (!response.ok) throw new Error('Erro ao publicar formulário');
+      if (response.status === 204) return null;
       return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['forms', offerId] });
       refetchForms();
     },
   });
@@ -154,9 +154,6 @@ function OfferDetailsContent() {
     setEditingForm(null);
     setFormsModalMode('create');
     setModalFields([]);
-    setExecutionTargetType(null);
-    setExecutionResourceType(null);
-    setExecutionResourceId(null);
     setFormsModalVisible(true);
   };
 
@@ -190,9 +187,6 @@ function OfferDetailsContent() {
         isPublished: details?.isPublished ?? formDef.isPublished,
       });
       setModalFields(parseFieldsFromSchema(details?.schemaJson));
-      setExecutionTargetType(details?.executionTargetType ?? null);
-      setExecutionResourceType(details?.executionResourceType ?? null);
-      setExecutionResourceId(details?.executionResourceId ?? null);
       setFormsModalMode('edit');
       setFormsModalVisible(true);
     } catch {
@@ -497,6 +491,17 @@ function OfferDetailsContent() {
                               >
                                 Editar
                               </Button>
+                              {formDef.isPublished && (
+                                <Button
+                                  size="small"
+                                  onClick={() => {
+                                    setAutomationFormId(formDef.id);
+                                    setAutomationModalVisible(true);
+                                  }}
+                                >
+                                  ⚙️ Automação
+                                </Button>
+                              )}
                               {!formDef.isPublished && (
                                 <Button
                                   type="primary"
@@ -529,12 +534,7 @@ function OfferDetailsContent() {
           {/* Forms Management Modal */}
           <FormsManagementModal
             visible={formsModalVisible}
-            onClose={() => {
-              setFormsModalVisible(false);
-              setExecutionTargetType(null);
-              setExecutionResourceType(null);
-              setExecutionResourceId(null);
-            }}
+            onClose={() => setFormsModalVisible(false)}
             offerId={offerId}
             mode={formsModalMode}
             editingFormId={editingForm?.id ?? null}
@@ -545,12 +545,17 @@ function OfferDetailsContent() {
             onChange={setModalFields}
             isLoading={modalLoading}
             onSaved={() => refetchForms()}
-            executionTargetType={executionTargetType}
-            onExecutionTargetTypeChange={setExecutionTargetType}
-            executionResourceType={executionResourceType}
-            onExecutionResourceTypeChange={setExecutionResourceType}
-            executionResourceId={executionResourceId}
-            onExecutionResourceIdChange={setExecutionResourceId}
+          />
+
+          {/* Execution Template Modal */}
+          <ExecutionTemplateModal
+            visible={automationModalVisible}
+            onClose={() => {
+              setAutomationModalVisible(false);
+              setAutomationFormId(null);
+            }}
+            formDefinitionId={automationFormId ?? ''}
+            onSaved={() => refetchForms()}
           />
         </div>
       </Content>
