@@ -10,12 +10,14 @@
 
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { catalogService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { FormsManagementModal } from '@/components/forms-management-modal';
+import type { FormField } from '@/components/form-builder';
 import { useAuth } from '@/lib/contexts/auth.context';
 import {
   Layout,
@@ -28,17 +30,37 @@ import {
   Divider,
   Row,
   Col,
+  Empty,
+  Badge,
+  Modal,
+  message,
 } from 'antd';
-import { SendOutlined, EditOutlined, CalendarOutlined, TagOutlined } from '@ant-design/icons';
+import { SendOutlined, EditOutlined, CalendarOutlined, TagOutlined, FileTextOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import styles from './offer-details.module.css';
 
 const { Content } = Layout;
+
+interface FormDefinition {
+  id: string;
+  offerId: string;
+  version: number;
+  isPublished: boolean;
+  createdAtUtc: string;
+  updatedAtUtc?: string;
+  schemaJson?: string;
+}
 
 function OfferDetailsContent() {
   const router = useRouter();
   const params = useParams();
   const offerId = params.id as string;
   const { roles } = useAuth();
+  const [formsModalVisible, setFormsModalVisible] = useState(false);
+  const [formsModalMode, setFormsModalMode] = useState<'create' | 'edit'>('create');
+  const [editingForm, setEditingForm] = useState<FormDefinition | null>(null);
+  const [modalFields, setModalFields] = useState<FormField[]>([]);
+  const [modalLoading, setModalLoading] = useState(false);
+  const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
 
   const isAdmin = roles && roles.length > 0 && roles.some((r) =>
     r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
@@ -63,6 +85,124 @@ function OfferDetailsContent() {
     // TODO: Implementar formulário de requisição
     // Por enquanto, vai pra página de submissão
     router.push(`/dashboard/offers/${offerId}/request`);
+  };
+
+  // Formularios da oferta
+  const {
+    data: forms = [],
+    isLoading: formsLoading,
+    refetch: refetchForms,
+  } = useQuery({
+    queryKey: ['forms', offerId],
+    queryFn: async () => {
+      const response = await fetch(
+        `${formsApiBase}/api/form-definitions/offer/${offerId}`
+      );
+      if (!response.ok) throw new Error('Erro ao buscar formulários');
+      return response.json();
+    },
+    enabled: Boolean(offerId),
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: async (formId: string) => {
+      const response = await fetch(
+        `${formsApiBase}/api/form-definitions/${formId}/publish`,
+        { method: 'POST' }
+      );
+      if (!response.ok) throw new Error('Erro ao publicar formulário');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchForms();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (formId: string) => {
+      const response = await fetch(
+        `${formsApiBase}/api/form-definitions/${formId}`,
+        { method: 'DELETE' }
+      );
+      if (!response.ok) throw new Error('Erro ao deletar formulário');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchForms();
+    },
+  });
+
+  const orderedForms = useMemo(() => {
+    const publishedForm = forms.find((f: FormDefinition) => f.isPublished);
+    const drafts = forms.filter((f: FormDefinition) => !f.isPublished);
+    return [publishedForm, ...drafts].filter(Boolean);
+  }, [forms]);
+
+  const nextVersion = useMemo(() => {
+    if (forms.length === 0) return 1;
+    const maxVersion = Math.max(...forms.map((f: FormDefinition) => f.version));
+    return maxVersion + 1;
+  }, [forms]);
+
+  const handleOpenCreateForm = () => {
+    setEditingForm(null);
+    setFormsModalMode('create');
+    setModalFields([]);
+    setFormsModalVisible(true);
+  };
+
+  const parseFieldsFromSchema = (schemaJson?: string): FormField[] => {
+    if (!schemaJson) return [];
+    try {
+      const parsed = JSON.parse(schemaJson);
+      if (Array.isArray(parsed?.fields)) {
+        return parsed.fields as FormField[];
+      }
+      message.warning('Schema atual não está no formato do builder visual');
+      return [];
+    } catch {
+      message.error('Erro ao ler o schema do formulário');
+      return [];
+    }
+  };
+
+  const handleOpenEditForm = async (formDef: FormDefinition) => {
+    try {
+      setModalLoading(true);
+      const response = await fetch(
+        `${formsApiBase}/api/form-definitions/${formDef.id}`
+      );
+      if (!response.ok) throw new Error('Erro ao carregar formulário');
+      const details = await response.json();
+
+      setEditingForm({
+        ...formDef,
+        version: details?.version ?? formDef.version,
+        isPublished: details?.isPublished ?? formDef.isPublished,
+      });
+      setModalFields(parseFieldsFromSchema(details?.schemaJson));
+      setFormsModalMode('edit');
+      setFormsModalVisible(true);
+    } catch {
+      message.error('Não foi possível carregar o formulário');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleDeleteForm = (formDef: FormDefinition) => {
+    Modal.confirm({
+      title: 'Excluir formulário?',
+      content: formDef.isPublished
+        ? 'Este formulário está publicado. Tem certeza que deseja excluir?'
+        : 'Esta ação não pode ser desfeita.',
+      okText: 'Excluir',
+      cancelText: 'Cancelar',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        await deleteMutation.mutateAsync(formDef.id);
+      },
+    });
   };
 
   return (
@@ -126,12 +266,14 @@ function OfferDetailsContent() {
                   {/* Ações no topo */}
                   <Space size="middle">
                     {isAdmin && (
-                      <Button
-                        icon={<EditOutlined />}
-                        onClick={() => router.push(`/dashboard/admin/offers/${offerId}/edit`)}
-                      >
-                        Editar
-                      </Button>
+                      <>
+                        <Button
+                          icon={<EditOutlined />}
+                          onClick={() => router.push(`/dashboard/admin/offers/${offerId}/edit`)}
+                        >
+                          Editar
+                        </Button>
+                      </>
                     )}
                     <Button
                       type="primary"
@@ -272,8 +414,121 @@ function OfferDetailsContent() {
                   {/* TODO: Renderizar formulário aqui */}
                 </Card>
               )}
+
+              {/* Formulários da Oferta */}
+              {isAdmin && (
+                <Card
+                  title={
+                    <Space>
+                      <FileTextOutlined />
+                      <span>Formulários da Oferta</span>
+                      <Badge
+                        count={forms.length}
+                        style={{ backgroundColor: '#1890ff' }}
+                      />
+                    </Space>
+                  }
+                  extra={
+                    <Button
+                      type="primary"
+                      onClick={handleOpenCreateForm}
+                    >
+                      Criar Formulário
+                    </Button>
+                  }
+                  style={{ marginBottom: '24px' }}
+                >
+                  {formsLoading ? (
+                    <Skeleton active paragraph={{ rows: 3 }} />
+                  ) : forms.length === 0 ? (
+                    <Empty description="Nenhum formulário criado" />
+                  ) : (
+                    <div>
+                      {orderedForms.map((formDef: FormDefinition) => (
+                        <div
+                          key={formDef.id}
+                          style={{
+                            padding: '12px',
+                            marginBottom: '12px',
+                            border: '1px solid #e8e8e8',
+                            borderRadius: '4px',
+                            backgroundColor: formDef.isPublished ? '#fafafa' : '#ffffff',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Space>
+                              {formDef.isPublished && (
+                                <Tag color="green">Ativo</Tag>
+                              )}
+                              {!formDef.isPublished && <Tag>Draft</Tag>}
+                              <span style={{ fontWeight: 500 }}>
+                                v{formDef.version}
+                              </span>
+                              <span style={{ color: '#999', fontSize: '12px' }}>
+                                {new Date(formDef.createdAtUtc).toLocaleDateString(
+                                  'pt-BR'
+                                )}
+                              </span>
+                            </Space>
+
+                            <Space size="small">
+                              <Button
+                                size="small"
+                                icon={<EditOutlined />}
+                                onClick={() => handleOpenEditForm(formDef)}
+                              >
+                                Editar
+                              </Button>
+                              {!formDef.isPublished && (
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  icon={<UploadOutlined />}
+                                  loading={publishMutation.isPending}
+                                  onClick={() => publishMutation.mutate(formDef.id)}
+                                >
+                                  Publicar
+                                </Button>
+                              )}
+                              <Button
+                                danger
+                                size="small"
+                                icon={<DeleteOutlined />}
+                                loading={deleteMutation.isPending}
+                                onClick={() => handleDeleteForm(formDef)}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              )}
             </div>
           )}
+
+          {/* Forms Management Modal */}
+          <FormsManagementModal
+            visible={formsModalVisible}
+            onClose={() => setFormsModalVisible(false)}
+            offerId={offerId}
+            mode={formsModalMode}
+            editingFormId={editingForm?.id ?? null}
+            editingFormVersion={editingForm?.version ?? null}
+            editingIsPublished={editingForm?.isPublished ?? false}
+            nextVersion={nextVersion}
+            fields={modalFields}
+            onChange={setModalFields}
+            isLoading={modalLoading}
+            onSaved={() => refetchForms()}
+          />
         </div>
       </Content>
     </Layout>
