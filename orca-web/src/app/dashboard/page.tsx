@@ -9,12 +9,13 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { catalogService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
 import { useAuth } from '@/lib/contexts/auth.context';
+import { Offer } from '@/lib/types';
 import {
   Layout,
   Card,
@@ -26,16 +27,26 @@ import {
   Button,
   Space,
   Badge,
+  Input,
+  Segmented,
+  List,
+  Collapse,
+  Tag,
 } from 'antd';
-import { ArrowRightOutlined, BugOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, BugOutlined, SearchOutlined, AppstoreOutlined, UnorderedListOutlined, TagsOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import styles from './dashboard.module.css';
 
 const { Content } = Layout;
 
+type ViewMode = 'cards' | 'list' | 'tags';
+
 function DashboardContent() {
   const router = useRouter();
   const { roles } = useAuth();
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const isAdmin = roles && roles.length > 0 && roles.some((r) =>
     r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
@@ -55,6 +66,126 @@ function DashboardContent() {
       return result;
     },
   });
+
+  // Filtrar ofertas baseado em busca e tag selecionada
+  const filteredOffers = useMemo(() => {
+    return offers.filter((offer) => {
+      const matchesSearch =
+        searchTerm === '' ||
+        offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (offer.description &&
+          offer.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchesTag =
+        selectedTag === null ||
+        (offer.tags && offer.tags.includes(selectedTag));
+
+      return matchesSearch && matchesTag;
+    });
+  }, [offers, searchTerm, selectedTag]);
+
+  // Agrupar ofertas por tags
+  const offersByTag = useMemo(() => {
+    const grouped: Record<string, typeof offers> = {};
+    filteredOffers.forEach((offer) => {
+      const tags = offer.tags && Array.isArray(offer.tags) ? offer.tags : ['Sem tag'];
+      tags.forEach((tag) => {
+        if (!grouped[tag]) {
+          grouped[tag] = [];
+        }
+        grouped[tag].push(offer);
+      });
+    });
+    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+  }, [filteredOffers]);
+
+  // Renderizar card individual
+  const renderOfferCard = (offer: Offer) => (
+    <Card
+      key={offer.id}
+      hoverable
+      className={styles.offerCard}
+      onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
+      cover={
+        <div className={styles.cardCover}>
+          <BugOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+        </div>
+      }
+    >
+      <Card.Meta
+        title={offer.name}
+        description={offer.description}
+      />
+      <div style={{ marginTop: '12px', marginBottom: '12px' }}>
+        {offer.tags && offer.tags.length > 0 && (
+          <Space size={4} wrap>
+            {offer.tags.map((tag: string) => (
+              <Tag key={tag} onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}>
+                {tag}
+              </Tag>
+            ))}
+          </Space>
+        )}
+      </div>
+      <div>
+        <Space orientation="vertical" style={{ width: '100%' }}>
+          <Badge
+            status={offer.active ? 'success' : 'default'}
+            text={offer.active ? 'Ativa' : 'Inativa'}
+          />
+          <Button
+            type="primary"
+            block
+            icon={<ArrowRightOutlined />}
+          >
+            Ver Detalhes
+          </Button>
+        </Space>
+      </div>
+    </Card>
+  );
+
+  // Renderizar linha da lista
+  const renderListItem = (offer: Offer) => (
+    <List.Item
+      key={offer.id}
+      onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
+      style={{ cursor: 'pointer', padding: '16px', borderRadius: '4px' }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fafafa')}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+    >
+      <List.Item.Meta
+        avatar={<BugOutlined style={{ fontSize: '24px', color: '#1890ff' }} />}
+        title={offer.name}
+        description={
+          <div>
+            <p style={{ marginBottom: '8px' }}>{offer.description}</p>
+            {offer.tags && offer.tags.length > 0 && (
+              <Space size={4} wrap>
+                {offer.tags.map((tag: string) => (
+                  <Tag
+                    key={tag}
+                    onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}
+                  >
+                    {tag}
+                  </Tag>
+                ))}
+              </Space>
+            )}
+          </div>
+        }
+      />
+      <div style={{ textAlign: 'right' }}>
+        <Space>
+          <Badge
+            status={offer.active ? 'success' : 'default'}
+            text={offer.active ? 'Ativa' : 'Inativa'}
+          />
+          <Button type="primary" icon={<ArrowRightOutlined />} />
+        </Space>
+      </div>
+    </List.Item>
+  );
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -109,6 +240,58 @@ function DashboardContent() {
             />
           )}
 
+          {/* Controles de Filtro */}
+          {!isLoading && offers.length > 0 && (
+            <Card style={{ marginBottom: '24px' }}>
+              <Space style={{ width: '100%' }} size="large" direction="vertical">
+                {/* Barra de Busca */}
+                <Input
+                  placeholder="Buscar ofertas por nome ou descrição..."
+                  prefix={<SearchOutlined />}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  allowClear
+                  size="large"
+                />
+
+                {/* Modo de Visualização */}
+                <div>
+                  <div style={{ marginBottom: '8px', fontWeight: 500 }}>
+                    Visualização:
+                  </div>
+                  <Segmented
+                    value={viewMode}
+                    onChange={(value) => setViewMode(value as ViewMode)}
+                    options={[
+                      {
+                        label: 'Cards',
+                        value: 'cards',
+                        icon: <AppstoreOutlined />,
+                      },
+                      {
+                        label: 'Lista',
+                        value: 'list',
+                        icon: <UnorderedListOutlined />,
+                      },
+                      {
+                        label: 'Por Tags',
+                        value: 'tags',
+                        icon: <TagsOutlined />,
+                      },
+                    ]}
+                  />
+                </div>
+
+                {/* Resultado da Busca */}
+                {searchTerm && (
+                  <div style={{ color: '#666' }}>
+                    Encontradas <strong>{filteredOffers.length}</strong> oferta(s)
+                  </div>
+                )}
+              </Space>
+            </Card>
+          )}
+
           {/* Skeleton Loading */}
           {isLoading && (
             <Row gutter={[16, 16]}>
@@ -120,53 +303,63 @@ function DashboardContent() {
             </Row>
           )}
 
-          {/* Ofertas Grid */}
-          {!isLoading && offers.length > 0 && (
+          {/* Visualização: Cards */}
+          {!isLoading && filteredOffers.length > 0 && viewMode === 'cards' && (
             <Row gutter={[16, 16]}>
-              {offers.map((offer) => (
+              {filteredOffers.map((offer) => (
                 <Col key={offer.id} xs={24} sm={12} lg={8}>
-                  <Card
-                    hoverable
-                    className={styles.offerCard}
-                    onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
-                    cover={
-                      <div className={styles.cardCover}>
-                        <BugOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
-                      </div>
-                    }
-                  >
-                    <Card.Meta
-                      title={offer.name}
-                      description={offer.description}
-                    />
-
-                    <div style={{ marginTop: '16px' }}>
-                      <Space orientation="vertical" style={{ width: '100%' }}>
-                        <Badge
-                          status={offer.active ? 'success' : 'default'}
-                          text={
-                            offer.active ? 'Ativa' : 'Inativa'
-                          }
-                        />
-                        <Button
-                          type="primary"
-                          block
-                          icon={<ArrowRightOutlined />}
-                        >
-                          Ver Detalhes
-                        </Button>
-                      </Space>
-                    </div>
-                  </Card>
+                  {renderOfferCard(offer)}
                 </Col>
               ))}
             </Row>
           )}
 
-          {/* Sem Ofertas */}
+          {/* Visualização: Lista */}
+          {!isLoading && filteredOffers.length > 0 && viewMode === 'list' && (
+            <List
+              dataSource={filteredOffers}
+              renderItem={(offer) => renderListItem(offer)}
+            />
+          )}
+
+          {/* Visualização: Agrupado por Tags */}
+          {!isLoading && filteredOffers.length > 0 && viewMode === 'tags' && (
+            <Collapse
+              items={offersByTag.map(([tag, tagOffers]) => ({
+                key: tag,
+                label: (
+                  <div>
+                    <strong>{tag}</strong>
+                    <Badge
+                      count={tagOffers.length}
+                      style={{ marginLeft: '8px', backgroundColor: '#1890ff' }}
+                    />
+                  </div>
+                ),
+                children: (
+                  <Row gutter={[16, 16]}>
+                    {tagOffers.map((offer) => (
+                      <Col key={offer.id} xs={24} sm={12} lg={8}>
+                        {renderOfferCard(offer)}
+                      </Col>
+                    ))}
+                  </Row>
+                ),
+              }))}
+            />
+          )}
+
+          {/* Sem Ofertas / Sem Resultados */}
           {!isLoading && offers.length === 0 && !isError && (
             <Empty
               description="Nenhuma oferta disponível"
+              style={{ marginTop: '48px' }}
+            />
+          )}
+
+          {!isLoading && offers.length > 0 && filteredOffers.length === 0 && !isError && (
+            <Empty
+              description="Nenhuma oferta encontrada com os filtros selecionados"
               style={{ marginTop: '48px' }}
             />
           )}

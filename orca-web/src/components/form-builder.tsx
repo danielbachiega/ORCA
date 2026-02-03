@@ -19,7 +19,6 @@ import {
   Button,
   Switch,
   Space,
-  List,
   Modal,
   Row,
   Col,
@@ -71,6 +70,56 @@ const operators = [
   { label: 'É diferente de', value: 'notEquals' },
   { label: 'Contém', value: 'contains' },
 ];
+
+// Componente para preview com suporte a visibilidade condicional
+interface PreviewFormProps {
+  fields: FormField[];
+  renderFieldPreview: (field: FormField) => React.ReactNode;
+}
+
+const PreviewForm: React.FC<PreviewFormProps> = ({ fields, renderFieldPreview }) => {
+  const [previewForm] = Form.useForm();
+  const previewValues = Form.useWatch([], previewForm);
+
+  // Atualizar lógica de visibilidade baseada nos valores atuais
+  const isFieldVisibleNow = (field: FormField): boolean => {
+    if (!field.visibilityCondition) return true;
+
+    const { fieldKey, operator, value } = field.visibilityCondition;
+    const fieldValue = previewValues?.[fieldKey];
+
+    switch (operator) {
+      case 'equals':
+        return fieldValue === value;
+      case 'notEquals':
+        return fieldValue !== value;
+      case 'contains':
+        return String(fieldValue || '').includes(String(value));
+      default:
+        return true;
+    }
+  };
+
+  return (
+    <Form form={previewForm} layout="vertical">
+      {fields.map((field) => {
+        if (!isFieldVisibleNow(field)) return null;
+
+        return (
+          <Form.Item
+            key={field.id}
+            name={field.key}
+            label={field.label}
+            required={field.required}
+            help={field.description}
+          >
+            {renderFieldPreview(field)}
+          </Form.Item>
+        );
+      })}
+    </Form>
+  );
+};
 
 export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) => {
   const [editingField, setEditingField] = useState<FormField | null>(null);
@@ -262,10 +311,10 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                     showIcon
                   />
                 ) : (
-                  <List
-                    dataSource={fields}
-                    renderItem={(field) => (
+                  <div>
+                    {fields.map((field) => (
                       <Card
+                        key={field.id}
                         size="small"
                         style={{ marginBottom: '8px' }}
                         hoverable
@@ -306,8 +355,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                           </Space>
                         </div>
                       </Card>
-                    )}
-                  />
+                    ))}
+                  </div>
                 )}
               </div>
             ),
@@ -328,18 +377,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                     showIcon
                   />
                 ) : (
-                  <Form layout="vertical">
-                    {fields.map((field) => (
-                      <Form.Item
-                        key={field.id}
-                        label={field.label}
-                        required={field.required}
-                        help={field.description}
-                      >
-                        {renderFieldPreview(field)}
-                      </Form.Item>
-                    ))}
-                  </Form>
+                  <PreviewForm fields={fields} renderFieldPreview={renderFieldPreview} />
                 )}
               </Card>
             ),
