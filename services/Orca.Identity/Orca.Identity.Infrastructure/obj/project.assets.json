@@ -349,6 +349,36 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "System.DirectoryServices.Protocols/8.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/System.DirectoryServices.Protocols.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/System.DirectoryServices.Protocols.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        },
+        "runtimeTargets": {
+          "runtimes/linux/lib/net8.0/System.DirectoryServices.Protocols.dll": {
+            "assetType": "runtime",
+            "rid": "linux"
+          },
+          "runtimes/osx/lib/net8.0/System.DirectoryServices.Protocols.dll": {
+            "assetType": "runtime",
+            "rid": "osx"
+          },
+          "runtimes/win/lib/net8.0/System.DirectoryServices.Protocols.dll": {
+            "assetType": "runtime",
+            "rid": "win"
+          }
+        }
+      },
       "System.IdentityModel.Tokens.Jwt/8.15.0": {
         "type": "package",
         "dependencies": {
@@ -952,6 +982,51 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "System.DirectoryServices.Protocols/8.0.0": {
+      "sha512": "puwJxURHDrYLGTQdsHyeMS72ClTqYa4lDYz6LHSbkZEk5hq8H8JfsO4MyYhB5BMMxg93jsQzLUwrnCumj11UIg==",
+      "type": "package",
+      "path": "system.directoryservices.protocols/8.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/System.DirectoryServices.Protocols.targets",
+        "lib/net462/_._",
+        "lib/net6.0/System.DirectoryServices.Protocols.dll",
+        "lib/net6.0/System.DirectoryServices.Protocols.xml",
+        "lib/net7.0/System.DirectoryServices.Protocols.dll",
+        "lib/net7.0/System.DirectoryServices.Protocols.xml",
+        "lib/net8.0/System.DirectoryServices.Protocols.dll",
+        "lib/net8.0/System.DirectoryServices.Protocols.xml",
+        "lib/netstandard2.0/System.DirectoryServices.Protocols.dll",
+        "lib/netstandard2.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/linux/lib/net6.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/linux/lib/net6.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/linux/lib/net7.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/linux/lib/net7.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/linux/lib/net8.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/linux/lib/net8.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/osx/lib/net6.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/osx/lib/net6.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/osx/lib/net7.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/osx/lib/net7.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/osx/lib/net8.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/osx/lib/net8.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/win/lib/net6.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/win/lib/net6.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/win/lib/net7.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/win/lib/net7.0/System.DirectoryServices.Protocols.xml",
+        "runtimes/win/lib/net8.0/System.DirectoryServices.Protocols.dll",
+        "runtimes/win/lib/net8.0/System.DirectoryServices.Protocols.xml",
+        "system.directoryservices.protocols.8.0.0.nupkg.sha512",
+        "system.directoryservices.protocols.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
     "System.IdentityModel.Tokens.Jwt/8.15.0": {
       "sha512": "dpodi7ixz6hxK8YCBYAWzm0IA8JYXoKcz0hbCbNifo519//rjUI0fBD8rfNr+IGqq+2gm4oQoXwHk09LX5SqqQ==",
       "type": "package",
@@ -998,6 +1073,7 @@
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 8.0.0",
       "Orca.Identity.Application >= 1.0.0",
       "Orca.Identity.Domain >= 1.0.0",
+      "System.DirectoryServices.Protocols >= 8.0.0",
       "System.IdentityModel.Tokens.Jwt >= 8.15.0"
     ]
   },
@@ -1062,6 +1138,10 @@
             "version": "[8.15.0, )"
           },
           "Npgsql.EntityFrameworkCore.PostgreSQL": {
+            "target": "Package",
+            "version": "[8.0.0, )"
+          },
+          "System.DirectoryServices.Protocols": {
             "target": "Package",
             "version": "[8.0.0, )"
           },

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "texul0SiObC4e3QiKPvVF5tJMYlQNHlixiIANAr1JueauwFk8CkFTl0l26p3EOBBf04SCMMQVyyXh074nGe9Ag==",
+  "dgSpecHash": "pld6Ocph0mPQQNb9i3ZJKg/QySiSUfmMmOBC1fQiAdNvpdTjkNBdx5gy3f5OB5gpvZ4OcSpRgN5WQw/8JOe/vQ==",
   "success": true,
   "projectFilePath": "/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Infrastructure/Orca.Identity.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -24,6 +24,7 @@
     "/home/danielbachiega/.nuget/packages/npgsql/8.0.0/npgsql.8.0.0.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/npgsql.entityframeworkcore.postgresql/8.0.0/npgsql.entityframeworkcore.postgresql.8.0.0.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/system.diagnostics.diagnosticsource/10.0.2/system.diagnostics.diagnosticsource.10.0.2.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/system.directoryservices.protocols/8.0.0/system.directoryservices.protocols.8.0.0.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/system.identitymodel.tokens.jwt/8.15.0/system.identitymodel.tokens.jwt.8.15.0.nupkg.sha512"
   ],
   "logs": []

@@ -30,7 +30,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 var jwtSecret = builder.Configuration["Jwt:SecretKey"]
     ?? throw new InvalidOperationException("Jwt:SecretKey não encontrada");
 
-builder.Services.AddIdentityInfrastructure(connectionString, jwtSecret);
+builder.Services.AddIdentityInfrastructure(builder.Configuration, connectionString, jwtSecret);
 
 // 4️⃣ Application Layer (Services)
 builder.Services.AddScoped<IRoleService, RoleService>();

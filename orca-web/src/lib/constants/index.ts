@@ -1,8 +1,13 @@
 /**
  * CONFIGURAÇÕES E CONSTANTES GLOBAIS
+ * 
+ * Em desenvolvimento (localhost): variáveis de ambiente apontam para http://localhost:PORT
+ * Em produção/docker: variáveis de ambiente apontam para nomes de serviço (http://catalog-api:5001)
  */
 
 // API Base URLs (microserviços)
+// Usa variáveis de ambiente, com fallback para localhost em desenvolvimento
+
 export const API_CONFIG = {
   IDENTITY: process.env.NEXT_PUBLIC_IDENTITY_API || 'http://localhost:5002',
   CATALOG: process.env.NEXT_PUBLIC_CATALOG_API || 'http://localhost:5001',

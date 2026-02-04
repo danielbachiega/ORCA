@@ -100,7 +100,7 @@ builder.Services.AddSwaggerGen();
 
 // CORS (para o frontend acessar)
 builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
-    .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:80", "http://localhost")
+    .AllowAnyOrigin()
     .AllowAnyHeader()
     .AllowAnyMethod()));
 

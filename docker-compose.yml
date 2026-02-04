@@ -83,9 +83,19 @@ services:
       ASPNETCORE_URLS: http://+:5002
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_identity
       RabbitMq__Host: rabbitmq
-      Ldap__Host: ${LDAP_HOST:-localhost}
+      # Configurações LDAP/Active Directory
+      Ldap__UseMockMode: ${LDAP_USE_MOCK_MODE:-true}
+      Ldap__Host: ${LDAP_HOST:-10.100.12.20}
       Ldap__Port: ${LDAP_PORT:-389}
-      Ldap__BaseDn: ${LDAP_BASE_DN:-dc=example,dc=com}
+      Ldap__BaseDn: ${LDAP_BASE_DN:-OU=Usuarios,OU=BRA-SP,OU=BMFBovespa,DC=corporate,DC=int}
+      Ldap__Domain: ${LDAP_DOMAIN:-CORPORATE}
+      Ldap__ServiceAccountDn: ${LDAP_SERVICE_ACCOUNT_DN:-CN=_svcmonitoringIACP,OU=Contas de Servico,OU=Contas de Infraestrutura,OU=Gerenciamento,OU=BMFBovespa,DC=corporate,DC=int}
+      Ldap__ServiceAccountPassword: ${LDAP_SERVICE_ACCOUNT_PASSWORD:-}
+      Ldap__UseSsl: ${LDAP_USE_SSL:-false}
+      Ldap__TimeoutSeconds: ${LDAP_TIMEOUT:-30}
+      Ldap__UsernameAttribute: ${LDAP_USERNAME_ATTR:-sAMAccountName}
+      Ldap__EmailAttribute: ${LDAP_EMAIL_ATTR:-mail}
+      Ldap__GroupAttribute: ${LDAP_GROUP_ATTR:-memberOf}
     ports:
       - "5002:5002"
     depends_on:
@@ -165,11 +175,18 @@ services:
     build:
       context: ./orca-web
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_IDENTITY_API: http://127.0.0.1:5002
+        NEXT_PUBLIC_CATALOG_API: http://localhost:5001
+        NEXT_PUBLIC_FORMS_API: http://localhost:5003
+        NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
+        NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
     container_name: orca-web
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_IDENTITY_API: http://localhost:5002
+      NEXT_PUBLIC_IDENTITY_API: http://127.0.0.1:5002
       NEXT_PUBLIC_CATALOG_API: http://localhost:5001
+      NEXT_PUBLIC_FORMS_API: http://localhost:5003
       NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
       NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
     ports:
@@ -177,6 +194,7 @@ services:
     depends_on:
       - catalog-api
       - identity-api
+      - forms-api
       - requests-api
       - orchestrator-api
     networks:

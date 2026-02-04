@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "pBVvuf2hgGzOv0/I0DCfMlWDpGvlbK57sNILc+nTTpzJfwbs1ofdwFxgYJeADx8bdsA22wJ1vDkt5d44rWZcYA==",
+  "dgSpecHash": "qFrQfs0JjH8lTJ/aVymxmJ/cCGdDvNNF075fptmh4itHo21yw+ZR3I1XIgUuYuwPXS5kz98VMT5SMDnNwUarxQ==",
   "success": true,
   "projectFilePath": "/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/Orca.Identity.Api.csproj",
   "expectedPackageFiles": [
@@ -50,6 +50,7 @@
     "/home/danielbachiega/.nuget/packages/system.composition.runtime/6.0.0/system.composition.runtime.6.0.0.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/system.composition.typedparts/6.0.0/system.composition.typedparts.6.0.0.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/system.diagnostics.diagnosticsource/10.0.2/system.diagnostics.diagnosticsource.10.0.2.nupkg.sha512",
+    "/home/danielbachiega/.nuget/packages/system.directoryservices.protocols/8.0.0/system.directoryservices.protocols.8.0.0.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/system.identitymodel.tokens.jwt/8.15.0/system.identitymodel.tokens.jwt.8.15.0.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/system.io.pipelines/6.0.3/system.io.pipelines.6.0.3.nupkg.sha512",
     "/home/danielbachiega/.nuget/packages/system.reflection.metadata/6.0.1/system.reflection.metadata.6.0.1.nupkg.sha512",

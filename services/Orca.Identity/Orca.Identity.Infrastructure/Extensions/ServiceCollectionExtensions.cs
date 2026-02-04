@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Orca.Identity.Application.Auth;
@@ -16,6 +17,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddIdentityInfrastructure(
         this IServiceCollection services,
+            IConfiguration configuration,
         string connectionString,
         string jwtSecretKey)
     {
@@ -27,13 +29,16 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
 
-        // 3️⃣ LDAP
+        // 3️⃣ Configurações LDAP
+        services.Configure<LdapSettings>(configuration.GetSection("Ldap"));
+
+        // 4️⃣ LDAP Client
         services.AddScoped<ILdapClient, LdapClient>();
 
-        // 4️⃣ OIDC
+        // 5️⃣ OIDC
         services.AddScoped<IOidcValidator, OidcValidator>();
 
-        // 5️⃣ JWT Generator
+        // 6️⃣ JWT Generator
         services.AddScoped<ISessionTokenGenerator>(sp =>
             new SessionTokenGenerator(
                 secretKey: jwtSecretKey,

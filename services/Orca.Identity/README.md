@@ -240,6 +240,15 @@ public async Task<List<string>> GetUserGroupsAsync(string username)
 
 ### 🔌 Integrar com Active Directory Real
 
+#### ✅ Atualização: Service Account para consultar grupos
+
+Para ambientes corporativos (AD real), agora usamos **service account** para buscar grupos do usuário, pois bind anônimo costuma ser bloqueado. Configure no appsettings e/ou variáveis de ambiente:
+
+- `Ldap:ServiceAccountDn`
+- `Ldap:ServiceAccountPassword`
+
+Exemplo de configuração está em [services/Orca.Identity/Orca.Identity.Api/appsettings.json](services/Orca.Identity/Orca.Identity.Api/appsettings.json).
+
 Para usar um **Active Directory corporativo**, siga estes passos:
 
 #### **Passo 1: Instalar pacote LDAP**
@@ -351,6 +360,50 @@ curl -X POST http://localhost:5002/api/roles \
 ```
 
 Agora quando um usuário com grupo "DEV-TEAM" logar, receberá automaticamente a role "Developers".
+
+---
+
+## 🧩 Mapeamento de Grupos Corporativos (CN completos → Roles)
+
+No seu ambiente, os grupos do AD chegam como **DN completo** (ex.: `CN=G-APL_ARTIS_P-SP,OU=Artis,OU= Grupos de Aplicacoes,OU=Gerenciamento,OU=BMFBovespa,DC=corporate,DC=int`).
+
+Como o nosso sistema permite criar roles dinâmicas, o mapeamento fica assim:
+
+1. Crie roles no banco com o campo `LdapGroups` contendo os **CNs** reais dos grupos do AD.
+2. No login, o LDAP retorna todos os grupos do usuário.
+3. O sistema associa automaticamente as roles cadastradas aos grupos que o usuário possui.
+
+### Exemplo prático (com os grupos do seu ambiente)
+
+**Grupos corporativos relevantes:**
+- `CN=G-APL_ARTIS_P-SP,OU=Artis,OU= Grupos de Aplicacoes,OU=Gerenciamento,OU=BMFBovespa,DC=corporate,DC=int`
+- `CN=G-APL_ARTIS_READONLY_P-SP,OU=Artis,OU= Grupos de Aplicacoes,OU=Gerenciamento,OU=BMFBovespa,DC=corporate,DC=int`
+
+**Sugestão de roles dinâmicas:**
+- **Admin** → vincular ao CN `G-APL_ARTIS_P-SP`
+- **Consumer** → vincular ao CN `G-APL_ARTIS_READONLY_P-SP`
+
+### Como cadastrar essas roles
+
+Você pode criar (ou atualizar) as roles via endpoint `/api/roles` incluindo o CN completo no campo `ldapGroups`.
+
+> Dica: se quiser mapear vários grupos para a mesma role, basta adicionar todos os CNs no `ldapGroups`.
+
+### Observação importante
+
+Se o seu AD retornar **apenas o CN** (ex.: `G-APL_ARTIS_P-SP`) em vez do DN completo, ajuste o campo `LdapGroups` para usar somente o CN. Já se o AD retornar o DN completo, mantenha o DN completo no cadastro das roles.
+
+Para conferir o que está chegando, verifique os logs do Identity após um login válido.
+
+---
+
+## 🛠️ Nota de Ambiente (Rede/DNS)
+
+Durante o teste em ambiente corporativo, foi necessário ajustar a preferência de IPv4 para o .NET conseguir resolver o NuGet. O ajuste foi feito no arquivo [etc/gai.conf](etc/gai.conf) com a linha:
+
+`precedence ::ffff:0:0/96 100`
+
+Se houver falhas de restore semelhantes, verifique esse ajuste de rede/DNS.
 
 ---
 
