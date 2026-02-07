@@ -150,7 +150,26 @@ export class ApiClient {
    */
   private handleError(error: unknown): Error {
     if (axios.isAxiosError(error)) {
-      const message = error.response?.data?.message || error.message;
+      const data = error.response?.data as
+        | { message?: string; error?: string; errors?: Record<string, string[] | string> }
+        | string
+        | undefined;
+      let message = error.message;
+
+      if (typeof data === 'string') {
+        message = data;
+      } else if (data?.message) {
+        message = data.message;
+      } else if (data?.error) {
+        message = data.error;
+      } else if (data?.errors && typeof data.errors === 'object') {
+        const flattened = Object.values(data.errors)
+          .flatMap((v) => (Array.isArray(v) ? v : [v]))
+          .filter(Boolean);
+        if (flattened.length > 0) {
+          message = flattened.join(' ');
+        }
+      }
       const httpError = new Error(message) as unknown as Record<string, unknown>;
       httpError.status = error.response?.status;
       httpError.data = error.response?.data;

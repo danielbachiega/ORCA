@@ -75,7 +75,7 @@ public class JobExecutionService : IJobExecutionService
         {
             // 🔧 Prepara payload baseado no alvo
             payload = jobExecution.ExecutionTargetType == 0
-                ? PrepareAwxPayload(formData, jobExecution.ExecutionResourceType)
+                ? PrepareAwxPayload(formData, jobExecution.ExecutionResourceType, jobExecution.ExecutionResourceId)
                 : PrepareOoPayload(formData, jobExecution.ExecutionResourceId);
 
             _logger.LogInformation("📦 Payload preparado: {Payload}", payload);
@@ -360,7 +360,7 @@ public class JobExecutionService : IJobExecutionService
     // HELPERS PRIVADOS
     // ============================================
 
-    private string PrepareAwxPayload(string formData, int? resourceType)
+    private string PrepareAwxPayload(string formData, int? resourceType, string resourceId)
     {
         _logger.LogInformation("🔧 PrepareAwxPayload com FormData: {FormData}", formData);
 
@@ -373,12 +373,19 @@ public class JobExecutionService : IJobExecutionService
             extraVars[prop.Name] = prop.Value.GetRawText();
         }
 
-        var payload = new AwxLaunchRequest
+        var launchPayload = new AwxLaunchRequest
         {
             ExtraVars = extraVars
         };
 
-        var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = false });
+        var wrapper = new
+        {
+            resourceId,
+            resourceType,
+            launch = launchPayload
+        };
+
+        var json = JsonSerializer.Serialize(wrapper, new JsonSerializerOptions { WriteIndented = false });
         _logger.LogInformation("✅ AwxPayload preparado: {Payload}", json);
         return json;
     }

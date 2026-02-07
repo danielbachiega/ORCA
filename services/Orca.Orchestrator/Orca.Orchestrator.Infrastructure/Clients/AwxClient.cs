@@ -60,10 +60,36 @@ public class AwxClient : IExecutionClient
             var payloadJson = JsonDocument.Parse(executionPayload);
             var root = payloadJson.RootElement;
 
-            // Determina qual endpoint usar baseado em ExecutionResourceType
-            // (você vai passar isso no payload ou usar factory diferente)
-            // Por enquanto, assumimos que vem no payload
-            var endpoint = $"{_awxBaseUrl}/api/v2/job_templates/1/launch/";
+            string? resourceId = null;
+            int? resourceType = null;
+            JsonElement launchPayloadElement = root;
+
+            if (root.TryGetProperty("resourceId", out var resourceIdProp) &&
+                resourceIdProp.ValueKind == JsonValueKind.String)
+            {
+                resourceId = resourceIdProp.GetString();
+            }
+
+            if (root.TryGetProperty("resourceType", out var resourceTypeProp) &&
+                resourceTypeProp.ValueKind == JsonValueKind.Number)
+            {
+                resourceType = resourceTypeProp.GetInt32();
+            }
+
+            if (root.TryGetProperty("launch", out var launchProp))
+            {
+                launchPayloadElement = launchProp;
+            }
+
+            if (string.IsNullOrWhiteSpace(resourceId))
+            {
+                throw new InvalidOperationException("AWX resourceId não informado no payload");
+            }
+
+            // Determina endpoint baseado em resourceType (0=JobTemplate, 1=Workflow)
+            var endpoint = resourceType == 1
+                ? $"{_awxBaseUrl}/api/v2/workflow_job_templates/{resourceId}/launch/"
+                : $"{_awxBaseUrl}/api/v2/job_templates/{resourceId}/launch/";
 
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             
@@ -73,23 +99,27 @@ public class AwxClient : IExecutionClient
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
                 "Basic", authHeader);
 
-            request.Content = new StringContent(executionPayload, Encoding.UTF8, "application/json");
+            var launchPayloadJson = launchPayloadElement.GetRawText();
+            request.Content = new StringContent(launchPayloadJson, Encoding.UTF8, "application/json");
+
+            LogRequest(endpoint, request, launchPayloadJson);
 
             // 🔄 Executa com retry policy
             var response = await _retryPolicy.ExecuteAsync(async () =>
                 await _httpClient.SendAsync(request));
 
+            var responseBody = await response.Content.ReadAsStringAsync();
+            LogResponse(endpoint, response, responseBody);
+
             if (!response.IsSuccessStatusCode)
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogError(
                     "❌ AwxClient.LaunchAsync falhou: {StatusCode} {Error}",
-                    response.StatusCode, errorContent);
+                    response.StatusCode, responseBody);
                 throw new HttpRequestException($"AWX Launch Failed: {response.StatusCode}");
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var launchResponse = JsonSerializer.Deserialize<AwxLaunchResponse>(content);
+            var launchResponse = JsonSerializer.Deserialize<AwxLaunchResponse>(responseBody);
 
             if (launchResponse?.Id == 0)
             {
@@ -124,14 +154,16 @@ public class AwxClient : IExecutionClient
             var response = await _retryPolicy.ExecuteAsync(async () =>
                 await _httpClient.SendAsync(request));
 
+            var responseBody = await response.Content.ReadAsStringAsync();
+            LogResponse(endpoint, response, responseBody);
+
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("⚠️ AwxClient.GetStatusAsync retornou: {StatusCode}", response.StatusCode);
                 return "unknown";  // Retorna "unknown" em vez de lançar exceção
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var statusResponse = JsonSerializer.Deserialize<AwxJobStatusResponse>(content);
+            var statusResponse = JsonSerializer.Deserialize<AwxJobStatusResponse>(responseBody);
 
             var status = statusResponse?.Status ?? "unknown";
             _logger.LogInformation("📊 AwxClient.GetStatusAsync Status: {Status}", status);
@@ -148,5 +180,40 @@ public class AwxClient : IExecutionClient
     {
         // AWX não tem conceito de ResultStatusType (isso é apenas OO) NECESSARIO PARA NAO QUEBRAR O IExecutionClient
         return Task.FromResult<string?>(null);
+    }
+
+    private void LogRequest(string endpoint, HttpRequestMessage request, string body)
+    {
+        var headers = request.Headers
+            .Select(h => new
+            {
+                Name = h.Key,
+                Value = h.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
+                    ? "***"
+                    : string.Join(",", h.Value)
+            })
+            .ToDictionary(h => h.Name, h => h.Value);
+
+        var contentHeaders = request.Content?.Headers
+            .ToDictionary(h => h.Key, h => string.Join(",", h.Value))
+            ?? new Dictionary<string, string>();
+
+        _logger.LogInformation(
+            "🌐 AwxClient Request -> Endpoint: {Endpoint} | Headers: {@Headers} | ContentHeaders: {@ContentHeaders} | Body: {Body}",
+            endpoint, headers, contentHeaders, body);
+    }
+
+    private void LogResponse(string endpoint, HttpResponseMessage response, string body)
+    {
+        var headers = response.Headers
+            .ToDictionary(h => h.Key, h => string.Join(",", h.Value));
+
+        var contentHeaders = response.Content?.Headers
+            .ToDictionary(h => h.Key, h => string.Join(",", h.Value))
+            ?? new Dictionary<string, string>();
+
+        _logger.LogInformation(
+            "🌐 AwxClient Response -> Endpoint: {Endpoint} | Status: {StatusCode} | Headers: {@Headers} | ContentHeaders: {@ContentHeaders} | Body: {Body}",
+            endpoint, response.StatusCode, headers, contentHeaders, body);
     }
 }

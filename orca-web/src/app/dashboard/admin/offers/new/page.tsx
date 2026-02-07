@@ -9,7 +9,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { catalogService, identityService } from '@/services';
@@ -46,6 +46,9 @@ function CreateOfferContent() {
   const router = useRouter();
   const { roles } = useAuth();
   const [form] = Form.useForm();
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+  const autoSluggingRef = useRef(false);
+  const fixedRoles = useMemo(() => ['admin', 'editor'], []);
 
   // Verificar permissão
   const isAdmin = roles && roles.length > 0 && roles.some((r) => r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin');
@@ -62,6 +65,51 @@ function CreateOfferContent() {
     },
   });
 
+  const fixedRoleValues = useMemo(() => {
+    const roleMap = new Map(
+      availableRoles.map((role) => [role.name.toLowerCase(), role.name])
+    );
+    return fixedRoles.map((role) => roleMap.get(role) ?? role);
+  }, [availableRoles, fixedRoles]);
+
+  const fixedRoleValuesLower = useMemo(
+    () => fixedRoleValues.map((r) => r.toLowerCase()),
+    [fixedRoleValues]
+  );
+
+  const slugify = useCallback((value: string) => {
+    if (!value) return '';
+    return value
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  }, []);
+
+  const ensureFixedRoles = useCallback(
+    (current: string[] | undefined) => {
+      const existing = Array.isArray(current) ? current : [];
+      const combined = Array.from(new Set([...existing, ...fixedRoleValues]));
+      return combined;
+    },
+    [fixedRoleValues]
+  );
+
+  useEffect(() => {
+    const current = form.getFieldValue('visibleToRoles') as string[] | undefined;
+    const combined = ensureFixedRoles(current);
+    if (
+      !current ||
+      current.length !== combined.length ||
+      fixedRoleValues.some((role) => !current.includes(role))
+    ) {
+      form.setFieldsValue({ visibleToRoles: combined });
+    }
+  }, [ensureFixedRoles, fixedRoleValues, form]);
+
   // Mutation pra criar oferta
   const {
     mutate: submitOffer,
@@ -70,13 +118,14 @@ function CreateOfferContent() {
     error: submitError,
   } = useMutation({
     mutationFn: async (values: CreateOfferFormValues) => {
+      const enforcedRoles = ensureFixedRoles(values.visibleToRoles);
       const result = await catalogService.createOffer({
         name: values.name,
         slug: values.slug,
         description: values.description || undefined,
         tags: values.tags || [],
         active: true,
-        visibleToRoles: values.visibleToRoles || [],
+        visibleToRoles: enforcedRoles,
       });
 
       console.log('✅ catalogService.createOffer():', result);
@@ -99,6 +148,30 @@ function CreateOfferContent() {
 
   const handleSubmit = async (values: CreateOfferFormValues) => {
     submitOffer(values);
+  };
+
+  const handleValuesChange = (changedValues: Partial<CreateOfferFormValues>) => {
+    if (Object.prototype.hasOwnProperty.call(changedValues, 'name')) {
+      const name = changedValues.name ?? '';
+      if (!isSlugManuallyEdited) {
+        autoSluggingRef.current = true;
+        form.setFieldsValue({ slug: slugify(name) });
+        autoSluggingRef.current = false;
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(changedValues, 'slug')) {
+      if (autoSluggingRef.current) return;
+      const slug = changedValues.slug ?? '';
+      setIsSlugManuallyEdited(Boolean(slug));
+    }
+
+    if (Object.prototype.hasOwnProperty.call(changedValues, 'visibleToRoles')) {
+      const next = ensureFixedRoles(changedValues.visibleToRoles);
+      if (next.length !== (changedValues.visibleToRoles || []).length) {
+        form.setFieldsValue({ visibleToRoles: next });
+      }
+    }
   };
 
   const handleBack = () => {
@@ -174,6 +247,7 @@ function CreateOfferContent() {
                 form={form}
                 layout="vertical"
                 onFinish={handleSubmit}
+                onValuesChange={handleValuesChange}
                 disabled={isSubmitting}
               >
                 {/* Nome */}
@@ -209,6 +283,10 @@ function CreateOfferContent() {
                     {
                       required: true,
                       message: 'Digite o slug',
+                    },
+                    {
+                      min: 3,
+                      message: 'Mínimo 3 caracteres',
                     },
                     {
                       pattern: /^[a-z0-9-]*$/,
@@ -257,7 +335,7 @@ function CreateOfferContent() {
                 <Form.Item
                   name="visibleToRoles"
                   label="Visível para Roles"
-                  tooltip="Admin sempre tem acesso. Deixe vazio para todos verem."
+                  tooltip="Admin e Editor sempre têm acesso."
                 >
                   <Select
                     mode="multiple"
@@ -267,6 +345,9 @@ function CreateOfferContent() {
                     options={availableRoles.map((role) => ({
                       label: `${role.name} - ${role.description || 'Sem descrição'}`,
                       value: role.name,
+                      disabled: fixedRoleValuesLower.includes(
+                        role.name.toLowerCase()
+                      ),
                     }))}
                   />
                 </Form.Item>

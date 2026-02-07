@@ -72,23 +72,26 @@ public class OoClient : IExecutionClient
 
             request.Content = new StringContent(executionPayload, Encoding.UTF8, "application/json");
 
+            LogRequest(endpoint, request, executionPayload);
+
             // 🔄 Executa com retry policy
             var response = await _retryPolicy.ExecuteAsync(async () =>
                 await _httpClient.SendAsync(request));
 
+            var responseBody = await response.Content.ReadAsStringAsync();
+            LogResponse(endpoint, response, responseBody);
+
             if (!response.IsSuccessStatusCode)
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogError(
                     "❌ OoClient.LaunchAsync falhou: {StatusCode} {Error}",
-                    response.StatusCode, errorContent);
+                    response.StatusCode, responseBody);
                 throw new HttpRequestException($"OO Launch Failed: {response.StatusCode}");
             }
 
             // OO retorna o executionId direto como string numérica (ex: 12345678901)
             // Sem aspas, apenas o número no body
-            var content = await response.Content.ReadAsStringAsync();
-            var executionId = content.Trim();  // Remove apenas whitespace
+            var executionId = responseBody.Trim();  // Remove apenas whitespace
 
             if (string.IsNullOrEmpty(executionId) || !long.TryParse(executionId, out _))
             {
@@ -120,8 +123,13 @@ public class OoClient : IExecutionClient
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
                 "Basic", authHeader);
 
+            LogRequest(endpoint, request, string.Empty);
+
             var response = await _retryPolicy.ExecuteAsync(async () =>
                 await _httpClient.SendAsync(request));
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            LogResponse(endpoint, response, responseBody);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -129,8 +137,7 @@ public class OoClient : IExecutionClient
                 return "unknown";
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var executionLog = JsonSerializer.Deserialize<OoExecutionLogResponse>(content);
+            var executionLog = JsonSerializer.Deserialize<OoExecutionLogResponse>(responseBody);
 
             var status = executionLog?.ExecutionSummary.Status ?? "unknown";
             _logger.LogInformation("📊 OoClient.GetStatusAsync Status: {Status}", status);
@@ -158,8 +165,13 @@ public class OoClient : IExecutionClient
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
                 "Basic", authHeader);
 
+            LogRequest(endpoint, request, string.Empty);
+
             var response = await _retryPolicy.ExecuteAsync(async () =>
                 await _httpClient.SendAsync(request));
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            LogResponse(endpoint, response, responseBody);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -167,8 +179,7 @@ public class OoClient : IExecutionClient
                 return null;
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var executionLog = JsonSerializer.Deserialize<OoExecutionLogResponse>(content);
+            var executionLog = JsonSerializer.Deserialize<OoExecutionLogResponse>(responseBody);
 
             var resultType = executionLog?.ExecutionSummary.ResultStatusType;
             _logger.LogInformation("📊 OoClient.GetResultStatusTypeAsync ResultType: {ResultType}", resultType);
@@ -179,5 +190,40 @@ public class OoClient : IExecutionClient
             _logger.LogError(ex, "❌ OoClient.GetResultStatusTypeAsync erro");
             return null;
         }
+    }
+
+    private void LogRequest(string endpoint, HttpRequestMessage request, string body)
+    {
+        var headers = request.Headers
+            .Select(h => new
+            {
+                Name = h.Key,
+                Value = h.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
+                    ? "***"
+                    : string.Join(",", h.Value)
+            })
+            .ToDictionary(h => h.Name, h => h.Value);
+
+        var contentHeaders = request.Content?.Headers
+            .ToDictionary(h => h.Key, h => string.Join(",", h.Value))
+            ?? new Dictionary<string, string>();
+
+        _logger.LogInformation(
+            "🌐 OoClient Request -> Endpoint: {Endpoint} | Headers: {@Headers} | ContentHeaders: {@ContentHeaders} | Body: {Body}",
+            endpoint, headers, contentHeaders, body);
+    }
+
+    private void LogResponse(string endpoint, HttpResponseMessage response, string body)
+    {
+        var headers = response.Headers
+            .ToDictionary(h => h.Key, h => string.Join(",", h.Value));
+
+        var contentHeaders = response.Content?.Headers
+            .ToDictionary(h => h.Key, h => string.Join(",", h.Value))
+            ?? new Dictionary<string, string>();
+
+        _logger.LogInformation(
+            "🌐 OoClient Response -> Endpoint: {Endpoint} | Status: {StatusCode} | Headers: {@Headers} | ContentHeaders: {@ContentHeaders} | Body: {Body}",
+            endpoint, response.StatusCode, headers, contentHeaders, body);
     }
 }

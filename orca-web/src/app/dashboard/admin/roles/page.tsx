@@ -90,6 +90,11 @@ function RolesContent() {
     r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
   );
 
+  const protectedRoleNames = ['admin', 'editor', 'consumer'];
+
+  const isProtectedRole = (role: Role) =>
+    protectedRoleNames.includes(role.name.toLowerCase());
+
   const {
     data: allRoles = [],
     isLoading,
@@ -186,6 +191,10 @@ function RolesContent() {
   };
 
   const handleDeleteRole = (role: Role) => {
+    if (isProtectedRole(role)) {
+      message.warning('Esta role é padrão do sistema e não pode ser excluída.');
+      return;
+    }
     Modal.confirm({
       title: 'Deletar Role',
       content: `Tem certeza que deseja deletar a role "${role.name}"?`,
@@ -336,6 +345,7 @@ function RolesContent() {
                         icon={<DeleteOutlined />}
                         size="small"
                         danger
+                        disabled={isProtectedRole(record)}
                         onClick={() => handleDeleteRole(record)}
                       />
                     </Space>
