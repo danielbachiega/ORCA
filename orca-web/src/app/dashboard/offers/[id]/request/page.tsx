@@ -375,6 +375,7 @@ function RequestFormContent() {
 
       const result = await requestsService.createRequest({
         offerId: offer.id,
+        offerName: offer.name,
         formDefinitionId: publishedForm.id,
         userId: user.id,
         formData: payload,

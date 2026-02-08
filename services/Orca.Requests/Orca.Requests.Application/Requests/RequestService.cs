@@ -72,6 +72,7 @@ public class RequestService : IRequestService
         {
             RequestId = created.Id,
             OfferId = created.OfferId,
+            OfferName = created.OfferName,
             FormDefinitionId = created.FormDefinitionId,
             ExecutionTargetType = created.ExecutionTargetType,
             ExecutionResourceType = created.ExecutionResourceType,

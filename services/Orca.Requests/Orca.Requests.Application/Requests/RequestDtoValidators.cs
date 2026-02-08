@@ -13,6 +13,10 @@ public class CreateRequestDtoValidator : AbstractValidator<CreateRequestDto>
         RuleFor(x => x.FormDefinitionId)
             .NotEmpty().WithMessage("O ID da definição do formulário é obrigatório.");
 
+        RuleFor(x => x.OfferName)
+            .NotEmpty().WithMessage("O nome da oferta é obrigatório.")
+            .MaximumLength(100).WithMessage("O nome da oferta não pode exceder 100 caracteres.");
+
         RuleFor(x => x.UserId)
             .NotEmpty().WithMessage("O ID do usuário é obrigatório.")
             .MaximumLength(256).WithMessage("O ID do usuário não pode exceder 256 caracteres.");
@@ -48,6 +52,10 @@ public class UpdateRequestDtoValidator : AbstractValidator<UpdateRequestDto>
 
         RuleFor(x => x.OfferId)
             .NotEmpty().WithMessage("O ID da oferta é obrigatório.");
+
+        RuleFor(x => x.OfferName)
+            .NotEmpty().WithMessage("O nome da oferta é obrigatório.")
+            .MaximumLength(100).WithMessage("O nome da oferta não pode exceder 100 caracteres.");
 
         RuleFor(x => x.FormDefinitionId)
             .NotEmpty().WithMessage("O ID da definição do formulário é obrigatório.");

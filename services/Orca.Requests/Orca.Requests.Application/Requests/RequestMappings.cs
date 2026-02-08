@@ -10,6 +10,7 @@ public static class RequestMappings
         return new Request
         {
             OfferId = dto.OfferId,
+            OfferName = dto.OfferName,
             FormDefinitionId = dto.FormDefinitionId,
             ExecutionTargetType = dto.ExecutionTargetType,
             ExecutionResourceType = dto.ExecutionResourceType,
@@ -28,6 +29,7 @@ public static class RequestMappings
         {
             Id = dto.Id,
             OfferId = dto.OfferId,
+            OfferName = dto.OfferName,
             FormDefinitionId = dto.FormDefinitionId,
             ExecutionTargetType = dto.ExecutionTargetType,
             ExecutionResourceType = dto.ExecutionResourceType,
@@ -49,6 +51,7 @@ public static class RequestMappings
         {
             Id = entity.Id,
             OfferId = entity.OfferId,
+            OfferName = entity.OfferName,
             FormDefinitionId = entity.FormDefinitionId,
             ExecutionTargetType = entity.ExecutionTargetType,
             ExecutionResourceType = entity.ExecutionResourceType,
@@ -69,6 +72,7 @@ public static class RequestMappings
         {
             Id = entity.Id,
             OfferId = entity.OfferId,
+            OfferName = entity.OfferName,
             FormDefinitionId = entity.FormDefinitionId,
             ExecutionTargetType = entity.ExecutionTargetType,
             ExecutionResourceType = entity.ExecutionResourceType,

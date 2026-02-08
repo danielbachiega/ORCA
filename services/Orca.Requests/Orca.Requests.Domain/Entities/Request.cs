@@ -4,6 +4,7 @@ public class Request
 {
     public Guid Id { get; set; } =  Guid.NewGuid();
     public Guid OfferId { get; set; }
+    public string OfferName { get; set; } = string.Empty;
     public Guid FormDefinitionId { get; set; }
     public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO (enum salvo como int no BD)
     public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)

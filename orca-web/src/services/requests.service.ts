@@ -111,6 +111,7 @@ class RequestsService {
   async createRequest(dto: CreateRequestDto): Promise<Request> {
     return this.client.post<Request>('/api/requests', {
       offerId: dto.offerId,
+      offerName: dto.offerName,
       formDefinitionId: dto.formDefinitionId,
       userId: dto.userId,
       formData: JSON.stringify(dto.formData), // Backend espera string JSON

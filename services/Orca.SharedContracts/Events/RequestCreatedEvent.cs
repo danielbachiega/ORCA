@@ -4,6 +4,7 @@ public record RequestCreatedEvent
 {
     public Guid RequestId { get; init; }
     public Guid OfferId { get; init; }
+    public string OfferName { get; init; } = string.Empty;
     public Guid FormDefinitionId { get; init; }
     public int ExecutionTargetType { get; init; }
     public int? ExecutionResourceType { get; init; }

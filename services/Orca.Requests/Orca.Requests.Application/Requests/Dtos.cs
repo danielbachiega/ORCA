@@ -4,6 +4,7 @@ namespace Orca.Requests.Application.Requests;
 public class CreateRequestDto
 {
     public Guid OfferId { get; set; }
+    public string OfferName { get; set; } = string.Empty;
     public Guid FormDefinitionId { get; set; }
     public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO
     public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)
@@ -16,6 +17,7 @@ public class UpdateRequestDto
 {
     public Guid Id { get; set; }
     public Guid OfferId { get; set; }
+    public string OfferName { get; set; } = string.Empty;
     public Guid FormDefinitionId { get; set; }
     public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO
     public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)
@@ -34,6 +36,7 @@ public class RequestSummaryDto
 {
     public Guid Id { get; set; }
     public Guid OfferId { get; set; }
+    public string OfferName { get; set; } = string.Empty;  
     public Guid FormDefinitionId { get; set; }
     public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO
     public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)
@@ -50,6 +53,7 @@ public class RequestDetailsDto
 {
     public Guid Id { get; set; }
     public Guid OfferId { get; set; }
+    public string OfferName { get; set; } = string.Empty;
     public Guid FormDefinitionId { get; set; }
     public int ExecutionTargetType { get; set; }          // 0=AWX, 1=OO
     public int? ExecutionResourceType { get; set; }       // 0=JobTemplate, 1=Workflow (null para OO)

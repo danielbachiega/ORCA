@@ -120,6 +120,7 @@ export interface Request {
 
 export interface CreateRequestDto {
   offerId: string;
+  offerName: string;
   formDefinitionId: string;
   userId: string;
   formData: Record<string, unknown>; // Dados do formulário preenchidos
