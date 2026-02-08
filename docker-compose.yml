@@ -6,6 +6,11 @@ services:
     image: postgres:16
     container_name: orca-postgres
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       POSTGRES_USER: orca
       POSTGRES_PASSWORD: orca123
@@ -24,6 +29,11 @@ services:
     image: rabbitmq:3-management
     container_name: orca-rabbitmq
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -39,6 +49,11 @@ services:
     image: redis:7-alpine
     container_name: orca-redis
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "6379:6379"
     healthcheck:
@@ -54,6 +69,11 @@ services:
       dockerfile: services/Orca.Catalog/Orca.Catalog.Api/Dockerfile
     container_name: orca-catalog-api
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5001
@@ -93,6 +113,11 @@ services:
         Ldap__LocalAdminPassword: ${LOCAL_ADMIN_PASSWORD:-admin321}
     container_name: orca-identity-api
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5002
@@ -129,6 +154,11 @@ services:
       dockerfile: services/Orca.Forms/Orca.Forms.Api/Dockerfile
     container_name: orca-forms-api
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5003
@@ -150,6 +180,11 @@ services:
       dockerfile: services/Orca.Requests/Orca.Requests.Api/Dockerfile
     container_name: orca-requests-api
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5004
@@ -178,6 +213,11 @@ services:
         ExternalServices__OoPassword: ${OO_PASSWORD:-password}
     container_name: orca-orchestrator-api
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5005
@@ -204,6 +244,9 @@ services:
       context: ./orca-web
       dockerfile: Dockerfile
       args:
+        http_proxy: ${http_proxy}
+        https_proxy: ${https_proxy}
+        no_proxy: ${no_proxy}
         NEXT_PUBLIC_IDENTITY_API: http://127.0.0.1:5002
         NEXT_PUBLIC_CATALOG_API: http://localhost:5001
         NEXT_PUBLIC_FORMS_API: http://localhost:5003
@@ -213,7 +256,15 @@ services:
         NEXT_PUBLIC_APP_SUBTITLE: ${APP_SUBTITLE:-B3 Orchestration & Lifecycle Tool}
     container_name: orca-web
     restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      no_proxy: ${no_proxy}
       NEXT_PUBLIC_IDENTITY_API: http://127.0.0.1:5002
       NEXT_PUBLIC_CATALOG_API: http://localhost:5001
       NEXT_PUBLIC_FORMS_API: http://localhost:5003

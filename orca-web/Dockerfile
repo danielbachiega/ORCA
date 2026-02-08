@@ -4,6 +4,14 @@
 FROM node:20-bullseye-slim AS deps
 WORKDIR /app
 
+# Proxy args for build environments
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+ENV http_proxy=$http_proxy
+ENV https_proxy=$https_proxy
+ENV no_proxy=$no_proxy
+
 # Copy package files
 COPY package.json package-lock.json* ./
 RUN npm ci --legacy-peer-deps
@@ -11,6 +19,14 @@ RUN npm ci --legacy-peer-deps
 # Stage 2: Build application
 FROM node:20-bullseye-slim AS builder
 WORKDIR /app
+
+# Proxy args for build environments
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+ENV http_proxy=$http_proxy
+ENV https_proxy=$https_proxy
+ENV no_proxy=$no_proxy
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules

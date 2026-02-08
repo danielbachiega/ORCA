@@ -340,11 +340,14 @@ ORCA/
 
 ### ✅ Com Compose (Recomendado)
 
-```bash
 cd /home/danielbachiega/Documentos/ORCA
 
+
+
 # Build de todas as imagens
+
 podman-compose build --no-cache
+
 
 # Subir stack completa
 podman-compose up -d
@@ -360,7 +363,9 @@ podman-compose down
 - Catalog: http://localhost:5001/swagger
 - Identity: http://localhost:5002/swagger 
 - Forms: http://localhost:5003/swagger
+
 - Requests: http://localhost:5004/swagger
+
 - Orchestrator: http://localhost:5005/swagger 
 - Frontend: http://localhost:3000
 - RabbitMQ: http://localhost:15672 (guest/guest)
