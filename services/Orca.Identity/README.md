@@ -176,6 +176,10 @@ curl -X POST http://localhost:5002/api/auth/login \
 Authorization: Bearer {sessionToken}
 ```
 
+> ⚠️ **Ambiente com LDAP real:** para manter `superadmin` e `admin` funcionando sem depender do AD,
+> configure as variáveis `LOCAL_SUPERADMIN_PASSWORD` e `LOCAL_ADMIN_PASSWORD` no compose (podman-compose).
+> Se estiverem vazias, o fallback local é desativado.
+
 ---
 
 ### 2️⃣ CRUD de Roles
@@ -248,6 +252,36 @@ Para ambientes corporativos (AD real), agora usamos **service account** para bus
 - `Ldap:ServiceAccountPassword`
 
 Exemplo de configuração está em [services/Orca.Identity/Orca.Identity.Api/appsettings.json](services/Orca.Identity/Orca.Identity.Api/appsettings.json).
+
+### Variáveis de ambiente (compose)
+
+```bash
+# Ativar/desativar mock LDAP
+LDAP_USE_MOCK_MODE=true
+
+# Servidor LDAP/AD
+LDAP_HOST=10.100.12.20
+LDAP_PORT=389
+LDAP_BASE_DN=OU=Usuarios,OU=BRA-SP,OU=BMFBovespa,DC=corporate,DC=int
+LDAP_DOMAIN=CORPORATE
+
+# Service Account (recomendado)
+LDAP_SERVICE_ACCOUNT_DN=CN=_svcmonitoringIACP,OU=Contas de Servico,OU=Contas de Infraestrutura,OU=Gerenciamento,OU=BMFBovespa,DC=corporate,DC=int
+LDAP_SERVICE_ACCOUNT_PASSWORD=change_me
+
+# SSL/TLS e timeouts
+LDAP_USE_SSL=false
+LDAP_TIMEOUT=30
+
+# Atributos LDAP
+LDAP_USERNAME_ATTR=sAMAccountName
+LDAP_EMAIL_ATTR=mail
+LDAP_GROUP_ATTR=memberOf
+
+# Fallback de usuários locais (LDAP real)
+LOCAL_SUPERADMIN_PASSWORD=superadmin1234
+LOCAL_ADMIN_PASSWORD=admin321
+```
 
 Para usar um **Active Directory corporativo**, siga estes passos:
 

@@ -230,7 +230,7 @@ Orca.Forms/
 
 ## 🚀 Como Executar
 
-### Via Docker Compose
+### Via Compose
 ```bash
 cd /home/danielbachiega/Documentos/ORCA
 podman-compose up -d forms-api

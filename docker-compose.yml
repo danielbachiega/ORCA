@@ -89,8 +89,8 @@ services:
         Ldap__UsernameAttribute: ${LDAP_USERNAME_ATTR:-sAMAccountName}
         Ldap__EmailAttribute: ${LDAP_EMAIL_ATTR:-mail}
         Ldap__GroupAttribute: ${LDAP_GROUP_ATTR:-memberOf}
-        Ldap__LocalSuperAdminPassword: ${LOCAL_SUPERADMIN_PASSWORD:-}
-        Ldap__LocalAdminPassword: ${LOCAL_ADMIN_PASSWORD:-}
+        Ldap__LocalSuperAdminPassword: ${LOCAL_SUPERADMIN_PASSWORD:-superadmin1234}
+        Ldap__LocalAdminPassword: ${LOCAL_ADMIN_PASSWORD:-admin321}
     container_name: orca-identity-api
     restart: unless-stopped
     environment:
@@ -111,8 +111,8 @@ services:
       Ldap__UsernameAttribute: ${LDAP_USERNAME_ATTR:-sAMAccountName}
       Ldap__EmailAttribute: ${LDAP_EMAIL_ATTR:-mail}
       Ldap__GroupAttribute: ${LDAP_GROUP_ATTR:-memberOf}
-      Ldap__LocalSuperAdminPassword: ${LOCAL_SUPERADMIN_PASSWORD:-}
-      Ldap__LocalAdminPassword: ${LOCAL_ADMIN_PASSWORD:-}
+      Ldap__LocalSuperAdminPassword: ${LOCAL_SUPERADMIN_PASSWORD:-superadmin1234}
+      Ldap__LocalAdminPassword: ${LOCAL_ADMIN_PASSWORD:-admin321}
     ports:
       - "5002:5002"
     depends_on:
@@ -171,7 +171,11 @@ services:
       dockerfile: services/Orca.Orchestrator/Orca.Orchestrator.Api/Dockerfile
       args:
         ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example1.com}
+        ExternalServices__AwxUsername: ${AWX_USERNAME:-admin}
+        ExternalServices__AwxPassword: ${AWX_PASSWORD:-password}
         ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example1.com}
+        ExternalServices__OoUsername: ${OO_USERNAME:-admin}
+        ExternalServices__OoPassword: ${OO_PASSWORD:-password}
     container_name: orca-orchestrator-api
     restart: unless-stopped
     environment:
@@ -180,7 +184,11 @@ services:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_orchestrator
       RabbitMq__Host: rabbitmq
       ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example1.com}
+      ExternalServices__AwxUsername: ${AWX_USERNAME:-admin}
+      ExternalServices__AwxPassword: ${AWX_PASSWORD:-password}
       ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example1.com}
+      ExternalServices__OoUsername: ${OO_USERNAME:-admin}
+      ExternalServices__OoPassword: ${OO_PASSWORD:-password}
     ports:
       - "5005:5005"
     depends_on:
@@ -201,6 +209,8 @@ services:
         NEXT_PUBLIC_FORMS_API: http://localhost:5003
         NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
         NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
+        NEXT_PUBLIC_APP_NAME: ${APP_NAME:-B.O.L.T.}
+        NEXT_PUBLIC_APP_SUBTITLE: ${APP_SUBTITLE:-B3 Orchestration & Lifecycle Tool}
     container_name: orca-web
     restart: unless-stopped
     environment:
@@ -209,6 +219,8 @@ services:
       NEXT_PUBLIC_FORMS_API: http://localhost:5003
       NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
       NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
+      NEXT_PUBLIC_APP_NAME: ${APP_NAME:-B.O.L.T.}
+      NEXT_PUBLIC_APP_SUBTITLE: ${APP_SUBTITLE:-B3 Orchestration & Lifecycle Tool}
     ports:
       - "3000:3000"
     depends_on:

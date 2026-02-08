@@ -520,7 +520,7 @@ Superadmin // + Configurações globais
 
 ### Code Splitting
 
-Next.js 14 faz automaticamente:
+Next.js 16 faz automaticamente:
 - Pages são chunks separados
 - Dynamic imports: `const Component = dynamic(() => import('./Component'))`
 

@@ -16,6 +16,11 @@ export const API_CONFIG = {
   ORCHESTRATOR: process.env.NEXT_PUBLIC_ORCHESTRATOR_API || 'http://localhost:5005',
 };
 
+// Branding
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'ORCA';
+export const APP_SUBTITLE =
+  process.env.NEXT_PUBLIC_APP_SUBTITLE || 'Orchestrator Catalog Application';
+
 // Token Storage Key
 export const TOKEN_STORAGE_KEY = 'orca_session_token';
 export const USER_STORAGE_KEY = 'orca_user';

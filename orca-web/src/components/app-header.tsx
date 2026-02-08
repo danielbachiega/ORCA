@@ -7,10 +7,12 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth.context';
+import { APP_NAME } from '@/lib/constants';
 import { Layout, Button, Avatar, Space, Dropdown, Badge } from 'antd';
-import { LogoutOutlined, UserOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
+import { LogoutOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
 const { Header } = Layout;
@@ -78,11 +80,17 @@ export const AppHeader: React.FC = () => {
         <Button
           type="text"
           size="large"
-          icon={<HomeOutlined />}
           onClick={handleHome}
           style={{ fontSize: '18px', fontWeight: 'bold' }}
         >
-          ORCA
+          <Image
+            src="/brand/logo.png"
+            alt={APP_NAME}
+            width={36}
+            height={36}
+            style={{ objectFit: 'contain', marginRight: '8px' }}
+          />
+          {APP_NAME}
         </Button>
       </Space>
 

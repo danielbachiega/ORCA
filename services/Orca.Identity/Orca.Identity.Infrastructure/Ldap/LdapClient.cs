@@ -34,9 +34,9 @@ public class LdapClient : ILdapClient
 
     public async Task<bool> ValidateCredentialsAsync(string username, string password)
     {
-        if (TryValidateLocalUser(username, password))
+        if (IsLocalUserConfigured(username))
         {
-            return true;
+            return TryValidateLocalUser(username, password);
         }
 
         if (_settings.UseMockMode)

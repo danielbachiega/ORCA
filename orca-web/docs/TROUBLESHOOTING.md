@@ -415,11 +415,11 @@ docker logs orca-web
 docker ps -a
 
 # Restart container específico
-docker-compose restart orca-web
+podman-compose restart orca-web
 
 # Rebuild completo
-docker-compose down
-docker-compose up --build
+podman-compose down
+podman-compose up --build
 ```
 
 ### Problema: "Module not found" no container
@@ -456,9 +456,9 @@ CMD ["npm", "start"]
 
 **Rebuild**:
 ```bash
-docker-compose down
-docker-compose build --no-cache orca-web
-docker-compose up orca-web
+podman-compose down
+podman-compose build --no-cache orca-web
+podman-compose up orca-web
 ```
 
 ### Problema: Variáveis de ambiente não funcionam
@@ -596,7 +596,7 @@ rm -rf node_modules/.cache
 npm ci
 
 # 3. Verificar tipos
-npm run type-check
+npx tsc --noEmit
 
 # 4. Build
 npm run build
@@ -725,7 +725,7 @@ Quando algo não funciona:
 
 - [ ] Console tem erros? (Browser DevTools → Console)
 - [ ] Network requests falhando? (DevTools → Network)
-- [ ] TypeScript types corretos? (`npm run type-check`)
+- [ ] TypeScript types corretos? (`npx tsc --noEmit`)
 - [ ] Variáveis de ambiente configuradas? (`.env.local`)
 - [ ] Docker containers healthy? (`docker ps`)
 - [ ] Backend APIs respondendo? (`curl http://localhost:5001/health`)
@@ -746,8 +746,8 @@ npm ci
 npm run build
 
 # Docker
-docker-compose down -v
-docker-compose up --build
+podman-compose down -v
+podman-compose up --build
 ```
 
 2. **Verificar versões**:

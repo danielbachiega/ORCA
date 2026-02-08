@@ -13,10 +13,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth.context';
 import { Button, Input, Card, Typography, Space, Alert, Spin } from 'antd';
-import { LockOutlined } from '@ant-design/icons';
+import { APP_NAME, APP_SUBTITLE } from '@/lib/constants';
 import styles from './login.module.css';
 
 const { Title, Text } = Typography;
@@ -56,12 +57,18 @@ export default function LoginPage() {
         <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           {/* Header */}
           <div className={styles.header}>
-            <LockOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
+            <Image
+              src="/brand/logo.png"
+              alt={APP_NAME}
+              width={96}
+              height={96}
+              className={styles.logo}
+            />
             <Title level={2} style={{ margin: '16px 0 8px 0' }}>
-              ORCA
+              {APP_NAME}
             </Title>
             <Text type="secondary">
-              Orchestrator Catalog Application
+              {APP_SUBTITLE}
             </Text>
           </div>
 
@@ -127,13 +134,13 @@ export default function LoginPage() {
           </form>
 
           {/* Footer Info */}
-          <div style={{ textAlign: 'center', paddingTop: '16px' }}>
+          {/* <div style={{ textAlign: 'center', paddingTop: '16px' }}>
             <Text type="secondary" style={{ fontSize: '12px' }}>
               <strong>Credenciais de teste:</strong><br />
-              superadmin / Orca@2026<br />
-              admin / admin123
+              superadmin / <br />
+              admin / 
             </Text>
-          </div>
+          </div> */}
         </Space>
       </Card>
     </div>

@@ -337,7 +337,7 @@ Authorization: Basic {base64(username:password)}
 **Disparar execução:**
 ```http
 POST https://oo.example.com/executions
-Authorization: Bearer {token}
+Authorization: Basic {base64(username:password)}
 Content-Type: application/json
 
 {
@@ -358,7 +358,7 @@ Content-Type: application/json
 **Consultar status:**
 ```http
 GET https://oo.example.com/executions/{id}/execution-log
-Authorization: Bearer {token}
+Authorization: Basic {base64(username:password)}
 ```
 
 **Response:**
@@ -408,7 +408,7 @@ CREATE INDEX "IX_JobExecutions_AwxOoJobId" ON "JobExecutions" ("AwxOoJobId");
 
 ## 🚀 Como Executar
 
-### Via Docker Compose
+### Via Compose
 ```bash
 cd /home/danielbachiega/Documentos/ORCA
 
@@ -449,8 +449,9 @@ dotnet run
 - PostgreSQL 16 (com JSONB)
 - RabbitMQ 3 Management
 
-## 🔌 Configuração Necessária (appsettings.json)
+## 🔌 Configuração Necessária
 
+### appsettings.json (referência)
 ```json
 {
   "ConnectionStrings": {
@@ -460,7 +461,14 @@ dotnet run
     "Host": "rabbitmq",
     "Username": "guest",
     "Password": "guest"
-  },,
+  },
+  "ExternalServices": {
+    "AwxBaseUrl": "https://awx.example.com",
+    "AwxUsername": "admin",
+    "AwxPassword": "password",
+    "OoBaseUrl": "https://oo.example.com",
+    "OoUsername": "admin",
+    "OoPassword": "password",
     "AllowInvalidSsl": false
   },
   "Orchestrator": {
@@ -469,36 +477,39 @@ dotnet run
       "BaseDelaySeconds": 5,
       "MaxDelaySeconds": 120
     }
-  "ExternalServices": {
-    "AwxBaseUrl": "https://awx.example.com",
-    "AwxUsername": "admin",
-    "AwxPassword": "password",
-    "OoBaseUrl": "https://oo.example.com",
-    "OoUsername": "admin",
-    "OoPassword": "password"
   }
 }
-  ExternalServices__AllowInvalidSsl: ${ALLOW_INVALID_SSL:-false}
-  Orchestrator__LaunchRetry__MaxAttempts: ${LAUNCH_RETRY_MAX:-5}
-  Orchestrator__LaunchRetry__BaseDelaySeconds: ${LAUNCH_RETRY_BASE_DELAY:-5}
-  Orchestrator__LaunchRetry__MaxDelaySeconds: ${LAUNCH_RETRY_MAX_DELAY:-120}
 ```
 
-Use:
+### Variáveis de ambiente (compose)
 ```bash
-# Ignorar SSL inválido em dev/test
-ALLOW_INVALID_SSL=true AWX_HOST=https://awx-real.com podman-compose up -d
+# Endpoints e credenciais AWX/OO
+AWX_HOST=https://awx.example.com
+AWX_USERNAME=admin
+AWX_PASSWORD=password
+OO_HOST=https://oo.example.com
+OO_USERNAME=admin
+OO_PASSWORD=password
 
-# Customizar retry (3 tentativas, delay maior)
-LAUNCH_RETRY_MAX=3 LAUNCH_RETRY_BASE_DELAY=10
-environment:
-  ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example.com}
-  ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example.com}
+# SSL inválido (somente dev/test)
+ExternalServices__AllowInvalidSsl=true
+
+# Retry (opcional)
+Orchestrator__LaunchRetry__MaxAttempts=5
+Orchestrator__LaunchRetry__BaseDelaySeconds=5
+Orchestrator__LaunchRetry__MaxDelaySeconds=120
 ```
 
-Use:
+Exemplo:
 ```bash
-AWX_HOST=https://awx-real.com podman-compose up -d
+AWX_HOST=https://awx-real.com \
+AWX_USERNAME=svc_awx \
+AWX_PASSWORD=secret \
+OO_HOST=https://oo-real.com \
+OO_USERNAME=svc_oo \
+OO_PASSWORD=secret \
+ExternalServices__AllowInvalidSsl=true \
+podman-compose up -d
 ```
 
 ## 🧪 Testando Integração
@@ -528,7 +539,7 @@ curl -X POST http://localhost:15672/api/exchanges/%2F/RequestCreated/publish \
 
 **Solução:** Ativar `AllowInvalidSsl=true` em appsettings ou variável de ambiente:
 ```bash
-ALLOW_INVALID_SSL=true podman-compose up -d
+ExternalServices__AllowInvalidSsl=true podman-compose up -d
 ```
 
 **⚠️ Atenção:** Use apenas em desenvolvimento/teste com certificados auto-assinados. Em produção, resolva o certificado.

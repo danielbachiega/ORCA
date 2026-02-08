@@ -2,7 +2,7 @@
 
 Frontend moderno do ORCA - Sistema de Orquestração de Requisições de Catálogo Automatizado.
 
-Built with Next.js 14, TypeScript, Ant Design e Clean Architecture.
+Built with Next.js 16, React 19, TypeScript, Ant Design e Clean Architecture.
 
 ## 📋 Índice
 
@@ -51,18 +51,18 @@ O ORCA Web é o frontend da plataforma ORCA, permitindo que usuários:
 ## 💻 Stack Tecnológico
 
 ### Core
-- **Next.js 14.2+** - React framework com App Router
+- **Next.js 16.1+** - React framework com App Router
 - **TypeScript 5+** - Type safety com strict mode
-- **React 18+** - Latest features (Suspense, Server Components)
+- **React 19** - Latest features (Server Components)
 
 ### UI/UX
-- **Ant Design 5.x** - Biblioteca de componentes enterprise
-- **Tailwind CSS 3.x** - Utility-first CSS
+- **Ant Design 6.x** - Biblioteca de componentes enterprise
+- **Tailwind CSS 4.x** - Utility-first CSS
 - **Lucide Icons** - Icon system
 
 ### State Management
 - **TanStack Query v5** - Server state management
-- **React Context API** - Client state (auth)
+- **Zustand** - Client state (auth)
 
 ### HTTP & APIs
 - **Axios** - HTTP client
@@ -175,8 +175,8 @@ cd orca-web
 npm install
 
 # Configure variáveis de ambiente
-cp .env.example .env.local
-# Edite .env.local com as URLs dos microserviços
+# Use o arquivo raiz .env.example como referência e crie orca-web/.env.local
+# com as URLs dos microserviços
 
 # Execute em desenvolvimento
 npm run dev
@@ -195,7 +195,13 @@ npm run start
 
 ```bash
 docker build -t orca-web .
-docker run -p 3000:3000 orca-web
+docker run -p 3000:3000 \
+  -e NEXT_PUBLIC_IDENTITY_API=http://localhost:5002 \
+  -e NEXT_PUBLIC_CATALOG_API=http://localhost:5001 \
+  -e NEXT_PUBLIC_FORMS_API=http://localhost:5003 \
+  -e NEXT_PUBLIC_REQUESTS_API=http://localhost:5004 \
+  -e NEXT_PUBLIC_ORCHESTRATOR_API=http://localhost:5005 \
+  orca-web
 ```
 
 ## 🔐 Autenticação
@@ -266,6 +272,7 @@ Para guias detalhados, consulte:
 # APIs Backend
 NEXT_PUBLIC_IDENTITY_API=http://localhost:5002
 NEXT_PUBLIC_CATALOG_API=http://localhost:5001
+NEXT_PUBLIC_FORMS_API=http://localhost:5003
 NEXT_PUBLIC_REQUESTS_API=http://localhost:5004
 NEXT_PUBLIC_ORCHESTRATOR_API=http://localhost:5005
 ```
@@ -275,9 +282,6 @@ NEXT_PUBLIC_ORCHESTRATOR_API=http://localhost:5005
 ```bash
 # Lint
 npm run lint
-
-# Type check
-npm run type-check
 
 # Build (valida tudo)
 npm run build

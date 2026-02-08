@@ -2,6 +2,8 @@
 
 Histórico de mudanças e features implementadas no frontend ORCA.
 
+> Nota: entradas antigas podem refletir versões anteriores do stack.
+
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased]

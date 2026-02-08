@@ -26,9 +26,9 @@ public class OoClient : IOoExecutionClient
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Ler configurações do appsettings
-        _ooBaseUrl = config["OO:BaseUrl"] ?? "http://localhost:8080";
-        _ooUsername = config["OO:Username"] ?? "admin";
-        _ooPassword = config["OO:Password"] ?? "password";
+        _ooBaseUrl = config["ExternalServices:OoBaseUrl"] ?? "http://localhost:8080";
+        _ooUsername = config["ExternalServices:OoUsername"] ?? "admin";
+        _ooPassword = config["ExternalServices:OoPassword"] ?? "password";
 
         // ⏱️ RETRY POLICY - Polly (idêntica ao AWX)
         _retryPolicy = Policy

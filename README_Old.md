@@ -1,5 +1,7 @@
 # 🐳 ORCA — Orchestrator Catalog Application (VERSÃO ANTERIOR)
 
+> ⚠️ **Documento legado**: este README descreve a versão anterior do ORCA e **não reflete** o estado atual do repositório.
+
 > Plataforma corporativa de **Catálogo de Serviços** focada em **UX fluida**, **formulários dinâmicos**, **integrações com AWX/OO**, **RBAC via LDAP** e **histórico de execuções**.  
 > O ORCA centraliza a descoberta, a solicitação e a orquestração de automações com governança e segurança.
 

@@ -295,7 +295,7 @@ CREATE INDEX "IX_Requests_Status" ON "Requests" ("Status");
 
 ## 🚀 Como Executar
 
-### Via Docker Compose
+### Via Compose
 ```bash
 cd /home/danielbachiega/Documentos/ORCA
 podman-compose up -d requests-api

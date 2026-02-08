@@ -21,32 +21,29 @@ npm start
 
 # Lint
 npm run lint
-
-# Type check
-npm run type-check
 ```
 
 ### Docker
 
 ```bash
 # Subir todos os serviços
-docker-compose up
+podman-compose up
 
 # Subir em background
-docker-compose up -d
+podman-compose up -d
 
 # Ver logs
-docker logs -f orca-web
+podman logs -f orca-web
 
 # Rebuild completo
-docker-compose down
-docker-compose up --build
+podman-compose down
+podman-compose up --build
 
 # Parar tudo
-docker-compose down
+podman-compose down
 
 # Limpar volumes
-docker-compose down -v
+podman-compose down -v
 ```
 
 ### Git

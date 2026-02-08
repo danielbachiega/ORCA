@@ -121,7 +121,7 @@ Usuário vê atualização no dashboard
 Para ambientes com certificados auto-assinados:
 ```bash
 # Ativar em dev/test
-ALLOW_INVALID_SSL=true podman-compose up -d
+ExternalServices__AllowInvalidSsl=true podman-compose up -d
 ```
 
 Configura `AllowInvalidSsl=true` em ambos `AwxClient` e `OoClient`.
@@ -286,15 +286,16 @@ public record RequestStatusUpdatedEvent
 - **Swagger/OpenAPI** — Documentação
 
 ### Frontend
-- **Next.js 14** — React framework
-- **Ant Design** — UI components
-- **Uniforms** — JSON Schema rendering
-- **Tailwind CSS** — Styling
+- **Next.js 16** — React framework
+- **React 19** — UI runtime
+- **Ant Design 6** — UI components
+- **Tailwind CSS 4** — Styling
+- **TanStack Query 5** — Server state
+- **Zustand** — Client state
 
 ### DevOps
-- **Docker** — Containerização
-- **Docker Compose** — Orquestração local
-- **NGINX** — Reverse proxy (frontend)
+- **Docker/Podman** — Containerização
+- **Compose (podman-compose)** — Orquestração local
 
 ---
 
@@ -323,11 +324,11 @@ ORCA/
 │           ├── RequestCreatedEvent.cs
 │           └── RequestStatusUpdatedEvent.cs
 │
-├── web/                               # Frontend Next.js
+├── orca-web/                          # Frontend Next.js
 │   ├── src/
-│   │   ├── pages/
+│   │   ├── app/
 │   │   ├── components/
-│   │   └── api/
+│   │   └── services/
 │   └── package.json
 │
 └── tests/                             # Testes unitários/integração
@@ -337,7 +338,7 @@ ORCA/
 
 ## 🚀 Como Executar
 
-### ✅ Com Docker Compose (Recomendado)
+### ✅ Com Compose (Recomendado)
 
 ```bash
 cd /home/danielbachiega/Documentos/ORCA
@@ -361,7 +362,7 @@ podman-compose down
 - Forms: http://localhost:5003/swagger
 - Requests: http://localhost:5004/swagger
 - Orchestrator: http://localhost:5005/swagger 
-- Frontend: http://localhost:3000 (Ainda não implementado)
+- Frontend: http://localhost:3000
 - RabbitMQ: http://localhost:15672 (guest/guest)
 
 ---
@@ -397,7 +398,7 @@ Você receberá um `sessionToken` para usar nas próximas requisições.
 ### ✅ LDAP real + contas locais (superadmin/admin)
 Se você quiser manter o LDAP real sempre ativo, deixe `LDAP_USE_MOCK_MODE=false`.
 
-Para permitir que `superadmin` e `admin` continuem autenticando **mesmo com LDAP real**, configure as senhas locais via variáveis de ambiente (docker-compose):
+Para permitir que `superadmin` e `admin` continuem autenticando **mesmo com LDAP real**, configure as senhas locais via variáveis de ambiente (podman-compose):
 
 - `LOCAL_SUPERADMIN_PASSWORD`
 - `LOCAL_ADMIN_PASSWORD`
@@ -501,7 +502,7 @@ podman logs -f orca-orchestrator-api | grep -E "(retry|Relançando|Agendando)"
 
 **Solução:**
 ```bash
-ALLOW_INVALID_SSL=true podman-compose up -d
+ExternalServices__AllowInvalidSsl=true podman-compose up -d
 ```
 
 Ou em `appsettings.json`:
@@ -677,11 +678,11 @@ Para dúvidas ou problemas:
 
 ## 🏗️ Arquitetura — Visão Geral
 
-* **API Gateway (YARP):** Validação OIDC e roteamento de tráfego.
+* **API Gateway (YARP):** Planejado (não presente no repositório atual).
 * **Identity/RBAC Service:** No ato do login, consulta o **Windows AD via LDAP**, resolve os grupos do usuário e mapeia para as Roles internas do ORCA.
 * **Orchestrator Service:** * Processa o mapeamento de dados e dispara chamadas REST (Basic Auth) para AWX/OO.
     * **Monitoramento:** Realiza **polling de 5 em 5 segundos** para atualizar o status da execução.
-* **BFF (Backend for Frontend):** Consolida dados dos serviços e gerencia notificações em tempo real (SignalR).
+* **BFF (Backend for Frontend):** Planejado (não presente no repositório atual).
 
 ---
 
@@ -697,7 +698,7 @@ Para dúvidas ou problemas:
 
 ## 🧰 Stack Tecnológica
 
-* **Frontend:** Next.js 14, Ant Design, Uniforms (JSON Schema rendering).
+* **Frontend:** Next.js 16, React 19, Ant Design 6, TanStack Query 5, Tailwind CSS 4.
 * **Backend:** .NET 8 (Minimal APIs), Entity Framework Core (PostgreSQL com JSONB).
 * **Comunicação:** RabbitMQ (MassTransit) para fluxos assíncronos.
 * **Integração:** Protocolo LDAP para resolução de grupos no login.
@@ -707,14 +708,15 @@ Para dúvidas ou problemas:
 ## 📂 Estrutura do Repositório (Destaque)
 
 ```text
-src/
-├── Gateway/       # YARP Gateway
-├── Bff/           # Agregação para o Frontend
-├── Identity/      # Lógica LDAP e Mapeamento de Roles
-├── Catalog/       # Gestão de Ofertas e Visibilidade
-├── Forms/         # Engine de JSON Schema
-├── Orchestrator/  # Disparos, Mapping e Worker de Polling
-└── Frontend/      # Next.js Application
+services/
+├── Orca.Catalog/        # Gestão de ofertas
+├── Orca.Forms/          # Schemas JSON + ExecutionTemplate
+├── Orca.Identity/       # OIDC + LDAP + Roles
+├── Orca.Requests/       # Solicitações + histórico
+├── Orca.Orchestrator/   # Disparos, polling e retry
+└── Orca.SharedContracts/# Eventos compartilhados
+
+orca-web/                # Frontend Next.js
 ```
 ## 🚀 Roadmap (Core MVP)
 

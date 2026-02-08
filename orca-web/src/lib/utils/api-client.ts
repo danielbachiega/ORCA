@@ -151,15 +151,19 @@ export class ApiClient {
   private handleError(error: unknown): Error {
     if (axios.isAxiosError(error)) {
       const data = error.response?.data as
-        | { message?: string; error?: string; errors?: Record<string, string[] | string> }
+        | { message?: string; error?: string; detail?: string; title?: string; errors?: Record<string, string[] | string> }
         | string
         | undefined;
       let message = error.message;
 
       if (typeof data === 'string') {
         message = data;
+      } else if (data?.detail) {
+        message = data.detail;
       } else if (data?.message) {
         message = data.message;
+      } else if (data?.title) {
+        message = data.title;
       } else if (data?.error) {
         message = data.error;
       } else if (data?.errors && typeof data.errors === 'object') {

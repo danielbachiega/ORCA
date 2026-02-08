@@ -22,11 +22,11 @@ dotnet restore Orca.sln
 # Via script helper
 ./dev.sh infra-up
 
-# Ou via docker-compose diretamente
-docker-compose up -d postgres rabbitmq redis
+# Ou via podman-compose diretamente
+podman-compose up -d postgres rabbitmq redis
 
 # Verificar status
-docker-compose ps
+podman-compose ps
 ```
 
 ## 3️⃣ Desenvolver Localmente
@@ -57,7 +57,7 @@ dotnet run
 ./dev.sh up
 
 # Verificar
-docker-compose ps
+podman-compose ps
 
 # Logs de um serviço
 ./dev.sh logs catalog
@@ -92,29 +92,29 @@ shared/Orca.Shared/        ← Código compartilhado
   └── Contracts/           ← DTOs compartilhadas
 ```
 
-## 🛠️ Tarefas Importantes (TODO)
+## 🛠️ Checklist Inicial (status atual)
 
 ### 1. Database (EF Core)
-- [ ] Criar `DbContext` em cada serviço
-- [ ] Configurar `OnModelCreating()` com relacionamentos
-- [ ] Gerar migrations: `dotnet ef migrations add Initial`
-- [ ] Atualizar DB: `dotnet ef database update`
+- [x] `DbContext` por serviço
+- [x] `OnModelCreating()` com relacionamentos
+- [x] Migrations iniciais
+- [x] Atualização de DB automatizada no startup
 
 ### 2. Autenticação (Identity Service)
-- [ ] Implementar `LdapService` (LdapForNet)
-- [ ] Criar endpoint `POST /auth/login`
-- [ ] Implementar resolução de roles
-- [ ] Criar JWT bearer tokens
+- [x] `LdapService` (mock + AD real)
+- [x] Endpoint `POST /auth/login`
+- [x] Resolução dinâmica de roles
+- [x] JWT de sessão
 
 ### 3. Controllers (cada serviço)
-- [ ] Implementar endpoints REST
-- [ ] Adicionar validações (FluentValidation)
-- [ ] Implementar error handling
+- [x] Endpoints REST principais
+- [x] Validações (FluentValidation)
+- [x] Error handling
 
 ### 4. Mensageria (MassTransit)
-- [ ] Configurar MassTransit em `Program.cs`
-- [ ] Criar consumers para eventos
-- [ ] Implementar publicação de eventos
+- [x] Configuração MassTransit
+- [x] Consumers para eventos
+- [x] Publicação de eventos
 
 ### 5. API Gateway (Futuro)
 - [ ] Criar projeto YARP
@@ -135,19 +135,19 @@ kill -9 <PID>
 ### PostgreSQL não conecta
 ```bash
 # Verificar se está rodando
-docker-compose logs postgres
+podman-compose logs postgres
 
 # Reiniciar
-docker-compose restart postgres
+podman-compose restart postgres
 ```
 
 ### Rebuild de containers
 ```bash
 # Parar e remover
-docker-compose down
+podman-compose down
 
 # Reconstruir
-docker-compose up --build
+podman-compose up --build
 ```
 
 ## 📚 Documentação Adicional

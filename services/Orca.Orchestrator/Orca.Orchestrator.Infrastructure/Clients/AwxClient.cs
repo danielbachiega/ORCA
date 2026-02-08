@@ -27,9 +27,9 @@ public class AwxClient : IAwxExecutionClient
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Ler configurações do appsettings
-        _awxBaseUrl = config["Awx:BaseUrl"] ?? "http://localhost:80";
-        _awxUsername = config["Awx:Username"] ?? "admin";
-        _awxPassword = config["Awx:Password"] ?? "password";
+        _awxBaseUrl = config["ExternalServices:AwxBaseUrl"] ?? "http://localhost:80";
+        _awxUsername = config["ExternalServices:AwxUsername"] ?? "admin";
+        _awxPassword = config["ExternalServices:AwxPassword"] ?? "password";
 
         // ⏱️ RETRY POLICY - Polly
         _retryPolicy = Policy

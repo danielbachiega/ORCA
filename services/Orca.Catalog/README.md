@@ -224,7 +224,7 @@ CREATE TABLE "Offers" (
 
 ## 🚀 Como Executar
 
-### Via Docker Compose
+### Via Compose
 ```bash
 cd /home/danielbachiega/Documentos/ORCA
 podman-compose up -d catalog-api
