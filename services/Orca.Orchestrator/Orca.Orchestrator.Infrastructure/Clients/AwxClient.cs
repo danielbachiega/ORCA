@@ -9,7 +9,7 @@ using Orca.Orchestrator.Application.Clients;
 
 namespace Orca.Orchestrator.Infrastructure.Clients;
 
-public class AwxClient : IExecutionClient
+public class AwxClient : IAwxExecutionClient
 {
     private readonly HttpClient _httpClient;
     private readonly string _awxBaseUrl;

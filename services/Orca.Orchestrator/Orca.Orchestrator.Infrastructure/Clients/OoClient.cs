@@ -8,7 +8,7 @@ using Orca.Orchestrator.Application.Clients;
 
 namespace Orca.Orchestrator.Infrastructure.Clients;
 
-public class OoClient : IExecutionClient
+public class OoClient : IOoExecutionClient
 {
     private readonly HttpClient _httpClient;
     private readonly string _ooBaseUrl;

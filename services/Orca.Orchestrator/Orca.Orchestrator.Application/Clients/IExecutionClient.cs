@@ -27,3 +27,12 @@ public interface IExecutionClient
     /// <returns>ResultStatusType (RESOLVED, ERROR, DIAGNOSED, NO_ACTION_TAKEN)</returns>
     Task<string?> GetResultStatusTypeAsync(string executionId);
 }
+
+// Interfaces específicas para injeção correta
+public interface IAwxExecutionClient : IExecutionClient
+{
+}
+
+public interface IOoExecutionClient : IExecutionClient
+{
+}

@@ -13,8 +13,8 @@ namespace Orca.Orchestrator.Application.JobExecutions;
 public class JobExecutionService : IJobExecutionService
 {
     private readonly IJobExecutionRepository _repository;
-    private readonly IExecutionClient _awxClient;
-    private readonly IExecutionClient _ooClient;
+    private readonly IAwxExecutionClient _awxClient;
+    private readonly IOoExecutionClient _ooClient;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<JobExecutionService> _logger;
     private readonly LaunchRetryOptions _retryOptions;
@@ -23,8 +23,8 @@ public class JobExecutionService : IJobExecutionService
 
     public JobExecutionService(
         IJobExecutionRepository repository,
-        IExecutionClient awxClient,
-        IExecutionClient ooClient,
+        IAwxExecutionClient awxClient,
+        IOoExecutionClient ooClient,
         IPublishEndpoint publishEndpoint,
         ILogger<JobExecutionService> logger,
         IOptions<LaunchRetryOptions> retryOptions)
@@ -85,7 +85,9 @@ public class JobExecutionService : IJobExecutionService
             await _repository.UpdateAsync(jobExecution);
 
             // ✅ Seleciona cliente correto
-            var client = jobExecution.ExecutionTargetType == 0 ? _awxClient : _ooClient;
+            IExecutionClient client = jobExecution.ExecutionTargetType == 0
+                ? _awxClient
+                : _ooClient;
 
             // 🚀 Dispara execução
             var executionId = await client.LaunchAsync(payload);
@@ -232,7 +234,9 @@ public class JobExecutionService : IJobExecutionService
             try
             {
                 // 🔍 Consulta status no AWX/OO
-                var client = execution.ExecutionTargetType == 0 ? _awxClient : _ooClient;
+                IExecutionClient client = execution.ExecutionTargetType == 0
+                    ? _awxClient
+                    : _ooClient;
                 var status = await client.GetStatusAsync(execution.AwxOoJobId.ToString());
 
                 _logger.LogInformation(
@@ -365,12 +369,22 @@ public class JobExecutionService : IJobExecutionService
         _logger.LogInformation("🔧 PrepareAwxPayload com FormData: {FormData}", formData);
 
         var formDataObj = JsonDocument.Parse(formData).RootElement;
+
+        // Se já estiver no formato esperado do AWX, não reembrulhar
+        if (formDataObj.ValueKind == JsonValueKind.Object
+            && formDataObj.TryGetProperty("resourceId", out _)
+            && formDataObj.TryGetProperty("launch", out _))
+        {
+            _logger.LogInformation("ℹ️ FormData já está no formato AWX, usando payload original");
+            return formData;
+        }
+
         var extraVars = new Dictionary<string, object>();
 
         // Copia todos os campos do FormData para extra_vars
         foreach (var prop in formDataObj.EnumerateObject())
         {
-            extraVars[prop.Name] = prop.Value.GetRawText();
+            extraVars[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText())!;
         }
 
         var launchPayload = new AwxLaunchRequest
@@ -395,12 +409,22 @@ public class JobExecutionService : IJobExecutionService
         _logger.LogInformation("🔧 PrepareOoPayload com FormData: {FormData}", formData);
 
         var formDataObj = JsonDocument.Parse(formData).RootElement;
+
+        // Se já estiver no formato esperado do OO, não reembrulhar
+        if (formDataObj.ValueKind == JsonValueKind.Object
+            && formDataObj.TryGetProperty("flowUuid", out _)
+            && formDataObj.TryGetProperty("inputs", out _))
+        {
+            _logger.LogInformation("ℹ️ FormData já está no formato OO, usando payload original");
+            return formData;
+        }
+
         var inputs = new Dictionary<string, object>();
 
         // Copia todos os campos do FormData para inputs
         foreach (var prop in formDataObj.EnumerateObject())
         {
-            inputs[prop.Name] = prop.Value.GetRawText();
+            inputs[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText())!;
         }
 
         var payload = new OoExecutionRequest

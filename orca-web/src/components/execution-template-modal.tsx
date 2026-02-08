@@ -368,10 +368,46 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
                       <Form.Item
                         {...restField}
                         name={[field.name, 'payloadFieldName']}
+                        dependencies={['fieldMappings']}
                         rules={[
                           {
                             required: true,
                             message: 'Nome do campo é obrigatório',
+                          },
+                          {
+                            validator: async (_, value) => {
+                              if (!value) {
+                                return Promise.resolve();
+                              }
+
+                              const mappings =
+                                (form.getFieldValue('fieldMappings') as
+                                  | Array<{ payloadFieldName?: string }>
+                                  | undefined) ?? [];
+
+                              const normalized = String(value).trim().toLowerCase();
+                              const hasDuplicate = mappings.some((mapping, mappingIndex) => {
+                                if (mappingIndex === index) {
+                                  return false;
+                                }
+
+                                const otherValue = String(
+                                  mapping?.payloadFieldName ?? ''
+                                )
+                                  .trim()
+                                  .toLowerCase();
+
+                                return otherValue !== '' && otherValue === normalized;
+                              });
+
+                              if (hasDuplicate) {
+                                return Promise.reject(
+                                  new Error('Nome do campo do payload já foi usado')
+                                );
+                              }
+
+                              return Promise.resolve();
+                            },
                           },
                         ]}
                         style={{ flex: 1, margin: 0 }}
@@ -446,7 +482,7 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
                             <Select
                               placeholder="Escolha um campo do formulário"
                               options={formFields.map((field, index) => ({
-                                label: field.label,
+                                label: field.key,
                                 value: field.key,
                                 key: `${field.key}-${index}`,
                               }))}

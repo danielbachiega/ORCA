@@ -74,19 +74,25 @@ class FormsService {
 
     const payload: Record<string, unknown> = {};
 
-    fieldMappings.forEach((mapping) => {
-      const { payloadFieldName, sourceType, sourceValue } = mapping;
+    const formMappings = fieldMappings.filter((mapping) => mapping.sourceType === 0);
+    const fixedMappings = fieldMappings.filter((mapping) => mapping.sourceType === 1);
 
-      if (sourceType === 0) {
-        // Source Type 0: valor vem do campo do formulário
-        const value = formData[sourceValue];
-        console.log(`📝 Mapeando campo "${sourceValue}" → "${payloadFieldName}":`, value);
-        payload[payloadFieldName] = value;
-      } else if (sourceType === 1) {
-        // Source Type 1: valor fixo
-        console.log(`🔒 Mapeando valor fixo "${sourceValue}" → "${payloadFieldName}"`);
-        payload[payloadFieldName] = sourceValue;
+    formMappings.forEach((mapping) => {
+      const { payloadFieldName, sourceValue } = mapping;
+      // Source Type 0: valor vem do campo do formulário
+      const value = formData[sourceValue];
+      console.log(`📝 Mapeando campo "${sourceValue}" → "${payloadFieldName}":`, value);
+      payload[payloadFieldName] = value;
+    });
+
+    fixedMappings.forEach((mapping) => {
+      const { payloadFieldName, sourceValue } = mapping;
+      // Source Type 1: valor fixo (prioridade sobre valores do formulário)
+      if (payloadFieldName in payload) {
+        console.log(`⚠️ Sobrescrevendo "${payloadFieldName}" com valor fixo "${sourceValue}"`);
       }
+      console.log(`🔒 Mapeando valor fixo "${sourceValue}" → "${payloadFieldName}"`);
+      payload[payloadFieldName] = sourceValue;
     });
 
     console.log('✅ Payload mapeado:', payload);

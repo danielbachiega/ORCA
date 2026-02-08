@@ -59,9 +59,9 @@ builder.Services.AddHttpClient<OoClient>()
         return handler;
     });
 
-// Registrar os clientes como IExecutionClient (injeção por tipo no JobExecutionService)
-builder.Services.AddScoped<IExecutionClient>(sp => sp.GetRequiredService<AwxClient>());
-builder.Services.AddScoped<IExecutionClient>(sp => sp.GetRequiredService<OoClient>());
+// Clientes concretos são resolvidos diretamente no JobExecutionService
+builder.Services.AddScoped<IAwxExecutionClient>(sp => sp.GetRequiredService<AwxClient>());
+builder.Services.AddScoped<IOoExecutionClient>(sp => sp.GetRequiredService<OoClient>());
 
 //  CONFIGURAR MASSTRANSIT + RABBITMQ
 builder.Services.AddMassTransit(x =>
