@@ -725,10 +725,10 @@ src/
 - [x] **Frontend MVP**: ✅ Dashboard, gerenciamento de ofertas, requisições, roles e perfil de usuário
 - [x] **Session Persistence**: ✅ localStorage + getMe() para manter sessão ativa ao atualizar página
 - [x] **Password Validation**: ✅ Backend valida credenciais via LDAP
+- [x] **JSON Schema Editor**:  ✅ UI visual para criar/editar formulários
 
 ## 🚀 Próximos Passos (Phase 2)
 
-- [ ] **JSON Schema Editor**: UI visual para criar/editar formulários
 - [ ] **Advanced Reporting**: Dashboards com métricas e trends
 - [ ] **Webhook Support**: Notificações de status em tempo real via webhook
 - [ ] **Multi-tenant**: Suporte para múltiplas organizações
