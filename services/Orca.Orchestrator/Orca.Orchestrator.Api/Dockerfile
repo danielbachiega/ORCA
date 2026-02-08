@@ -22,6 +22,10 @@ RUN dotnet publish "Orca.Orchestrator.Api.csproj" -c Release -o /app/publish
 # Imagem final
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
+ARG ExternalServices__AwxBaseUrl
+ARG ExternalServices__OoBaseUrl
+ENV ExternalServices__AwxBaseUrl=${ExternalServices__AwxBaseUrl}
+ENV ExternalServices__OoBaseUrl=${ExternalServices__OoBaseUrl}
 EXPOSE 5005
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Orca.Orchestrator.Api.dll"]

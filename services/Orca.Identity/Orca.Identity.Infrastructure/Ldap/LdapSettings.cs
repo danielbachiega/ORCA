@@ -77,6 +77,16 @@ public class LdapSettings
     public bool UseMockMode { get; set; } = true;
 
     /// <summary>
+    /// Senha local para o usuário "superadmin" (fallback quando LDAP real está ativo)
+    /// </summary>
+    public string? LocalSuperAdminPassword { get; set; }
+
+    /// <summary>
+    /// Senha local para o usuário "admin" (fallback quando LDAP real está ativo)
+    /// </summary>
+    public string? LocalAdminPassword { get; set; }
+
+    /// <summary>
     /// Valida se as configurações obrigatórias estão preenchidas
     /// </summary>
     public bool IsValid()

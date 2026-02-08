@@ -34,6 +34,11 @@ public class LdapClient : ILdapClient
 
     public async Task<bool> ValidateCredentialsAsync(string username, string password)
     {
+        if (TryValidateLocalUser(username, password))
+        {
+            return true;
+        }
+
         if (_settings.UseMockMode)
         {
             return await ValidateCredentialsMockAsync(username, password);
@@ -136,6 +141,12 @@ public class LdapClient : ILdapClient
 
     public async Task<List<string>> GetUserGroupsAsync(string username)
     {
+        if (IsLocalUserConfigured(username))
+        {
+            // Fallback local: usuários administrativos sempre recebem grupo "Admins"
+            return await Task.FromResult(new List<string> { "Admins" });
+        }
+
         if (_settings.UseMockMode)
         {
             return await GetUserGroupsMockAsync(username);
@@ -167,6 +178,50 @@ public class LdapClient : ILdapClient
             username, string.Join(", ", mockGroups));
 
         return mockGroups;
+    }
+
+    private bool IsLocalUserConfigured(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return false;
+
+        if (username.Equals("superadmin", StringComparison.OrdinalIgnoreCase))
+        {
+            return !string.IsNullOrWhiteSpace(_settings.LocalSuperAdminPassword);
+        }
+
+        if (username.Equals("admin", StringComparison.OrdinalIgnoreCase))
+        {
+            return !string.IsNullOrWhiteSpace(_settings.LocalAdminPassword);
+        }
+
+        return false;
+    }
+
+    private bool TryValidateLocalUser(string username, string password)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return false;
+
+        if (username.Equals("superadmin", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!string.IsNullOrWhiteSpace(_settings.LocalSuperAdminPassword) &&
+                _settings.LocalSuperAdminPassword == password)
+            {
+                _logger.LogInformation("✅ [LOCAL] Credenciais válidas para: {Username}", username);
+                return true;
+            }
+        }
+
+        if (username.Equals("admin", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!string.IsNullOrWhiteSpace(_settings.LocalAdminPassword) &&
+                _settings.LocalAdminPassword == password)
+            {
+                _logger.LogInformation("✅ [LOCAL] Credenciais válidas para: {Username}", username);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private async Task<List<string>> GetUserGroupsRealAsync(string username)

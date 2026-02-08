@@ -394,6 +394,16 @@ curl -X POST http://localhost:5002/api/auth/login \
 
 Você receberá um `sessionToken` para usar nas próximas requisições.
 
+### ✅ LDAP real + contas locais (superadmin/admin)
+Se você quiser manter o LDAP real sempre ativo, deixe `LDAP_USE_MOCK_MODE=false`.
+
+Para permitir que `superadmin` e `admin` continuem autenticando **mesmo com LDAP real**, configure as senhas locais via variáveis de ambiente (docker-compose):
+
+- `LOCAL_SUPERADMIN_PASSWORD`
+- `LOCAL_ADMIN_PASSWORD`
+
+Se essas variáveis estiverem vazias, o fallback local fica desativado e o login desses usuários só funcionará se existirem no AD.
+
 📖 **Documentação completa:** [services/Orca.Identity/README.md](services/Orca.Identity/README.md)
 
 ### ✅ Localmente (Desenvolvimento)

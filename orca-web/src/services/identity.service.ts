@@ -31,11 +31,11 @@ class IdentityService {
   }
 
   /**
-   * GET /api/auth/me
+   * GET /api/auth/me?userId=...
    * Obter dados do usuário autenticado
    */
-  async getMe(): Promise<AuthMeResponse> {
-    return this.client.get<AuthMeResponse>('/api/auth/me');
+  async getMe(userId: string): Promise<AuthMeResponse> {
+    return this.client.get<AuthMeResponse>(`/api/auth/me?userId=${userId}`);
   }
 
   /**

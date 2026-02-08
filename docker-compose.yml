@@ -76,6 +76,21 @@ services:
     build:
       context: .
       dockerfile: services/Orca.Identity/Orca.Identity.Api/Dockerfile
+      args:
+        Ldap__UseMockMode: ${LDAP_USE_MOCK_MODE:-true}
+        Ldap__Host: ${LDAP_HOST:-10.100.12.20}
+        Ldap__Port: ${LDAP_PORT:-389}
+        Ldap__BaseDn: ${LDAP_BASE_DN:-OU=Usuarios,OU=BRA-SP,OU=BMFBovespa,DC=corporate,DC=int}
+        Ldap__Domain: ${LDAP_DOMAIN:-CORPORATE}
+        Ldap__ServiceAccountDn: ${LDAP_SERVICE_ACCOUNT_DN:-CN=_svcmonitoringIACP,OU=Contas de Servico,OU=Contas de Infraestrutura,OU=Gerenciamento,OU=BMFBovespa,DC=corporate,DC=int}
+        Ldap__ServiceAccountPassword: ${LDAP_SERVICE_ACCOUNT_PASSWORD:-}
+        Ldap__UseSsl: ${LDAP_USE_SSL:-false}
+        Ldap__TimeoutSeconds: ${LDAP_TIMEOUT:-30}
+        Ldap__UsernameAttribute: ${LDAP_USERNAME_ATTR:-sAMAccountName}
+        Ldap__EmailAttribute: ${LDAP_EMAIL_ATTR:-mail}
+        Ldap__GroupAttribute: ${LDAP_GROUP_ATTR:-memberOf}
+        Ldap__LocalSuperAdminPassword: ${LOCAL_SUPERADMIN_PASSWORD:-}
+        Ldap__LocalAdminPassword: ${LOCAL_ADMIN_PASSWORD:-}
     container_name: orca-identity-api
     restart: unless-stopped
     environment:
@@ -84,7 +99,7 @@ services:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_identity
       RabbitMq__Host: rabbitmq
       # Configurações LDAP/Active Directory
-      Ldap__UseMockMode: ${LDAP_USE_MOCK_MODE:-true}
+      Ldap__UseMockMode: ${LDAP_USE_MOCK_MODE:-false}
       Ldap__Host: ${LDAP_HOST:-10.100.12.20}
       Ldap__Port: ${LDAP_PORT:-389}
       Ldap__BaseDn: ${LDAP_BASE_DN:-OU=Usuarios,OU=BRA-SP,OU=BMFBovespa,DC=corporate,DC=int}
@@ -96,6 +111,8 @@ services:
       Ldap__UsernameAttribute: ${LDAP_USERNAME_ATTR:-sAMAccountName}
       Ldap__EmailAttribute: ${LDAP_EMAIL_ATTR:-mail}
       Ldap__GroupAttribute: ${LDAP_GROUP_ATTR:-memberOf}
+      Ldap__LocalSuperAdminPassword: ${LOCAL_SUPERADMIN_PASSWORD:-}
+      Ldap__LocalAdminPassword: ${LOCAL_ADMIN_PASSWORD:-}
     ports:
       - "5002:5002"
     depends_on:
@@ -152,6 +169,9 @@ services:
     build:
       context: .
       dockerfile: services/Orca.Orchestrator/Orca.Orchestrator.Api/Dockerfile
+      args:
+        ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example1.com}
+        ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example1.com}
     container_name: orca-orchestrator-api
     restart: unless-stopped
     environment:
@@ -159,8 +179,8 @@ services:
       ASPNETCORE_URLS: http://+:5005
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_orchestrator
       RabbitMq__Host: rabbitmq
-      ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example.com}
-      ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example.com}
+      ExternalServices__AwxBaseUrl: ${AWX_HOST:-https://awx.example1.com}
+      ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example1.com}
     ports:
       - "5005:5005"
     depends_on:

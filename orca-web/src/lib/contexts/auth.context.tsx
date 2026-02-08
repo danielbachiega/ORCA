@@ -59,7 +59,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setSessionToken(storedToken);
             identityService.setToken(storedToken);
 
-            const response = await identityService.getMe();
+            const parsedUser = JSON.parse(storedUser) as { id?: string };
+            if (!parsedUser?.id) {
+              throw new Error('Usuário salvo sem id');
+            }
+
+            const response = await identityService.getMe(parsedUser.id);
             console.log('✅ getMe response:', response);
             setUser(response);
             setRoles(response.roles || []);
