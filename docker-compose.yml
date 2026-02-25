@@ -97,12 +97,17 @@ services:
       context: .
       dockerfile: services/Orca.Identity/Orca.Identity.Api/Dockerfile
       args:
+        http_proxy: ${http_proxy}
+        https_proxy: ${https_proxy}
+        no_proxy: ${no_proxy}
+        APT_MIRROR: ${APT_MIRROR:-deb.debian.org}
+        APT_SECURITY_MIRROR: ${APT_SECURITY_MIRROR:-security.debian.org}
         Ldap__UseMockMode: ${LDAP_USE_MOCK_MODE:-true}
         Ldap__Host: ${LDAP_HOST:-10.100.12.20}
         Ldap__Port: ${LDAP_PORT:-389}
         Ldap__BaseDn: ${LDAP_BASE_DN:-OU=Usuarios,OU=BRA-SP,OU=BMFBovespa,DC=corporate,DC=int}
         Ldap__Domain: ${LDAP_DOMAIN:-CORPORATE}
-        Ldap__ServiceAccountDn: ${LDAP_SERVICE_ACCOUNT_DN:-CN=_svcmonitoringIACP,OU=Contas de Servico,OU=Contas de Infraestrutura,OU=Gerenciamento,OU=BMFBovespa,DC=corporate,DC=int}
+        Ldap__ServiceAccountDn: ${LDAP_SERVICE_ACCOUNT_DN:-svcmonitoringIACP}
         Ldap__ServiceAccountPassword: ${LDAP_SERVICE_ACCOUNT_PASSWORD:-}
         Ldap__UseSsl: ${LDAP_USE_SSL:-false}
         Ldap__TimeoutSeconds: ${LDAP_TIMEOUT:-30}
@@ -129,7 +134,7 @@ services:
       Ldap__Port: ${LDAP_PORT:-389}
       Ldap__BaseDn: ${LDAP_BASE_DN:-OU=Usuarios,OU=BRA-SP,OU=BMFBovespa,DC=corporate,DC=int}
       Ldap__Domain: ${LDAP_DOMAIN:-CORPORATE}
-      Ldap__ServiceAccountDn: ${LDAP_SERVICE_ACCOUNT_DN:-CN=_svcmonitoringIACP,OU=Contas de Servico,OU=Contas de Infraestrutura,OU=Gerenciamento,OU=BMFBovespa,DC=corporate,DC=int}
+      Ldap__ServiceAccountDn: ${LDAP_SERVICE_ACCOUNT_DN:-svcmonitoringIACP}
       Ldap__ServiceAccountPassword: ${LDAP_SERVICE_ACCOUNT_PASSWORD:-}
       Ldap__UseSsl: ${LDAP_USE_SSL:-false}
       Ldap__TimeoutSeconds: ${LDAP_TIMEOUT:-30}

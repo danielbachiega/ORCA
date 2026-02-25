@@ -95,6 +95,8 @@ public class LdapClient : ILdapClient
                 new LdapDirectoryIdentifier(_settings.Host, _settings.Port)
             );
 
+            connection.AuthType = AuthType.Basic;
+            connection.SessionOptions.ProtocolVersion = 3;
             connection.Timeout = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
 
             // Configurar SSL/TLS se necessário
@@ -104,16 +106,16 @@ public class LdapClient : ILdapClient
                 connection.SessionOptions.VerifyServerCertificate = (conn, cert) => true; // ⚠️ Em produção: validar certificado
             }
 
-            // Montar DN do usuário para bind
+            // Montar identidade do usuário para bind (Simple Bind)
             string userDn;
             if (!string.IsNullOrWhiteSpace(_settings.Domain))
             {
-                // Formato Active Directory: DOMAIN\username
+                // Usar formato DOMAIN\username para Active Directory
                 userDn = $"{_settings.Domain}\\{username}";
             }
             else
             {
-                // Formato LDAP: cn=username,ou=...,dc=...
+                // Fallback para DN usando BaseDn se Domain não for configurado
                 userDn = $"{_settings.UsernameAttribute}={username},{_settings.BaseDn}";
             }
 
@@ -236,6 +238,8 @@ public class LdapClient : ILdapClient
                 new LdapDirectoryIdentifier(_settings.Host, _settings.Port)
             );
 
+            connection.AuthType = AuthType.Basic;
+            connection.SessionOptions.ProtocolVersion = 3;
             connection.Timeout = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
 
             if (_settings.UseSsl)
@@ -248,8 +252,16 @@ public class LdapClient : ILdapClient
             if (!string.IsNullOrWhiteSpace(_settings.ServiceAccountDn) &&
                 !string.IsNullOrWhiteSpace(_settings.ServiceAccountPassword))
             {
-                _logger.LogDebug("Usando service account para consulta LDAP: {ServiceAccountDn}", _settings.ServiceAccountDn);
-                connection.Bind(new NetworkCredential(_settings.ServiceAccountDn, _settings.ServiceAccountPassword));
+                // Construir DN do service account automaticamente se for apenas um username
+                string serviceAccountDn = _settings.ServiceAccountDn;
+                if (!string.IsNullOrWhiteSpace(_settings.Domain) && !_settings.ServiceAccountDn.Contains("=") && !_settings.ServiceAccountDn.Contains("\\"))
+                {
+                    // Se não contém "=" (CN=...) e não contém "\", assume que é apenas username
+                    serviceAccountDn = $"{_settings.Domain}\\{_settings.ServiceAccountDn}";
+                }
+                
+                _logger.LogDebug("Usando service account para consulta LDAP: {ServiceAccountDn}", serviceAccountDn);
+                connection.Bind(new NetworkCredential(serviceAccountDn, _settings.ServiceAccountPassword));
             }
             else
             {

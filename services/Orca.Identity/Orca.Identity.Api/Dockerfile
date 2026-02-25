@@ -17,6 +17,24 @@ RUN dotnet publish "Orca.Identity.Api.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+ARG APT_MIRROR=deb.debian.org
+ARG APT_SECURITY_MIRROR=security.debian.org
+ENV http_proxy=$http_proxy
+ENV https_proxy=$https_proxy
+ENV no_proxy=$no_proxy
+RUN if [ -f /etc/apt/sources.list ]; then \
+		sed -i "s|http://deb.debian.org/debian|https://$APT_MIRROR/debian|g" /etc/apt/sources.list; \
+		sed -i "s|http://deb.debian.org/debian-security|https://$APT_SECURITY_MIRROR/debian-security|g" /etc/apt/sources.list; \
+	elif [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+		sed -i "s|http://deb.debian.org/debian|https://$APT_MIRROR/debian|g" /etc/apt/sources.list.d/debian.sources; \
+		sed -i "s|http://deb.debian.org/debian-security|https://$APT_SECURITY_MIRROR/debian-security|g" /etc/apt/sources.list.d/debian.sources; \
+	fi \
+	&& apt-get update \
+	&& apt-get install -y --no-install-recommends libldap-2.5-0 \
+	&& rm -rf /var/lib/apt/lists/*
 ARG Ldap__LocalSuperAdminPassword
 ARG Ldap__LocalAdminPassword
 ARG Ldap__UseMockMode
