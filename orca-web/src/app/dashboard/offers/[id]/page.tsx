@@ -337,7 +337,7 @@ function OfferDetailsContent() {
                       <h3 style={{ fontSize: '16px', marginBottom: '12px', color: '#666' }}>
                         Descrição
                       </h3>
-                      <p style={{ fontSize: '15px', lineHeight: '1.6', color: '#333' }}>
+                      <p className={styles.descriptionCard}>
                         {offer.description}
                       </p>
                     </div>
@@ -398,51 +398,6 @@ function OfferDetailsContent() {
                     </Col>
                   )}
                 </Row>
-              </Card>
-
-              {/* Description */}
-              {offer.description && (
-                <Card
-                  title="Descrição"
-                  style={{ marginBottom: '24px' }}
-                  className={styles.descriptionCard}
-                >
-                  <p>{offer.description}</p>
-                </Card>
-              )}
-
-              {/* Metadata */}
-              <Card title="Informações" style={{ marginBottom: '24px' }}>
-                <div className={styles.metadata}>
-                  <div className={styles.metadataItem}>
-                    <span className={styles.label}>Criada em:</span>
-                    <span>
-                      {new Date(offer.createdAtUtc).toLocaleDateString(
-                        'pt-BR',
-                        {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        }
-                      )}
-                    </span>
-                  </div>
-                  {offer.updatedAtUtc && (
-                    <div className={styles.metadataItem}>
-                      <span className={styles.label}>Atualizada em:</span>
-                      <span>
-                        {new Date(offer.updatedAtUtc).toLocaleDateString(
-                          'pt-BR',
-                          {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          }
-                        )}
-                      </span>
-                    </div>
-                  )}
-                </div>
               </Card>
 
               {/* JSON Schema */}

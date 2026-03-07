@@ -31,16 +31,14 @@
 }
 
 .descriptionCard {
-  background: #f9fafb;
+  /* background: #f9fafb; */
   border-radius: 8px;
-}
-
-.descriptionCard p {
   color: #333;
   line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
 
 .metadata {
   display: grid;

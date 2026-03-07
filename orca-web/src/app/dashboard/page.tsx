@@ -153,7 +153,11 @@ function DashboardContent() {
     >
       <Card.Meta
         title={offer.name}
-        description={offer.description}
+        description={
+          <div className={styles.cardDescription}>
+            {offer.description}
+          </div>
+        }
       />
       <div style={{ marginTop: '12px', marginBottom: '12px' }}>
         {offer.tags && offer.tags.length > 0 && (
