@@ -10,12 +10,14 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { catalogService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
 import { useAuth } from '@/lib/contexts/auth.context';
 import { Offer } from '@/lib/types';
+import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
 import {
   Layout,
   Card,
@@ -89,6 +91,17 @@ function DashboardContent() {
     enabled: !!roles && roles.length > 0,
   });
 
+  const { data: imageAssets = [] } = useQuery({
+    queryKey: ['image-assets'],
+    queryFn: () => catalogService.listImageAssets(),
+  });
+
+  const imageAssetMap = useMemo(() => {
+    return new Map(
+      imageAssets.map((asset) => [asset.slug, resolveImageAssetUrl(asset.url)])
+    );
+  }, [imageAssets]);
+
   // Refetch ao entrar na página (garantir dados frescos)
   React.useEffect(() => {
     console.log('🔍 Dashboard - isConsumer:', isConsumer);
@@ -136,6 +149,12 @@ function DashboardContent() {
 
   // Renderizar card individual
   const renderOfferCard = (offer: Offer) => (
+    (() => {
+      const imageUrl = offer.imageAssetId
+        ? imageAssetMap.get(offer.imageAssetId)
+        : undefined;
+
+      return (
     <Card
       key={offer.id}
       hoverable
@@ -147,7 +166,18 @@ function DashboardContent() {
       }}
       cover={
         <div className={styles.cardCover}>
-          <BugOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={offer.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 360px"
+              className={styles.cardCoverImage}
+              unoptimized
+            />
+          ) : (
+            <BugOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+          )}
         </div>
       }
     >
@@ -204,22 +234,45 @@ function DashboardContent() {
         </Space>
       </div>
     </Card>
+      );
+    })()
   );
 
   // Renderizar linha da lista
   const renderListItem = (offer: Offer) => (
+    (() => {
+      const imageUrl = offer.imageAssetId
+        ? imageAssetMap.get(offer.imageAssetId)
+        : undefined;
+
+      return (
     <List.Item
       key={offer.id}
-      style={{ cursor: 'pointer', padding: '16px', borderRadius: '4px' }}
+      className={styles.listItem}
+      style={{ cursor: 'pointer' }}
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fafafa')}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
     >
       <List.Item.Meta
-        avatar={<BugOutlined style={{ fontSize: '24px', color: '#1890ff' }} />}
-        title={offer.name}
+        className={styles.listMeta}
+        avatar={
+          imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={offer.name}
+              width={40}
+              height={40}
+              style={{ objectFit: 'contain' }}
+              unoptimized
+            />
+          ) : (
+            <BugOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+          )
+        }
+        title={<div className={styles.listTitle}>{offer.name}</div>}
         description={
           <div>
-            <p style={{ marginBottom: '8px' }}>{offer.description}</p>
+            <p className={styles.listDescription}>{offer.description}</p>
             {offer.tags && offer.tags.length > 0 && (
               <Space size={4} wrap>
                 {offer.tags.map((tag: string) => (
@@ -235,32 +288,32 @@ function DashboardContent() {
           </div>
         }
       />
-      <div style={{ textAlign: 'right' }}>
-        <Space>
-          <Badge
-            status={offer.active ? 'success' : 'default'}
-            text={offer.active ? 'Ativa' : 'Inativa'}
-          />
-          {canViewDetails && (
-            <Button
-              type="primary"
-              icon={<ArrowRightOutlined />}
-              onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
-            >
-              Ver Detalhes
-            </Button>
-          )}
-          {isConsumer && (
-            <Button
-              type="primary"
-              onClick={() => router.push(`/dashboard/offers/${offer.slug}/request`)}
-            >
-              Solicitar
-            </Button>
-          )}
-        </Space>
+      <div className={styles.listActions}>
+        <Badge
+          status={offer.active ? 'success' : 'default'}
+          text={offer.active ? 'Ativa' : 'Inativa'}
+        />
+        {canViewDetails && (
+          <Button
+            type="primary"
+            icon={<ArrowRightOutlined />}
+            onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
+          >
+            Ver Detalhes
+          </Button>
+        )}
+        {isConsumer && (
+          <Button
+            type="primary"
+            onClick={() => router.push(`/dashboard/offers/${offer.slug}/request`)}
+          >
+            Solicitar
+          </Button>
+        )}
       </div>
     </List.Item>
+      );
+    })()
   );
 
   return (
@@ -282,6 +335,14 @@ function DashboardContent() {
                   onClick={() => router.push('/dashboard/admin/offers/new')}
                 >
                   Criar Nova Oferta
+                </Button>
+              )}
+              {isAdmin && (
+                <Button
+                  type="default"
+                  onClick={() => router.push('/dashboard/admin/images')}
+                >
+                  Gerenciar Imagens
                 </Button>
               )}
               <Button

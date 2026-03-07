@@ -15,6 +15,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { catalogService, identityService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { ImageAssetPicker } from '@/components/image-asset-picker';
 import { useAuth } from '@/lib/contexts/auth.context';
 import {
   Layout,
@@ -40,6 +41,7 @@ interface CreateOfferFormValues {
   description?: string;
   tags?: string[];
   visibleToRoles?: string[];
+  imageAssetId?: string;
 }
 
 function CreateOfferContent() {
@@ -126,6 +128,7 @@ function CreateOfferContent() {
         tags: values.tags || [],
         active: true,
         visibleToRoles: enforcedRoles,
+        imageAssetId: values.imageAssetId || undefined,
       });
 
       console.log('✅ catalogService.createOffer():', result);
@@ -316,6 +319,10 @@ function CreateOfferContent() {
                     rows={4}
                     disabled={isSubmitting}
                   />
+                </Form.Item>
+
+                <Form.Item name="imageAssetId" label="Icone da Oferta">
+                  <ImageAssetPicker />
                 </Form.Item>
                 {/* Tags */}
                 <Form.Item

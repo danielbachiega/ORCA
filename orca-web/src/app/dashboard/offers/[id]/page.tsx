@@ -11,6 +11,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { catalogService } from '@/services';
@@ -20,6 +21,7 @@ import { FormsManagementModal } from '@/components/forms-management-modal';
 import { ExecutionTemplateModal } from '@/components/execution-template-modal';
 import type { FormField } from '@/components/form-builder';
 import { useAuth } from '@/lib/contexts/auth.context';
+import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
 import {
   Layout,
   Card,
@@ -84,6 +86,17 @@ function OfferDetailsContent() {
       return result;
     },
   });
+
+  const { data: imageAssets = [] } = useQuery({
+    queryKey: ['image-assets'],
+    queryFn: () => catalogService.listImageAssets(),
+  });
+
+  const offerImageUrl = useMemo(() => {
+    if (!offer?.imageAssetId) return undefined;
+    const rawUrl = imageAssets.find((asset) => asset.slug === offer.imageAssetId)?.url;
+    return rawUrl ? resolveImageAssetUrl(rawUrl) : undefined;
+  }, [imageAssets, offer?.imageAssetId]);
 
   const handleCreateRequest = () => {
     // TODO: Implementar formulário de requisição
@@ -284,7 +297,17 @@ function OfferDetailsContent() {
               {/* Header com título e ações */}
               <Card style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', gap: '16px', flex: 1 }}>
+                    {offerImageUrl && (
+                      <Image
+                        src={offerImageUrl}
+                        alt={offer.name}
+                        width={96}
+                        height={96}
+                        style={{ objectFit: 'contain' }}
+                        unoptimized
+                      />
+                    )}
                     <Space orientation="vertical" size={4}>
                       <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600 }}>
                         {offer.name}

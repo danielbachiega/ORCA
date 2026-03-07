@@ -10,6 +10,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { catalogService, formsService, requestsService } from '@/services';
@@ -17,6 +18,7 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
 import { useAuth } from '@/lib/contexts/auth.context';
 import type { FormField } from '@/components/form-builder';
+import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
 import {
   Layout,
   Card,
@@ -219,6 +221,17 @@ function RequestFormContent() {
       return found;
     },
   });
+
+  const { data: imageAssets = [] } = useQuery({
+    queryKey: ['image-assets'],
+    queryFn: () => catalogService.listImageAssets(),
+  });
+
+  const offerImageUrl = useMemo(() => {
+    if (!offer?.imageAssetId) return undefined;
+    const rawUrl = imageAssets.find((asset) => asset.slug === offer.imageAssetId)?.url;
+    return rawUrl ? resolveImageAssetUrl(rawUrl) : undefined;
+  }, [imageAssets, offer?.imageAssetId]);
 
   // Buscar formulário publicado da oferta
   const {
@@ -500,16 +513,24 @@ function RequestFormContent() {
           {offer && !isLoadingOffer && !isLoadingForm && !isLoadingTemplate && !isErrorForm && executionTemplate && (
             <div className={styles.formContainer}>
               {/* Header */}
-              <Card style={{ marginBottom: '24px' }}>
-                <div>
-                  <div style={{ color: '#999', fontSize: '12px', marginBottom: '6px' }}>
-                    Criar Requisição
-                  </div>
-                  <h1 style={{ marginBottom: '8px' }}>{offer.name}</h1>
+              <Card className={styles.heroCard} style={{ marginBottom: '24px' }}>
+                <div className={styles.heroBanner}>
+                  {offerImageUrl && (
+                    <Image
+                      src={offerImageUrl}
+                      alt={offer.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 800px"
+                      className={styles.heroBannerImage}
+                      unoptimized
+                    />
+                  )}
+                  <div className={styles.heroOverlay} />
+                </div>
+                <div className={styles.heroContent}>
+                  <h1 className={styles.heroTitle}>{offer.name}</h1>
                   {offer.description && (
-                    <p style={{ color: '#666', margin: 0 }}>
-                      {offer.description}
-                    </p>
+                    <p className={styles.heroDescription}>{offer.description}</p>
                   )}
                 </div>
               </Card>

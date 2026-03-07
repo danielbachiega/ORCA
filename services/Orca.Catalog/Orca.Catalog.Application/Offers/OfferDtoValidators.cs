@@ -15,6 +15,11 @@ public class CreateOfferDtoValidator : AbstractValidator<CreateOfferDto>
             .MaximumLength(100).WithMessage("O slug não pode exceder 100 caracteres.")
             .Matches("^[a-z0-9-]+$").WithMessage("O slug deve conter apenas letras minúsculas, números e hífens.");
 
+        RuleFor(x => x.ImageAssetId)
+            .MaximumLength(100).WithMessage("O ImageAssetId não pode exceder 100 caracteres.")
+            .Matches("^[a-z0-9-]+$").WithMessage("O ImageAssetId deve conter apenas letras minúsculas, números e hífens.")
+            .When(x => !string.IsNullOrWhiteSpace(x.ImageAssetId));
+            
         RuleFor(x => x.Description)
             .MaximumLength(500).WithMessage("A descrição não pode exceder 500 caracteres.");
 
@@ -33,6 +38,11 @@ public class UpdateOfferDtoValidator : AbstractValidator<UpdateOfferDto>
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("O nome é obrigatório.")
             .MaximumLength(100).WithMessage("O nome não pode exceder 100 caracteres.");
+
+        RuleFor(x => x.ImageAssetId)
+            .MaximumLength(100).WithMessage("O ImageAssetId não pode exceder 100 caracteres.")
+            .Matches("^[a-z0-9-]+$").WithMessage("O ImageAssetId deve conter apenas letras minúsculas, números e hífens.")
+            .When(x => !string.IsNullOrWhiteSpace(x.ImageAssetId));
 
         RuleFor(x => x.Slug)
             .NotEmpty().WithMessage("O slug é obrigatório.")

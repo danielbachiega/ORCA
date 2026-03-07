@@ -12,6 +12,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { catalogService, identityService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { ImageAssetPicker } from '@/components/image-asset-picker';
 import { useAuth } from '@/lib/contexts/auth.context';
 import {
   Layout,
@@ -39,6 +40,7 @@ interface EditOfferFormValues {
   tags?: string[];
   active: boolean;
   visibleToRoles?: string[];
+  imageAssetId?: string;
 }
 
 function EditOfferContent() {
@@ -87,6 +89,7 @@ function EditOfferContent() {
         tags: offer.tags || [],
         active: offer.active,
         visibleToRoles: offer.visibleToRoles || [],
+        imageAssetId: offer.imageAssetId,
       });
     }
   }, [offer, form]);
@@ -107,6 +110,7 @@ function EditOfferContent() {
         tags: values.tags || [],
         active: values.active,
         visibleToRoles: values.visibleToRoles || [],
+        imageAssetId: values.imageAssetId || undefined,
       });
 
       console.log('✅ Resposta da atualização:', result);
@@ -253,6 +257,10 @@ function EditOfferContent() {
                     rows={4}
                     disabled={isSubmitting || isLoading}
                   />
+                </Form.Item>
+
+                <Form.Item name="imageAssetId" label="Icone da Oferta">
+                  <ImageAssetPicker />
                 </Form.Item>
 
                 <Form.Item name="tags" label="Tags" valuePropName="value">

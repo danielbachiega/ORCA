@@ -4,11 +4,11 @@ namespace Orca.Catalog.Application.Offers;
 public static class OfferMapping
 {
     public static OfferSummaryDto ToSummary(this Offer o)
-        => new(o.Id, o.Slug, o.Name, o.Description, o.Tags, o.Active, o.CreatedAtUtc, o.UpdatedAtUtc);
+        => new(o.Id, o.Slug, o.Name, o.Description, o.Tags, o.Active, o.CreatedAtUtc, o.UpdatedAtUtc, o.ImageAssetId);
     
     public static OfferDetailsDto ToDetails(this Offer o)
     {
-        return new(o.Id, o.Slug, o.Name, o.Description, o.Tags, o.Active, o.CreatedAtUtc, o.UpdatedAtUtc, o.VisibleToRoles.Select(r => r.RoleName).ToArray());
+        return new(o.Id, o.Slug, o.Name, o.Description, o.Tags, o.Active, o.CreatedAtUtc, o.UpdatedAtUtc, o.ImageAssetId, o.VisibleToRoles.Select(r => r.RoleName).ToArray());
     }
     
     // DTO → Domain (Entrada)
@@ -20,6 +20,7 @@ public static class OfferMapping
             Description = dto.Description,
             Tags = dto.Tags,
             Active = dto.Active,
+            ImageAssetId = dto.ImageAssetId,
             VisibleToRoles = dto.VisibleToRoles
                 .Select(role => new OfferRole { RoleName = role })
                 .ToList()
@@ -32,6 +33,7 @@ public static class OfferMapping
         entity.Description = dto.Description;
         entity.Tags = dto.Tags;
         entity.Active = dto.Active;
+        entity.ImageAssetId = dto.ImageAssetId;
         entity.UpdatedAtUtc = DateTime.UtcNow;
 
         entity.VisibleToRoles.Clear();

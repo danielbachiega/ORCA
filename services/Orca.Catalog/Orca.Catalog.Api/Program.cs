@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 using Orca.Catalog.Application.Offers;
+using Microsoft.Extensions.FileProviders;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,16 @@ builder.Services.AddDbContext<Orca.Catalog.Infrastructure.CatalogContext>(option
 builder.Services.AddCatalogInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+var storagePath = builder.Configuration.GetValue<string>("ImageAssetStorage:StoragePath") ?? "storage/image-assets";
+var physicalPath = Path.Combine(app.Environment.ContentRootPath, storagePath);
+Directory.CreateDirectory(physicalPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(physicalPath),
+    RequestPath = "/image-assets"
+});
 
 // Apply migrations
 using (var scope = app.Services.CreateScope())

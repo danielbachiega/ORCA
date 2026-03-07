@@ -7,6 +7,54 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
+.heroCard {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.heroBanner {
+  position: relative;
+  height: 180px;
+  background: linear-gradient(135deg, #eef2f7 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 16px;
+  margin: 16px 16px 0;
+  overflow: hidden;
+}
+
+.heroBannerImage {
+  object-fit: cover;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.25), rgba(15, 23, 42, 0.08));
+}
+
+.heroContent {
+  padding: 16px 20px 20px;
+}
+
+.heroTitle {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.heroDescription {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -27,6 +75,14 @@
 @media (max-width: 768px) {
   .container {
     padding: 0 16px;
+  }
+
+  .heroBanner {
+    height: 140px;
+  }
+
+  .heroTitle {
+    font-size: 20px;
   }
 
   .formContainer h1 {

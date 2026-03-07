@@ -5,9 +5,11 @@ public class Offer
     public string Slug { get; set; } = default!;
     public string Name { get; set; } = default!;
     public string? Description { get; set; }
+    public string? ImageAssetId { get; set; }
     public string[] Tags { get; set; } = Array.Empty<string>();
     public bool Active { get; set; } = true;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAtUtc { get; set; }
     public ICollection<OfferRole> VisibleToRoles { get; set; } = new List<OfferRole>(); 
+    
 }

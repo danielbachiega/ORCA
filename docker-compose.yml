@@ -89,6 +89,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - catalog-images:/app/storage/image-assets
     networks:
       - orca-network
 
@@ -291,6 +293,7 @@ services:
 volumes:
   pgdata:
   rabbitmqdata:
+  catalog-images:
 
 networks:
   orca-network:

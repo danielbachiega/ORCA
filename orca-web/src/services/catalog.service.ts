@@ -7,7 +7,7 @@
 
 import { ApiClient } from '@/lib/utils/api-client';
 import { API_CONFIG } from '@/lib/constants';
-import { Offer, OfferDetails } from '@/lib/types';
+import { ImageAsset, Offer, OfferDetails } from '@/lib/types';
 
 class CatalogService {
   private client: ApiClient;
@@ -67,6 +67,41 @@ class CatalogService {
    */
   async deleteOffer(offerId: string): Promise<void> {
     await this.client.delete(`/api/offers/${offerId}`);
+  }
+
+  /**
+   * GET /api/image-assets
+   * Listar imagens disponiveis
+   */
+  async listImageAssets(): Promise<ImageAsset[]> {
+    return this.client.get<ImageAsset[]>('/api/image-assets');
+  }
+
+  /**
+   * POST /api/image-assets/upload
+   * Upload de nova imagem
+   */
+  async uploadImageAsset(params: {
+    slug: string;
+    name: string;
+    file: File;
+  }): Promise<ImageAsset> {
+    const formData = new FormData();
+    formData.append('slug', params.slug);
+    formData.append('name', params.name);
+    formData.append('file', params.file);
+
+    return this.client.post<ImageAsset>('/api/image-assets/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+
+  /**
+   * DELETE /api/image-assets/{slug}
+   * Remover imagem
+   */
+  async deleteImageAsset(slug: string): Promise<void> {
+    await this.client.delete(`/api/image-assets/${slug}`);
   }
 
   setToken(token: string): void {

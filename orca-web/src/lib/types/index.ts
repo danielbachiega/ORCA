@@ -65,10 +65,21 @@ export interface Offer {
   updatedAtUtc?: string;
   formSchemaJson?: string; // TODO: adicionar ao backend
   visibleToRoles?: string[]; // Role names que podem ver a oferta
+  imageAssetId?: string;
 }
 
 export interface OfferDetails extends Offer {
   executionTemplate?: ExecutionTemplate;
+}
+
+export interface ImageAsset {
+  id: string;
+  slug: string;
+  name: string;
+  url: string;
+  contentType: string;
+  sizeBytes: number;
+  createdAtUtc: string;
 }
 
 export interface ExecutionTemplate {

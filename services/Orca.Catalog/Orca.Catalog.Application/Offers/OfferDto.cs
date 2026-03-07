@@ -8,7 +8,8 @@ public record OfferSummaryDto(
     string[] Tags,
     bool Active,
     DateTime CreatedAtUtc,
-    DateTime? UpdatedAtUtc);
+    DateTime? UpdatedAtUtc,
+    string? ImageAssetId);
 
 public record OfferDetailsDto(
     Guid Id,
@@ -19,6 +20,7 @@ public record OfferDetailsDto(
     bool Active,
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc,
+    string? ImageAssetId,
     string[] VisibleToRoles);
 
 // === DTOs de Entrada ===
@@ -30,6 +32,7 @@ public class CreateOfferDto
     public string[] Tags { get; set; } = Array.Empty<string>();
     public bool Active { get; set; } = true;
     public string[] VisibleToRoles { get; set; } = Array.Empty<string>();
+    public string? ImageAssetId { get; set; }
 }
 
 public class UpdateOfferDto
@@ -41,4 +44,5 @@ public class UpdateOfferDto
     public string[] Tags { get; set; } = Array.Empty<string>();
     public bool Active { get; set; } = true;
     public string[] VisibleToRoles { get; set; } = Array.Empty<string>();
+    public string? ImageAssetId { get; set; }
 }

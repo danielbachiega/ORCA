@@ -34,11 +34,17 @@
 }
 
 .cardCover {
-  height: 120px;
+  height: 160px;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.cardCoverImage {
+  object-fit: cover;
 }
 
 .cardDescription {
@@ -47,4 +53,38 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
   white-space: normal;
+}
+
+.listItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.listMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.listTitle {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.listDescription {
+  margin: 0 0 8px;
+  color: #666;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.listActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
