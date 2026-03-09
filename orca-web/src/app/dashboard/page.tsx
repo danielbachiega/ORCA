@@ -173,6 +173,7 @@ function DashboardContent() {
               fill
               sizes="(max-width: 768px) 100vw, 360px"
               className={styles.cardCoverImage}
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
               unoptimized
             />
           ) : (

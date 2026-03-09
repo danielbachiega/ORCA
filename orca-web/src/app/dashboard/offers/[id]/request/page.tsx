@@ -33,9 +33,10 @@ import {
   message,
   Select,
   InputNumber,
-  Checkbox,
+  Switch,
   Empty,
 } from 'antd';
+import type { Rule } from 'antd/es/form';
 import { ArrowLeftOutlined, SendOutlined } from '@ant-design/icons';
 import styles from './request-form.module.css';
 
@@ -51,24 +52,70 @@ interface FormDefinition {
   schemaJson?: string;
 }
 
+type OrderedFormField = FormField & { __order: number };
+
+const toFormField = (field: OrderedFormField): FormField => {
+  const cleanedField = { ...field } as FormField & { __order?: number };
+  delete cleanedField.__order;
+  return cleanedField;
+};
+
+const getFieldOrder = (field: Record<string, unknown>, fallback: number): number => {
+  const rawOrder = field.order ?? field.xOrder ?? field['x-order'];
+  if (typeof rawOrder === 'number' && Number.isFinite(rawOrder)) {
+    return rawOrder;
+  }
+  return fallback;
+};
+
+const normalizeVisibilityValue = (
+  fieldValue: unknown,
+  conditionValue: string | boolean,
+): string | boolean => {
+  if (typeof fieldValue === 'boolean') {
+    if (typeof conditionValue === 'boolean') return conditionValue;
+    return String(conditionValue).toLowerCase() === 'true';
+  }
+
+  return conditionValue;
+};
+
 // Componente para renderizar campos com visibilidade condicional
 function DynamicFormFields({ fields }: { fields: FormField[] }) {
   const form = Form.useFormInstance();
   const formValues = Form.useWatch([], form);
+
+  const getRegexRule = (field: FormField) => {
+    if (field.type !== 'text' || !field.regexPattern) return null;
+
+    try {
+      const regex = new RegExp(field.regexPattern);
+      return {
+        validator: async (_: unknown, value: unknown) => {
+          if (value === undefined || value === null || value === '') return;
+          if (regex.test(String(value))) return;
+          throw new Error(`${field.label} não está no formato esperado`);
+        },
+      };
+    } catch {
+      return null;
+    }
+  };
 
   const isFieldVisible = (field: FormField): boolean => {
     if (!field.visibilityCondition) return true;
 
     const { fieldKey, operator, value } = field.visibilityCondition;
     const fieldValue = formValues?.[fieldKey];
+    const normalizedValue = normalizeVisibilityValue(fieldValue, value);
 
     switch (operator) {
       case 'equals':
-        return fieldValue === value;
+        return fieldValue === normalizedValue;
       case 'notEquals':
-        return fieldValue !== value;
+        return fieldValue !== normalizedValue;
       case 'contains':
-        return String(fieldValue || '').includes(String(value));
+        return String(fieldValue || '').includes(String(normalizedValue));
       default:
         return true;
     }
@@ -81,24 +128,33 @@ function DynamicFormFields({ fields }: { fields: FormField[] }) {
 
         // Campo de texto
         if (field.type === 'text' || field.type === 'email') {
+          const rules: Rule[] = [
+            {
+              required: field.required,
+              message: `${field.label} é obrigatório`,
+            },
+          ];
+
+          if (field.type === 'email') {
+            rules.push({
+              type: 'email',
+              message: 'Email inválido',
+            });
+          }
+
+          const regexRule = getRegexRule(field);
+          if (regexRule) {
+            rules.push(regexRule);
+          }
+
           return (
             <Form.Item
               key={field.key}
               name={field.key}
               label={field.label}
-              rules={[
-                {
-                  required: field.required,
-                  message: `${field.label} é obrigatório`,
-                },
-                field.type === 'email'
-                  ? {
-                      type: 'email',
-                      message: 'Email inválido',
-                    }
-                  : {},
-              ]}
-              tooltip={field.description}
+              rules={rules}
+              validateTrigger={['onChange', 'onBlur']}
+              help={field.description}
             >
               <Input
                 placeholder={field.placeholder}
@@ -121,7 +177,7 @@ function DynamicFormFields({ fields }: { fields: FormField[] }) {
                   message: `${field.label} é obrigatório`,
                 },
               ]}
-              tooltip={field.description}
+              help={field.description}
             >
               <InputNumber
                 placeholder={field.placeholder}
@@ -144,7 +200,7 @@ function DynamicFormFields({ fields }: { fields: FormField[] }) {
                   message: `${field.label} é obrigatório`,
                 },
               ]}
-              tooltip={field.description}
+              help={field.description}
             >
               <Select
                 placeholder={field.placeholder}
@@ -160,10 +216,11 @@ function DynamicFormFields({ fields }: { fields: FormField[] }) {
             <Form.Item
               key={field.key}
               name={field.key}
+              label={field.label}
               valuePropName="checked"
-              tooltip={field.description}
+              help={field.description}
             >
-              <Checkbox>{field.label}</Checkbox>
+              <Switch />
             </Form.Item>
           );
         }
@@ -181,7 +238,7 @@ function DynamicFormFields({ fields }: { fields: FormField[] }) {
                   message: `${field.label} é obrigatório`,
                 },
               ]}
-              tooltip={field.description}
+              help={field.description}
             >
               <Input.TextArea
                 placeholder={field.placeholder}
@@ -316,10 +373,21 @@ function RequestFormContent() {
       
       // Verificar se é formato customizado (fields array) ou JSON Schema padrão (properties)
       if (schema.fields && Array.isArray(schema.fields)) {
+        const orderedFields = [...schema.fields]
+          .map((field, index) => {
+            const typedField = field as FormField;
+            return {
+              ...typedField,
+              __order: getFieldOrder(field as Record<string, unknown>, index),
+            } as OrderedFormField;
+          })
+          .sort((a, b) => (a.__order as number) - (b.__order as number))
+          .map(toFormField);
+
         console.log('✅ Formato customizado detectado (fields array)');
-        console.log('📝 Total de campos:', schema.fields.length);
-        console.log('📋 Campos:', schema.fields);
-        return schema.fields as FormField[];
+        console.log('📝 Total de campos:', orderedFields.length);
+        console.log('📋 Campos:', orderedFields);
+        return orderedFields;
       }
       
       // Formato JSON Schema padrão
@@ -330,7 +398,7 @@ function RequestFormContent() {
       console.log('🔑 Properties:', properties);
       console.log('✅ Required:', required);
 
-      const fields = Object.entries(properties).map(([key, prop]) => {
+      const fields: OrderedFormField[] = Object.entries(properties).map(([key, prop], index) => {
         const property = prop as Record<string, unknown>;
         const fieldType = property.type === 'integer' ? 'number' : ((property.type as string) || 'text');
 
@@ -342,20 +410,26 @@ function RequestFormContent() {
           required: required.includes(key),
           placeholder: (property.description as string) || '',
           description: (property.description as string) || '',
+          regexPattern: typeof property.pattern === 'string' ? property.pattern : undefined,
           options: property.enum
             ? (property.enum as string[]).map((value: string) => ({ label: value, value }))
             : undefined,
           visibilityCondition: property.visibilityCondition as FormField['visibilityCondition'],
-        };
+          __order: getFieldOrder(property, index),
+        } as OrderedFormField;
         
         console.log('🔨 Campo criado:', field);
         return field;
       });
       
-      console.log('📝 Total de campos criados:', fields.length);
-      console.log('📋 Campos finais:', fields);
+      const orderedFields = [...fields]
+        .sort((a, b) => (a.__order as number) - (b.__order as number))
+        .map(toFormField);
+
+      console.log('📝 Total de campos criados:', orderedFields.length);
+      console.log('📋 Campos finais:', orderedFields);
       
-      return fields;
+      return orderedFields;
     } catch (error) {
       console.error('❌ Erro ao parsear schema JSON:', error);
       return [];
@@ -522,6 +596,7 @@ function RequestFormContent() {
                       fill
                       sizes="(max-width: 768px) 100vw, 800px"
                       className={styles.heroBannerImage}
+                      style={{ objectFit: 'cover', objectPosition: 'center' }}
                       unoptimized
                     />
                   )}

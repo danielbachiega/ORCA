@@ -52,6 +52,7 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
+  const watchedFieldMappings = Form.useWatch('fieldMappings', form) as FieldMappingFormValue[] | undefined;
 
   // Buscar campos do formulário
   const { data: formDefinition, isLoading: formLoading } = useQuery({
@@ -210,6 +211,22 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
   const resourceId = Form.useWatch('executionResourceId', form);
   const resourceType = Form.useWatch('executionResourceType', form);
 
+  const groupedMappingsPreview = React.useMemo(() => {
+    const mappings = watchedFieldMappings || [];
+    const groups = new Map<string, FieldMappingFormValue[]>();
+
+    mappings.forEach((mapping) => {
+      const payloadFieldName = String(mapping?.payloadFieldName || '').trim();
+      if (!payloadFieldName) return;
+
+      const current = groups.get(payloadFieldName) || [];
+      current.push(mapping);
+      groups.set(payloadFieldName, current);
+    });
+
+    return Array.from(groups.entries());
+  }, [watchedFieldMappings]);
+
   return (
     <Modal
       title="⚙️ Configurar Automação"
@@ -350,7 +367,8 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
               📋 Mapeamento de Campos
             </div>
             <Alert
-              message="Mapeie os campos do formulário com os parâmetros do payload, ou use valores fixos"
+              message="Mapeie campos do formulário e/ou valores fixos para montar os parâmetros do payload"
+              description="Você pode repetir o mesmo nome de payload em múltiplas linhas; os valores serão concatenados na ordem configurada."
               type="info"
               showIcon
               style={{ marginBottom: '16px' }}
@@ -360,6 +378,29 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
           <Form.List name="fieldMappings">
             {(fields, { add, remove }) => (
               <div>
+                {groupedMappingsPreview.length > 0 && (
+                  <Card size="small" style={{ marginBottom: '12px' }}>
+                    <div style={{ fontWeight: 600, marginBottom: '8px' }}>
+                      Pré-visualização por payload
+                    </div>
+                    <Space direction="vertical" style={{ width: '100%' }} size={6}>
+                      {groupedMappingsPreview.map(([payloadFieldName, mappings]) => (
+                        <div key={payloadFieldName} style={{ fontSize: '13px' }}>
+                          <strong>{payloadFieldName}</strong>
+                          <span style={{ color: '#666' }}>
+                            {' '}← {mappings.map((mapping, index) => {
+                              const label = mapping.sourceType === 0
+                                ? `campo:${mapping.sourceValue || '...'}`
+                                : `fixo:${mapping.sourceValue || '...'}`;
+                              return index === 0 ? label : ` + ${label}`;
+                            }).join('')}
+                          </span>
+                        </div>
+                      ))}
+                    </Space>
+                  </Card>
+                )}
+
                 {fields.map((field, index) => {
                   const { key, ...restField } = field;
                   return (
@@ -368,46 +409,10 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
                       <Form.Item
                         {...restField}
                         name={[field.name, 'payloadFieldName']}
-                        dependencies={['fieldMappings']}
                         rules={[
                           {
                             required: true,
                             message: 'Nome do campo é obrigatório',
-                          },
-                          {
-                            validator: async (_, value) => {
-                              if (!value) {
-                                return Promise.resolve();
-                              }
-
-                              const mappings =
-                                (form.getFieldValue('fieldMappings') as
-                                  | Array<{ payloadFieldName?: string }>
-                                  | undefined) ?? [];
-
-                              const normalized = String(value).trim().toLowerCase();
-                              const hasDuplicate = mappings.some((mapping, mappingIndex) => {
-                                if (mappingIndex === index) {
-                                  return false;
-                                }
-
-                                const otherValue = String(
-                                  mapping?.payloadFieldName ?? ''
-                                )
-                                  .trim()
-                                  .toLowerCase();
-
-                                return otherValue !== '' && otherValue === normalized;
-                              });
-
-                              if (hasDuplicate) {
-                                return Promise.reject(
-                                  new Error('Nome do campo do payload já foi usado')
-                                );
-                              }
-
-                              return Promise.resolve();
-                            },
                           },
                         ]}
                         style={{ flex: 1, margin: 0 }}

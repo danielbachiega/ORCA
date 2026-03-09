@@ -63,7 +63,10 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
 
       const schemaJson = JSON.stringify({
         title: 'Formulário Dinâmico',
-        fields,
+        fields: fields.map((field, index) => ({
+          ...field,
+          order: index,
+        })),
       });
 
       const response = await fetch(
@@ -104,7 +107,10 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
 
       const schemaJson = JSON.stringify({
         title: 'Formulário Dinâmico',
-        fields,
+        fields: fields.map((field, index) => ({
+          ...field,
+          order: index,
+        })),
       });
 
       const response = await fetch(

@@ -73,26 +73,56 @@ class FormsService {
     }
 
     const payload: Record<string, unknown> = {};
+    const mappingsByPayload = new Map<string, FieldMapping[]>();
 
-    const formMappings = fieldMappings.filter((mapping) => mapping.sourceType === 0);
-    const fixedMappings = fieldMappings.filter((mapping) => mapping.sourceType === 1);
+    fieldMappings.forEach((mapping) => {
+      const normalizedPayloadFieldName = String(mapping.payloadFieldName || '').trim();
+      if (!normalizedPayloadFieldName) {
+        return;
+      }
 
-    formMappings.forEach((mapping) => {
-      const { payloadFieldName, sourceValue } = mapping;
-      // Source Type 0: valor vem do campo do formulário
-      const value = formData[sourceValue];
-      console.log(`📝 Mapeando campo "${sourceValue}" → "${payloadFieldName}":`, value);
-      payload[payloadFieldName] = value;
+      const currentMappings = mappingsByPayload.get(normalizedPayloadFieldName) || [];
+      currentMappings.push(mapping);
+      mappingsByPayload.set(normalizedPayloadFieldName, currentMappings);
     });
 
-    fixedMappings.forEach((mapping) => {
-      const { payloadFieldName, sourceValue } = mapping;
-      // Source Type 1: valor fixo (prioridade sobre valores do formulário)
-      if (payloadFieldName in payload) {
-        console.log(`⚠️ Sobrescrevendo "${payloadFieldName}" com valor fixo "${sourceValue}"`);
+    mappingsByPayload.forEach((mappings, payloadFieldName) => {
+      if (mappings.length === 1) {
+        const [singleMapping] = mappings;
+
+        if (singleMapping.sourceType === 0) {
+          const value = formData[singleMapping.sourceValue];
+          if (value !== null && value !== undefined && value !== '') {
+            console.log(`📝 Mapeando campo "${singleMapping.sourceValue}" → "${payloadFieldName}":`, value);
+            payload[payloadFieldName] = value;
+          }
+          return;
+        }
+
+        console.log(`🔒 Mapeando valor fixo "${singleMapping.sourceValue}" → "${payloadFieldName}"`);
+        payload[payloadFieldName] = singleMapping.sourceValue;
+        return;
       }
-      console.log(`🔒 Mapeando valor fixo "${sourceValue}" → "${payloadFieldName}"`);
-      payload[payloadFieldName] = sourceValue;
+
+      const composedValue = mappings
+        .map((mapping) => {
+          if (mapping.sourceType === 1) {
+            return String(mapping.sourceValue ?? '');
+          }
+
+          const formValue = formData[mapping.sourceValue];
+          if (formValue === null || formValue === undefined || formValue === '') {
+            return '';
+          }
+
+          return String(formValue);
+        })
+        .join('');
+
+      if (composedValue !== '') {
+        console.log(`🧩 Compondo payload "${payloadFieldName}" com ${mappings.length} mapeamentos:`, composedValue);
+        payload[payloadFieldName] = composedValue;
+      }
     });
 
     console.log('✅ Payload mapeado:', payload);

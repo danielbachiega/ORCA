@@ -27,12 +27,15 @@ import {
   Tabs,
   Alert,
 } from 'antd';
+import type { Rule } from 'antd/es/form';
 import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
   DragOutlined,
+  UpOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 
 export interface FormField {
@@ -43,11 +46,12 @@ export interface FormField {
   required: boolean;
   placeholder?: string;
   description?: string;
+  regexPattern?: string;
   options?: Array<{ label: string; value: string }>;
   visibilityCondition?: {
     fieldKey: string;
     operator: 'equals' | 'notEquals' | 'contains';
-    value: string;
+    value: string | boolean;
   };
 }
 
@@ -71,13 +75,28 @@ const operators = [
   { label: 'Contém', value: 'contains' },
 ];
 
+const checkboxOperators = operators.filter((operator) => operator.value !== 'contains');
+
+const normalizeVisibilityValue = (
+  fieldValue: unknown,
+  conditionValue: string | boolean,
+): string | boolean => {
+  if (typeof fieldValue === 'boolean') {
+    if (typeof conditionValue === 'boolean') return conditionValue;
+    return String(conditionValue).toLowerCase() === 'true';
+  }
+
+  return conditionValue;
+};
+
 // Componente para preview com suporte a visibilidade condicional
 interface PreviewFormProps {
   fields: FormField[];
   renderFieldPreview: (field: FormField) => React.ReactNode;
+  getFieldRules: (field: FormField) => Rule[];
 }
 
-const PreviewForm: React.FC<PreviewFormProps> = ({ fields, renderFieldPreview }) => {
+const PreviewForm: React.FC<PreviewFormProps> = ({ fields, renderFieldPreview, getFieldRules }) => {
   const [previewForm] = Form.useForm();
   const previewValues = Form.useWatch([], previewForm);
 
@@ -87,14 +106,15 @@ const PreviewForm: React.FC<PreviewFormProps> = ({ fields, renderFieldPreview })
 
     const { fieldKey, operator, value } = field.visibilityCondition;
     const fieldValue = previewValues?.[fieldKey];
+    const normalizedValue = normalizeVisibilityValue(fieldValue, value);
 
     switch (operator) {
       case 'equals':
-        return fieldValue === value;
+        return fieldValue === normalizedValue;
       case 'notEquals':
-        return fieldValue !== value;
+        return fieldValue !== normalizedValue;
       case 'contains':
-        return String(fieldValue || '').includes(String(value));
+        return String(fieldValue || '').includes(String(normalizedValue));
       default:
         return true;
     }
@@ -111,6 +131,8 @@ const PreviewForm: React.FC<PreviewFormProps> = ({ fields, renderFieldPreview })
             name={field.key}
             label={field.label}
             required={field.required}
+            rules={getFieldRules(field)}
+            validateTrigger={['onChange', 'onBlur']}
             help={field.description}
           >
             {renderFieldPreview(field)}
@@ -126,6 +148,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('builder');
+  const [draggingFieldId, setDraggingFieldId] = useState<string | null>(null);
+  const [dragOverFieldId, setDragOverFieldId] = useState<string | null>(null);
 
   const handleAddField = () => {
     const newField: FormField = {
@@ -144,6 +168,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
     setEditingField(field);
     form.setFieldsValue({
       ...field,
+      regexPattern: field.regexPattern,
       options: field.options?.map((opt) => opt.label).join(', '),
       visibilityFieldKey: field.visibilityCondition?.fieldKey,
       visibilityOperator: field.visibilityCondition?.operator,
@@ -165,9 +190,43 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
     });
   };
 
+  const handleMoveField = (fieldId: string, direction: 'up' | 'down') => {
+    const currentIndex = fields.findIndex((field) => field.id === fieldId);
+    if (currentIndex === -1) return;
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= fields.length) return;
+
+    const updatedFields = [...fields];
+    const [movedField] = updatedFields.splice(currentIndex, 1);
+    updatedFields.splice(targetIndex, 0, movedField);
+
+    onChange(updatedFields);
+  };
+
+  const handleDropOnField = (sourceFieldId: string, targetFieldId: string) => {
+    if (sourceFieldId === targetFieldId) return;
+
+    const sourceIndex = fields.findIndex((field) => field.id === sourceFieldId);
+    const targetIndex = fields.findIndex((field) => field.id === targetFieldId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const updatedFields = [...fields];
+    const [movedField] = updatedFields.splice(sourceIndex, 1);
+    const adjustedTargetIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    updatedFields.splice(adjustedTargetIndex, 0, movedField);
+
+    onChange(updatedFields);
+  };
+
   const handleSaveField = async () => {
     try {
       const values = await form.validateFields();
+      const visibilityTargetField = fields.find((field) => field.key === values.visibilityFieldKey);
+      const isCheckboxVisibility = visibilityTargetField?.type === 'checkbox';
+      const parsedVisibilityValue = isCheckboxVisibility
+        ? values.visibilityValue === true || values.visibilityValue === 'true'
+        : values.visibilityValue;
       
       const updatedField: FormField = {
         ...editingField!,
@@ -177,6 +236,9 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
         required: values.required || false,
         placeholder: values.placeholder,
         description: values.description,
+        regexPattern: values.type === 'text' && values.regexPattern
+          ? values.regexPattern.trim()
+          : undefined,
         options: values.type === 'select' && values.options 
           ? values.options.split(',').map((opt: string) => {
               const trimmed = opt.trim();
@@ -187,7 +249,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
           ? {
               fieldKey: values.visibilityFieldKey,
               operator: values.visibilityOperator,
-              value: values.visibilityValue,
+              value: parsedVisibilityValue,
             }
           : undefined,
       };
@@ -233,6 +295,44 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
     }
   };
 
+  const getFieldRules = (field: FormField): Rule[] => {
+    const rules: Rule[] = [];
+
+    if (field.required) {
+      rules.push({
+        required: true,
+        message: `${field.label} é obrigatório`,
+      });
+    }
+
+    if (field.type === 'email') {
+      rules.push({
+        type: 'email',
+        message: 'Email inválido',
+      });
+    }
+
+    if (field.type === 'text' && field.regexPattern) {
+      try {
+        rules.push({
+          pattern: new RegExp(field.regexPattern),
+          message: `${field.label} não está no formato esperado`,
+        });
+      } catch {
+        // Ignora regex inválida no preview para não quebrar renderização
+      }
+    }
+
+    return rules;
+  };
+
+  const availableVisibilityFields = fields.filter((field) => field.id !== editingField?.id);
+  const selectedVisibilityFieldKey = Form.useWatch('visibilityFieldKey', form);
+  const selectedVisibilityField = availableVisibilityFields.find(
+    (field) => field.key === selectedVisibilityFieldKey,
+  );
+  const isCheckboxVisibilityField = selectedVisibilityField?.type === 'checkbox';
+
   const generateJsonSchema = () => {
     const schema = {
       title: 'Formulário Dinâmico',
@@ -252,6 +352,9 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
         case 'email':
         case 'textarea':
           fieldSchema.type = 'string';
+          if (field.type === 'text' && field.regexPattern) {
+            fieldSchema.pattern = field.regexPattern;
+          }
           if (field.type === 'email') {
             fieldSchema.format = 'email';
           }
@@ -312,49 +415,101 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                   />
                 ) : (
                   <div>
-                    {fields.map((field) => (
-                      <Card
+                    {fields.map((field, index) => (
+                      <div
                         key={field.id}
-                        size="small"
-                        style={{ marginBottom: '8px' }}
-                        hoverable
+                        draggable
+                        onDragStart={(event) => {
+                          setDraggingFieldId(field.id);
+                          event.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          event.dataTransfer.dropEffect = 'move';
+                          if (dragOverFieldId !== field.id) {
+                            setDragOverFieldId(field.id);
+                          }
+                        }}
+                        onDragLeave={() => {
+                          if (dragOverFieldId === field.id) {
+                            setDragOverFieldId(null);
+                          }
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          if (draggingFieldId) {
+                            handleDropOnField(draggingFieldId, field.id);
+                          }
+                          setDraggingFieldId(null);
+                          setDragOverFieldId(null);
+                        }}
+                        onDragEnd={() => {
+                          setDraggingFieldId(null);
+                          setDragOverFieldId(null);
+                        }}
+                        style={{
+                          marginBottom: '8px',
+                          opacity: draggingFieldId === field.id ? 0.65 : 1,
+                        }}
                       >
-                        <div
+                        <Card
+                          size="small"
+                          hoverable
                           style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
+                            borderColor: dragOverFieldId === field.id ? '#1677ff' : undefined,
+                            borderWidth: dragOverFieldId === field.id ? 2 : undefined,
                           }}
                         >
-                          <Space>
-                            <DragOutlined style={{ color: '#999', cursor: 'move' }} />
-                            <div>
-                              <div style={{ fontWeight: 500 }}>{field.label}</div>
-                              <Space size={4}>
-                                <Tag color="blue">{fieldTypes.find(t => t.value === field.type)?.label}</Tag>
-                                {field.required && <Tag color="red">Obrigatório</Tag>}
-                                {field.visibilityCondition && (
-                                  <Tag color="orange">Condicional</Tag>
-                                )}
-                              </Space>
-                            </div>
-                          </Space>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Space>
+                              <DragOutlined style={{ color: '#999', cursor: 'move' }} />
+                              <div>
+                                <div style={{ fontWeight: 500 }}>{field.label}</div>
+                                <Space size={4}>
+                                  <Tag color="blue">{fieldTypes.find(t => t.value === field.type)?.label}</Tag>
+                                  {field.required && <Tag color="red">Obrigatório</Tag>}
+                                  {field.type === 'text' && field.regexPattern && <Tag color="purple">Regex</Tag>}
+                                  {field.visibilityCondition && (
+                                    <Tag color="orange">Condicional</Tag>
+                                  )}
+                                </Space>
+                              </div>
+                            </Space>
 
-                          <Space>
-                            <Button
-                              type="text"
-                              icon={<EditOutlined />}
-                              onClick={() => handleEditField(field)}
-                            />
-                            <Button
-                              type="text"
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() => handleDeleteField(field.id)}
-                            />
-                          </Space>
-                        </div>
-                      </Card>
+                            <Space>
+                              <Button
+                                type="text"
+                                icon={<UpOutlined />}
+                                disabled={index === 0}
+                                onClick={() => handleMoveField(field.id, 'up')}
+                              />
+                              <Button
+                                type="text"
+                                icon={<DownOutlined />}
+                                disabled={index === fields.length - 1}
+                                onClick={() => handleMoveField(field.id, 'down')}
+                              />
+                              <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                onClick={() => handleEditField(field)}
+                              />
+                              <Button
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() => handleDeleteField(field.id)}
+                              />
+                            </Space>
+                          </div>
+                        </Card>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -377,7 +532,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                     showIcon
                   />
                 ) : (
-                  <PreviewForm fields={fields} renderFieldPreview={renderFieldPreview} />
+                  <PreviewForm fields={fields} renderFieldPreview={renderFieldPreview} getFieldRules={getFieldRules} />
                 )}
               </Card>
             ),
@@ -452,8 +607,24 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
             <Input placeholder="Email do Usuário" />
           </Form.Item>
 
-          <Form.Item name="placeholder" label="Placeholder">
-            <Input placeholder="usuario@exemplo.com" />
+          <Form.Item noStyle shouldUpdate={(prev, curr) => prev.type !== curr.type}>
+            {() => {
+              const type = form.getFieldValue('type');
+
+              if (type === 'textarea') {
+                return (
+                  <Form.Item name="placeholder" label="Placeholder">
+                    <Input.TextArea placeholder="Digite o placeholder do campo" rows={3} />
+                  </Form.Item>
+                );
+              }
+
+              return (
+                <Form.Item name="placeholder" label="Placeholder">
+                  <Input placeholder="usuario@exemplo.com" />
+                </Form.Item>
+              );
+            }}
           </Form.Item>
 
           <Form.Item name="description" label="Descrição (Help Text)">
@@ -467,6 +638,29 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
           <Form.Item noStyle shouldUpdate={(prev, curr) => prev.type !== curr.type}>
             {() => {
               const type = form.getFieldValue('type');
+              if (type === 'text') {
+                return (
+                  <Form.Item
+                    name="regexPattern"
+                    label="Regex de Validação (Opcional)"
+                    rules={[
+                      {
+                        validator: async (_, value) => {
+                          if (!value || !String(value).trim()) return;
+                          try {
+                            new RegExp(String(value));
+                          } catch {
+                            throw new Error('Regex inválida');
+                          }
+                        },
+                      },
+                    ]}
+                  >
+                    <Input placeholder="Ex.: ^[A-Z]{3}-\\d{4}$" />
+                  </Form.Item>
+                );
+              }
+
               if (type === 'select') {
                 return (
                   <Form.Item
@@ -497,20 +691,52 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                 <Select
                   placeholder="Selecione um campo"
                   allowClear
-                  options={fields
-                    .filter((f) => f.id !== editingField?.id)
-                    .map((f) => ({ label: f.label, value: f.key }))}
+                  onChange={() => {
+                    form.setFieldValue('visibilityOperator', undefined);
+                    form.setFieldValue('visibilityValue', undefined);
+                  }}
+                  options={availableVisibilityFields.map((field) => ({
+                    label: field.label,
+                    value: field.key,
+                  }))}
                 />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item name="visibilityOperator" label="Operador">
-                <Select placeholder="Condição" options={operators} />
+                <Select
+                  placeholder="Condição"
+                  options={isCheckboxVisibilityField ? checkboxOperators : operators}
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="visibilityValue" label="Valor">
-                <Input placeholder="valor" />
+              <Form.Item noStyle shouldUpdate={(prev, curr) => prev.visibilityFieldKey !== curr.visibilityFieldKey}>
+                {() => {
+                  if (isCheckboxVisibilityField) {
+                    return (
+                      <Form.Item
+                        name="visibilityValue"
+                        label="Valor"
+                        rules={[{ required: true, message: 'Selecione true ou false' }]}
+                      >
+                        <Select
+                          placeholder="Selecione"
+                          options={[
+                            { label: 'True', value: true },
+                            { label: 'False', value: false },
+                          ]}
+                        />
+                      </Form.Item>
+                    );
+                  }
+
+                  return (
+                    <Form.Item name="visibilityValue" label="Valor">
+                      <Input placeholder="valor" />
+                    </Form.Item>
+                  );
+                }}
               </Form.Item>
             </Col>
           </Row>
