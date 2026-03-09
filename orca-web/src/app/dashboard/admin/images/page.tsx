@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { catalogService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
 import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
 import type { ImageAsset } from '@/lib/types';
 import {
@@ -22,7 +23,7 @@ import {
   message,
 } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { ArrowLeftOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, UploadOutlined, SearchOutlined } from '@ant-design/icons';
 import styles from './images.module.css';
 
 const { Content } = Layout;
@@ -33,6 +34,7 @@ function AdminImagesContent() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<UploadFile | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [form] = Form.useForm();
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const autoSluggingRef = useRef(false);
@@ -185,9 +187,21 @@ function AdminImagesContent() {
     });
   };
 
+  const filteredAssets = assets.filter((asset) => {
+    if (!searchTerm.trim()) {
+      return true;
+    }
+
+    const normalizedSearch = searchTerm.toLowerCase();
+    return (
+      asset.name.toLowerCase().includes(normalizedSearch) ||
+      asset.slug.toLowerCase().includes(normalizedSearch)
+    );
+  });
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <AppHeader />
+      <AppHeader centerContent={<DashboardHeaderTabs activeTab="manage" />} />
 
       <Content style={{ padding: '24px' }}>
         <div className={styles.container}>
@@ -214,9 +228,17 @@ function AdminImagesContent() {
           </div>
 
           <Card>
+            <Input
+              placeholder="Pesquisar por nome ou slug da imagem..."
+              prefix={<SearchOutlined />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              allowClear
+              style={{ marginBottom: '16px' }}
+            />
             <Table
               rowKey="id"
-              dataSource={assets}
+              dataSource={filteredAssets}
               columns={columns}
               loading={isLoading}
               pagination={{ pageSize: 8 }}

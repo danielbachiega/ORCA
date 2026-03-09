@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { identityService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
 import { useAuth } from '@/lib/contexts/auth.context';
 import type { Role } from '@/lib/types';
 import {
@@ -210,7 +211,7 @@ function RolesContent() {
   if (!isAdmin) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
-        <AppHeader />
+        <AppHeader centerContent={<DashboardHeaderTabs activeTab="services" />} />
         <Content style={{ padding: '24px' }}>
           <Alert
             type="error"
@@ -225,7 +226,7 @@ function RolesContent() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <AppHeader />
+      <AppHeader centerContent={<DashboardHeaderTabs activeTab="roles" />} />
       <Content style={{ padding: '24px' }}>
         <div className={styles.container}>
           <Breadcrumb

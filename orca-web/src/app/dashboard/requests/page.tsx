@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { requestsService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
 import { useAuth } from '@/lib/contexts/auth.context';
 import {
   Layout,
@@ -25,8 +26,9 @@ import {
   Empty,
   Alert,
   Breadcrumb,
+  Input,
 } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { EyeOutlined, SearchOutlined } from '@ant-design/icons';
 import { RequestStatus } from '@/lib/types';
 import styles from './my-requests.module.css';
 
@@ -46,10 +48,20 @@ const statusLabels: Record<RequestStatus, string> = {
   [RequestStatus.Failed]: 'Erro',
 };
 
+const formatDateTime = (date: string) =>
+  new Date(date).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
 function MyRequestsContent() {
   const router = useRouter();
   const { user } = useAuth();
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const pageSize = 10;
 
   // Buscar requisições do usuário
@@ -103,8 +115,7 @@ function MyRequestsContent() {
       dataIndex: 'createdAtUtc',
       key: 'createdAtUtc',
       width: 150,
-      render: (date: string) =>
-        new Date(date).toLocaleDateString('pt-BR'),
+      render: (date: string) => formatDateTime(date),
     },
     {
       title: 'Ações',
@@ -123,9 +134,26 @@ function MyRequestsContent() {
     },
   ];
 
+  const filteredItems = (response?.items || []).filter((item) => {
+    if (!searchTerm.trim()) {
+      return true;
+    }
+
+    const normalizedSearch = searchTerm.toLowerCase();
+    const statusLabel = statusLabels[item.status as RequestStatus]?.toLowerCase() || '';
+    const statusValue = String(item.status ?? '').toLowerCase();
+
+    return (
+      item.offerName?.toLowerCase().includes(normalizedSearch) ||
+      item.id?.toLowerCase().includes(normalizedSearch) ||
+      statusLabel.includes(normalizedSearch) ||
+      statusValue.includes(normalizedSearch)
+    );
+  });
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <AppHeader />
+      <AppHeader centerContent={<DashboardHeaderTabs activeTab="requests" />} />
 
       <Content style={{ padding: '24px' }}>
         <div className={styles.container}>
@@ -154,6 +182,14 @@ function MyRequestsContent() {
                 </p>
               </div>
             </div>
+            <Input
+              placeholder="Pesquisar por oferta, ID ou status..."
+              prefix={<SearchOutlined />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              allowClear
+              style={{ marginTop: '16px' }}
+            />
           </Card>
 
           {/* Error */}
@@ -189,7 +225,7 @@ function MyRequestsContent() {
             ) : (
               <Table
                 columns={columns}
-                dataSource={response?.items || []}
+                dataSource={filteredItems}
                 rowKey="id"
                 pagination={{
                   current: page,

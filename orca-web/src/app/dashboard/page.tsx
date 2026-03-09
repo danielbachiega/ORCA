@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { catalogService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
 import { useAuth } from '@/lib/contexts/auth.context';
 import { Offer } from '@/lib/types';
 import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
@@ -36,15 +37,17 @@ import {
   Tag,
 } from 'antd';
 import { ArrowRightOutlined, BugOutlined, SearchOutlined, AppstoreOutlined, UnorderedListOutlined, TagsOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './dashboard.module.css';
 
 const { Content } = Layout;
 
 type ViewMode = 'cards' | 'list' | 'tags';
+type DashboardTab = 'services' | 'manage';
 
 function DashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { roles } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,7 +63,14 @@ function DashboardContent() {
 
   const isConsumer = !isAdmin && !isEditor;
 
-  const canViewDetails = isAdmin || isEditor;
+  const canManageCatalog = isAdmin || isEditor;
+
+  const requestedTab = searchParams.get('tab');
+  const activeTab: DashboardTab =
+    requestedTab === 'manage' && canManageCatalog ? 'manage' : 'services';
+
+  const showRequestActionOnly = activeTab === 'services';
+  const showDetailsActionOnly = activeTab === 'manage';
 
   // TanStack Query - Buscar ofertas baseado em roles
   const {
@@ -160,7 +170,7 @@ function DashboardContent() {
       hoverable
       className={styles.offerCard}
       onClick={() => {
-        if (canViewDetails) {
+        if (showDetailsActionOnly) {
           router.push(`/dashboard/offers/${offer.id}`);
         }
       }}
@@ -207,7 +217,7 @@ function DashboardContent() {
             status={offer.active ? 'success' : 'default'}
             text={offer.active ? 'Ativa' : 'Inativa'}
           />
-          {canViewDetails && (
+          {showDetailsActionOnly && (
             <Button
               type="primary"
               block
@@ -220,7 +230,7 @@ function DashboardContent() {
               Ver Detalhes
             </Button>
           )}
-          {isConsumer && (
+          {showRequestActionOnly && (
             <Button
               type="primary"
               block
@@ -294,7 +304,7 @@ function DashboardContent() {
           status={offer.active ? 'success' : 'default'}
           text={offer.active ? 'Ativa' : 'Inativa'}
         />
-        {canViewDetails && (
+        {showDetailsActionOnly && (
           <Button
             type="primary"
             icon={<ArrowRightOutlined />}
@@ -303,7 +313,7 @@ function DashboardContent() {
             Ver Detalhes
           </Button>
         )}
-        {isConsumer && (
+        {showRequestActionOnly && (
           <Button
             type="primary"
             onClick={() => router.push(`/dashboard/offers/${offer.slug}/request`)}
@@ -319,18 +329,26 @@ function DashboardContent() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <AppHeader />
+      <AppHeader
+        centerContent={(
+          <DashboardHeaderTabs activeTab={activeTab} />
+        )}
+      />
 
       <Content style={{ padding: '24px' }}>
         <div className={styles.container}>
           {/* Header */}
           <div className={styles.header}>
             <div>
-              <h1>Minhas Ofertas</h1>
-              <p>Selecione uma oferta para preencher formulário e criar requisição</p>
+              <h1>{activeTab === 'manage' ? 'Gerenciar Catálogo' : 'Catálogo de Serviços'}</h1>
+              <p>
+                {activeTab === 'manage'
+                  ? 'Visualize ofertas e abra os detalhes para administração'
+                  : 'Selecione uma oferta para preencher formulário e criar requisição'}
+              </p>
             </div>
             <Space>
-              {isAdmin && (
+              {activeTab === 'manage' && canManageCatalog && (
                 <Button
                   type="default"
                   onClick={() => router.push('/dashboard/admin/offers/new')}
@@ -338,7 +356,7 @@ function DashboardContent() {
                   Criar Nova Oferta
                 </Button>
               )}
-              {isAdmin && (
+              {activeTab === 'manage' && canManageCatalog && (
                 <Button
                   type="default"
                   onClick={() => router.push('/dashboard/admin/images')}
@@ -346,12 +364,6 @@ function DashboardContent() {
                   Gerenciar Imagens
                 </Button>
               )}
-              <Button
-                type="primary"
-                onClick={() => router.push('/dashboard/requests')}
-              >
-                Minhas Requisições
-              </Button>
             </Space>
           </div>
 

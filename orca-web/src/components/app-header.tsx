@@ -12,18 +12,18 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth.context';
 import { APP_NAME } from '@/lib/constants';
 import { Layout, Button, Avatar, Space, Dropdown, Badge } from 'antd';
-import { LogoutOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
 const { Header } = Layout;
 
-export const AppHeader: React.FC = () => {
+interface AppHeaderProps {
+  centerContent?: React.ReactNode;
+}
+
+export const AppHeader: React.FC<AppHeaderProps> = ({ centerContent }) => {
   const router = useRouter();
   const { user, logout, roles } = useAuth();
-
-  const isAdmin = roles && roles.some((r) =>
-    r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
-  );
 
   const handleLogout = () => {
     logout();
@@ -42,15 +42,6 @@ export const AppHeader: React.FC = () => {
       onClick: () => router.push('/dashboard/profile'),
     },
   ];
-
-  if (isAdmin) {
-    menuItems.push({
-      key: 'roles',
-      icon: <SettingOutlined />,
-      label: 'Roles',
-      onClick: () => router.push('/dashboard/admin/roles'),
-    });
-  }
 
   menuItems.push({
     type: 'divider',
@@ -71,7 +62,6 @@ export const AppHeader: React.FC = () => {
         padding: '0 24px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         display: 'flex',
-        justifyContent: 'space-between',
         alignItems: 'center',
       }}
     >
@@ -93,6 +83,10 @@ export const AppHeader: React.FC = () => {
           {APP_NAME}
         </Button>
       </Space>
+
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', margin: '0 24px', minWidth: 0 }}>
+        {centerContent}
+      </div>
 
       {/* User Info */}
       <Space align="center" size="middle">
