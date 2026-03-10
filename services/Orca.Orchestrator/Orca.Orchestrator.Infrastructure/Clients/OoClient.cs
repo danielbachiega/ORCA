@@ -60,7 +60,7 @@ public class OoClient : IOoExecutionClient
             var root = payloadJson.RootElement;
 
             // OO retorna executionId como string numérica (ex: "12345678901")
-            var endpoint = $"{_ooBaseUrl}/executions";
+            var endpoint = $"{_ooBaseUrl}/oo/rest/v2/executions";
 
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             
@@ -114,7 +114,7 @@ public class OoClient : IOoExecutionClient
 
         try
         {
-            var endpoint = $"{_ooBaseUrl}/executions/{executionId}/execution-log";
+            var endpoint = $"{_ooBaseUrl}/oo/rest/v2/executions/{executionId}/execution-log";
 
             var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
             
@@ -156,7 +156,7 @@ public class OoClient : IOoExecutionClient
 
         try
         {
-            var endpoint = $"{_ooBaseUrl}/executions/{executionId}/execution-log";
+            var endpoint = $"{_ooBaseUrl}/oo/rest/v2/executions/{executionId}/execution-log";
 
             var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
             

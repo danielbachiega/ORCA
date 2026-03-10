@@ -102,7 +102,14 @@ public class RequestService : IRequestService
         await _repository.DeleteAsync(id);
     }
 
-    public async Task UpdateStatusAsync(Guid requestId, int status, string? errorMessage = null, DateTime? completedAtUtc = null)
+    public async Task UpdateStatusAsync(
+        Guid requestId,
+        int status,
+        string? executionId = null,
+        string? awxOoExecutionStatus = null,
+        int? resultType = null,
+        string? errorMessage = null,
+        DateTime? completedAtUtc = null)
     {
         var request = await _repository.GetByIdAsync(requestId);
         
@@ -114,6 +121,11 @@ public class RequestService : IRequestService
 
         // Mapear status int → enum
         request.Status = (Domain.Entities.RequestStatus)status;
+        request.ExecutionId = executionId ?? request.ExecutionId;
+        request.AwxOoExecutionStatus = awxOoExecutionStatus ?? request.AwxOoExecutionStatus;
+        request.ResultType = resultType.HasValue
+            ? (Domain.Entities.ExecutionResultType?)resultType.Value
+            : request.ResultType;
         request.ErrorMessage = errorMessage;
 
         // Atualizar timestamps baseado no status

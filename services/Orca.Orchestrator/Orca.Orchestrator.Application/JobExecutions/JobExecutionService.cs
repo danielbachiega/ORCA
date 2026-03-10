@@ -103,8 +103,12 @@ public class JobExecutionService : IJobExecutionService
             jobExecution.AwxOoJobId = executionId;
             jobExecution.ExecutionResponse = response;
             jobExecution.ExecutionStatus = "running";
+            jobExecution.AwxOoExecutionStatus = "running";
             jobExecution.SentToAwxOoAtUtc = DateTime.UtcNow;
             await _repository.UpdateAsync(jobExecution);
+
+            // Publica status running imediatamente para atualizar Request com ExecutionId
+            await PublishStatusUpdateAsync(jobExecution, "running", null);
 
             return (executionId, payload, response);
         }

@@ -32,6 +32,9 @@ public class RequestStatusUpdatedConsumer : IConsumer<RequestStatusUpdatedEvent>
             await _requestService.UpdateStatusAsync(
                 requestId: message.RequestId,
                 status: message.Status,
+                executionId: message.ExecutionId,
+                awxOoExecutionStatus: message.AwxOoExecutionStatus,
+                resultType: message.ResultType,
                 errorMessage: message.ErrorMessage,
                 completedAtUtc: message.Status == 2 || message.Status == 3 
                     ? message.UpdatedAtUtc 
