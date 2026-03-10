@@ -11,6 +11,7 @@ import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
 import type { ImageAsset } from '@/lib/types';
 import {
   Layout,
+  Breadcrumb,
   Card,
   Button,
   Input,
@@ -205,18 +206,31 @@ function AdminImagesContent() {
 
       <Content style={{ padding: '24px' }}>
         <div className={styles.container}>
+          <Breadcrumb
+            style={{ marginBottom: '24px' }}
+            items={[
+              {
+                title: (
+                  <Button
+                    type="text"
+                    size="small"
+                    onClick={() => router.back()}
+                    icon={<ArrowLeftOutlined />}
+                  >
+                    Voltar
+                  </Button>
+                ),
+              },
+              { title: 'Imagens da Oferta' },
+            ]}
+          />
+
           <div className={styles.header}>
             <div>
               <h1>Imagens da Oferta</h1>
               <p>Gerencie os icones disponiveis para as ofertas.</p>
             </div>
             <Space>
-              <Button
-                icon={<ArrowLeftOutlined />}
-                onClick={() => router.push('/dashboard')}
-              >
-                Voltar
-              </Button>
               <Button
                 type="primary"
                 icon={<UploadOutlined />}

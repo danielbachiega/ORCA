@@ -36,7 +36,7 @@ import {
   Collapse,
   Tag,
 } from 'antd';
-import { ArrowRightOutlined, BugOutlined, SearchOutlined, AppstoreOutlined, UnorderedListOutlined, TagsOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, BugOutlined, SearchOutlined, AppstoreOutlined, UnorderedListOutlined, TagsOutlined, PlusOutlined, PictureOutlined } from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './dashboard.module.css';
 
@@ -350,7 +350,8 @@ function DashboardContent() {
             <Space>
               {activeTab === 'manage' && canManageCatalog && (
                 <Button
-                  type="default"
+                  type="primary"
+                  icon={<PlusOutlined />}
                   onClick={() => router.push('/dashboard/admin/offers/new')}
                 >
                   Criar Nova Oferta
@@ -359,6 +360,7 @@ function DashboardContent() {
               {activeTab === 'manage' && canManageCatalog && (
                 <Button
                   type="default"
+                  icon={<PictureOutlined />}
                   onClick={() => router.push('/dashboard/admin/images')}
                 >
                   Gerenciar Imagens
