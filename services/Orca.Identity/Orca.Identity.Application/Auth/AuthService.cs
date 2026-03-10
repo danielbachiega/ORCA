@@ -7,6 +7,8 @@ namespace Orca.Identity.Application.Auth;
 
 public class AuthService : IAuthService
 {
+    private static readonly Guid ConsumerRoleId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
     private readonly IOidcValidator _oidcValidator;
     private readonly ILdapClient _ldapClient;
     private readonly IUserRepository _userRepository;
@@ -71,6 +73,13 @@ public class AuthService : IAuthService
 
         // Remover duplicatas
         userRoles = userRoles.DistinctBy(r => r.Id).ToList();
+
+        // Garantir role padrão Consumer para 100% dos usuários
+        var consumerRole = await _roleRepository.GetByIdAsync(ConsumerRoleId);
+        if (consumerRole != null && userRoles.All(role => role.Id != ConsumerRoleId))
+        {
+            userRoles.Add(consumerRole);
+        }
 
         // Salvar IDs das roles no usuário
         user.RoleIds = userRoles.Select(r => r.Id).ToList();

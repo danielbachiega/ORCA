@@ -33,7 +33,11 @@ import {
   AuthContextType,
   LoginResponse,
 } from '@/lib/types';
-import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '@/lib/constants';
+import {
+  TOKEN_STORAGE_KEY,
+  USER_STORAGE_KEY,
+  TOKEN_EXPIRES_AT_STORAGE_KEY,
+} from '@/lib/constants';
 
 // 1. Criar o contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,15 +50,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const clearSession = useCallback(() => {
+    setSessionToken(null);
+    setUser(null);
+    setRoles([]);
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem(TOKEN_EXPIRES_AT_STORAGE_KEY);
+    identityService.clearToken();
+  }, []);
+
+  const isSessionExpired = useCallback((expiresAtUtc?: string | null) => {
+    if (!expiresAtUtc) return true;
+    const expiresAtMs = Date.parse(expiresAtUtc);
+    if (Number.isNaN(expiresAtMs)) return true;
+    return Date.now() >= expiresAtMs;
+  }, []);
+
   // Restaurar sessão ao inicializar (hydration)
   useEffect(() => {
     const restoreSession = async () => {
       try {
         const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
         const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+        const storedExpiresAt = localStorage.getItem(TOKEN_EXPIRES_AT_STORAGE_KEY);
 
-        if (storedToken && storedUser) {
+        if (storedToken && storedUser && storedExpiresAt) {
           try {
+            if (isSessionExpired(storedExpiresAt)) {
+              clearSession();
+              return;
+            }
+
             // Token existe, validar no backend
             setSessionToken(storedToken);
             identityService.setToken(storedToken);
@@ -71,18 +98,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } catch (err) {
             console.error('❌ getMe error (token expirado?):', err);
             // Token expirado ou inválido, limpar
-            localStorage.removeItem(TOKEN_STORAGE_KEY);
-            localStorage.removeItem(USER_STORAGE_KEY);
-            setSessionToken(null);
-            setUser(null);
-            setRoles([]);
-            identityService.clearToken();
+            clearSession();
           }
         } else {
           // Sem token salvo
-          setSessionToken(null);
-          setUser(null);
-          setRoles([]);
+          clearSession();
         }
       } catch (err) {
         console.error('Erro ao restaurar sessão:', err);
@@ -96,14 +116,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Listener para evento de desautenticação (401 response)
     const handleUnauthorized = () => {
-      logout();
+      clearSession();
+      setError(null);
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);
     return () =>
       window.removeEventListener('auth:unauthorized', handleUnauthorized);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [clearSession, isSessionExpired]);
+
+  // Logout automático quando expirar
+  useEffect(() => {
+    const expiresAtUtc = localStorage.getItem(TOKEN_EXPIRES_AT_STORAGE_KEY);
+    if (!sessionToken || !expiresAtUtc) {
+      return;
+    }
+
+    const expiresAtMs = Date.parse(expiresAtUtc);
+    if (Number.isNaN(expiresAtMs)) {
+      clearSession();
+      return;
+    }
+
+    const timeoutMs = expiresAtMs - Date.now();
+    if (timeoutMs <= 0) {
+      clearSession();
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      clearSession();
+    }, timeoutMs);
+
+    return () => window.clearTimeout(timerId);
+  }, [sessionToken, clearSession]);
 
   // Login: OIDC token → sessionToken
   const login = useCallback(async (username: string, password: string) => {
@@ -122,6 +168,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Salvar em localStorage pra persistência
       localStorage.setItem(TOKEN_STORAGE_KEY, response.sessionToken);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
+      localStorage.setItem(TOKEN_EXPIRES_AT_STORAGE_KEY, response.expiresAtUtc);
 
       // Atualizar token em todos os services
       identityService.setToken(response.sessionToken);
@@ -140,18 +187,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Logout
   const logout = useCallback(() => {
     // Limpar estado
-    setUser(null);
-    setRoles([]);
-    setSessionToken(null);
+    clearSession();
     setError(null);
-
-    // Limpar localStorage
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem(USER_STORAGE_KEY);
-
-    // Limpar token em todos os services
-    identityService.clearToken();
-  }, []);
+  }, [clearSession]);
 
   const value: AuthContextType = {
     user,

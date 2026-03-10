@@ -29,6 +29,7 @@ export const APP_SUBTITLE =
 // Token Storage Key
 export const TOKEN_STORAGE_KEY = 'orca_session_token';
 export const USER_STORAGE_KEY = 'orca_user';
+export const TOKEN_EXPIRES_AT_STORAGE_KEY = 'orca_session_expires_at';
 
 // Request Status Labels (para UI)
 export const REQUEST_STATUS_LABELS = {

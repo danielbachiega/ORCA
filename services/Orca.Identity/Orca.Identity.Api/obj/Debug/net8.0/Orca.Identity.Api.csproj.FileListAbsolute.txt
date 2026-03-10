@@ -119,3 +119,14 @@
 /home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/tr/Microsoft.CodeAnalysis.Workspaces.resources.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/zh-Hans/Microsoft.CodeAnalysis.Workspaces.resources.dll
 /home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/zh-Hant/Microsoft.CodeAnalysis.Workspaces.resources.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/FluentValidation.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/Microsoft.Extensions.Configuration.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/Microsoft.Extensions.Configuration.Abstractions.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/Microsoft.Extensions.Configuration.Binder.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/Microsoft.Extensions.Options.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/Microsoft.Extensions.Options.ConfigurationExtensions.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/Microsoft.Extensions.Primitives.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/System.DirectoryServices.Protocols.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/runtimes/linux/lib/net8.0/System.DirectoryServices.Protocols.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/runtimes/osx/lib/net8.0/System.DirectoryServices.Protocols.dll
+/home/danielbachiega/Documentos/ORCA/services/Orca.Identity/Orca.Identity.Api/bin/Debug/net8.0/runtimes/win/lib/net8.0/System.DirectoryServices.Protocols.dll

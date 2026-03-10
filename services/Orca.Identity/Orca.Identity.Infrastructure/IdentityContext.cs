@@ -128,7 +128,7 @@ public class IdentityContext : DbContext
                 Username = "superadmin",
                 Email = "admin@orca.local",
                 LdapGroups = new List<string> { "Admins" },
-                RoleIds = new List<Guid> { adminRoleId },
+                RoleIds = new List<Guid> { adminRoleId, consumerRoleId },
                 LastLoginAtUtc = DateTime.UtcNow,
                 IsActive = true
             },
@@ -138,7 +138,7 @@ public class IdentityContext : DbContext
                 Username = "admin",
                 Email = "admin@orca.local",
                 LdapGroups = new List<string> { "Admins" },
-                RoleIds = new List<Guid> { adminRoleId },
+                RoleIds = new List<Guid> { adminRoleId, consumerRoleId },
                 LastLoginAtUtc = DateTime.UtcNow,
                 IsActive = true
             }
