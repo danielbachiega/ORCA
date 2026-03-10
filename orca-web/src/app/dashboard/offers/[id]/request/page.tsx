@@ -468,7 +468,7 @@ function RequestFormContent() {
         userId: user.id,
         formData: payload,
         executionTargetType: executionTemplate.targetType,
-        executionResourceType: executionTemplate.resourceType || undefined,
+        executionResourceType: executionTemplate.resourceType ?? undefined,
         executionResourceId: executionTemplate.resourceId,
       });
 

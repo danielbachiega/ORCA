@@ -13,7 +13,11 @@ import { catalogService, requestsService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
 import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
-import { REQUEST_STATUS_COLORS, REQUEST_STATUS_LABELS } from '@/lib/constants';
+import {
+  EXTERNAL_EXECUTION_CONFIG,
+  REQUEST_STATUS_COLORS,
+  REQUEST_STATUS_LABELS,
+} from '@/lib/constants';
 import { ExecutionResultType, Request } from '@/lib/types';
 import {
   Layout,
@@ -37,7 +41,7 @@ const { Text, Title } = Typography;
 
 const resultTypeLabels: Record<ExecutionResultType, string> = {
   [ExecutionResultType.Success]: 'Sucesso',
-  [ExecutionResultType.Failed]: 'Falha',
+  [ExecutionResultType.Diagnosed]: 'Diagnosticado',
   [ExecutionResultType.NoActionTaken]: 'Sem Ação',
 };
 
@@ -57,6 +61,29 @@ function parseFormData(request?: Request) {
     console.warn('⚠️ Falha ao parsear formData:', error);
     return { __raw: raw } as Record<string, unknown>;
   }
+}
+
+function buildExecutionExternalUrl(request?: Request): string | null {
+  if (!request?.executionId || request.executionId.trim() === '') {
+    return null;
+  }
+
+  const executionId = request.executionId.trim();
+
+  if (request.executionTargetType === 1) {
+    const ooBaseUrl = EXTERNAL_EXECUTION_CONFIG.OO_BASE_URL?.trim();
+    if (!ooBaseUrl) return null;
+    return `${ooBaseUrl}/oo/#/runtimeWorkspace/runs/${executionId}`;
+  }
+
+  const awxBaseUrl = EXTERNAL_EXECUTION_CONFIG.AWX_BASE_URL?.trim();
+  if (!awxBaseUrl) return null;
+
+  if (request.executionResourceType === 1) {
+    return `${awxBaseUrl}/#/workflow/playbook/${executionId}`;
+  }
+
+  return `${awxBaseUrl}/#/jobs/playbook/${executionId}`;
 }
 
 function RequestDetailsContent() {
@@ -99,6 +126,8 @@ function RequestDetailsContent() {
   const handleBack = () => router.back();
 
   const executionTargetLabel = request?.executionTargetType === 1 ? 'OO' : 'AWX';
+  const executionResultType = request?.resultType ?? request?.executionResultType;
+  const executionExternalUrl = buildExecutionExternalUrl(request);
   const executionResourceTypeLabel =
     request?.executionResourceType === 0
       ? 'JobTemplate'
@@ -177,8 +206,8 @@ function RequestDetailsContent() {
                     </Tag>
                   </Descriptions.Item>
                   <Descriptions.Item label="Resultado">
-                    {request.executionResultType !== undefined
-                      ? resultTypeLabels[request.executionResultType]
+                    {executionResultType !== undefined
+                      ? resultTypeLabels[executionResultType]
                       : '-'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Criada em">
@@ -208,7 +237,13 @@ function RequestDetailsContent() {
                     {request.executionResourceId || '-'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Execution ID">
-                    {request.executionId || '-'}
+                    {request.executionId && executionExternalUrl ? (
+                      <a href={executionExternalUrl} target="_blank" rel="noopener noreferrer">
+                        {request.executionId}
+                      </a>
+                    ) : (
+                      request.executionId || '-'
+                    )}
                   </Descriptions.Item>
                   <Descriptions.Item label="Status AWX/OO">
                     {request.awxOoExecutionStatus || '-'}

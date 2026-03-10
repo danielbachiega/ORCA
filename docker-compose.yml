@@ -259,6 +259,8 @@ services:
         NEXT_PUBLIC_FORMS_API: http://localhost:5003
         NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
         NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
+        NEXT_PUBLIC_AWX_BASE_URL: ${AWX_HOST:-https://awx.example1.com}
+        NEXT_PUBLIC_OO_BASE_URL: ${OO_HOST:-https://oo.example1.com}
         NEXT_PUBLIC_APP_NAME: ${APP_NAME:-B.O.L.T.}
         NEXT_PUBLIC_APP_SUBTITLE: ${APP_SUBTITLE:-B3 Orchestration & Lifecycle Tool}
     container_name: orca-web
@@ -277,6 +279,8 @@ services:
       NEXT_PUBLIC_FORMS_API: http://localhost:5003
       NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
       NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
+      NEXT_PUBLIC_AWX_BASE_URL: ${AWX_HOST:-https://awx.example1.com}
+      NEXT_PUBLIC_OO_BASE_URL: ${OO_HOST:-https://oo.example1.com}
       NEXT_PUBLIC_APP_NAME: ${APP_NAME:-B.O.L.T.}
       NEXT_PUBLIC_APP_SUBTITLE: ${APP_SUBTITLE:-B3 Orchestration & Lifecycle Tool}
     ports:

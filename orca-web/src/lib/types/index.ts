@@ -104,7 +104,7 @@ export enum RequestStatus {
 
 export enum ExecutionResultType {
   Success = 0,
-  Failed = 1,
+  Diagnosed = 1,
   NoActionTaken = 2,
 }
 
@@ -121,6 +121,7 @@ export interface Request {
   executionResourceId?: string;
   executionId?: string;
   awxOoExecutionStatus?: string;
+  resultType?: ExecutionResultType;
   executionResultType?: ExecutionResultType;
   errorMessage?: string;
   createdAtUtc: string;

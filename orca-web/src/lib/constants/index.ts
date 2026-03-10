@@ -16,6 +16,11 @@ export const API_CONFIG = {
   ORCHESTRATOR: process.env.NEXT_PUBLIC_ORCHESTRATOR_API || 'http://localhost:5005',
 };
 
+export const EXTERNAL_EXECUTION_CONFIG = {
+  AWX_BASE_URL: process.env.NEXT_PUBLIC_AWX_BASE_URL || '',
+  OO_BASE_URL: process.env.NEXT_PUBLIC_OO_BASE_URL || '',
+};
+
 // Branding
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'ORCA';
 export const APP_SUBTITLE =

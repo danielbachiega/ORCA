@@ -444,7 +444,9 @@ public class JobExecutionService : IJobExecutionService
 
     private int? MapOoResultType(string? ooResultType)
     {
-        return ooResultType switch
+        var normalizedResultType = ooResultType?.Trim().ToUpperInvariant();
+
+        return normalizedResultType switch
         {
             "RESOLVED" => 0,           // Success
             "DIAGNOSED" => 1,          // Diagnosed
