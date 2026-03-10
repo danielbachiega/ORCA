@@ -89,6 +89,9 @@ const normalizeVisibilityValue = (
   return conditionValue;
 };
 
+const normalizeStringComparison = (value: unknown): string =>
+  String(value ?? '').trim().toLowerCase();
+
 // Componente para preview com suporte a visibilidade condicional
 interface PreviewFormProps {
   fields: FormField[];
@@ -107,6 +110,28 @@ const PreviewForm: React.FC<PreviewFormProps> = ({ fields, renderFieldPreview, g
     const { fieldKey, operator, value } = field.visibilityCondition;
     const fieldValue = previewValues?.[fieldKey];
     const normalizedValue = normalizeVisibilityValue(fieldValue, value);
+    const dependencyField = fields.find((candidate) => candidate.key === fieldKey);
+    const shouldUseCaseInsensitiveComparison = dependencyField?.type === 'select';
+
+    if (
+      shouldUseCaseInsensitiveComparison
+      && typeof fieldValue === 'string'
+      && typeof normalizedValue === 'string'
+    ) {
+      const left = normalizeStringComparison(fieldValue);
+      const right = normalizeStringComparison(normalizedValue);
+
+      switch (operator) {
+        case 'equals':
+          return left === right;
+        case 'notEquals':
+          return left !== right;
+        case 'contains':
+          return left.includes(right);
+        default:
+          return true;
+      }
+    }
 
     switch (operator) {
       case 'equals':
@@ -169,7 +194,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
     form.setFieldsValue({
       ...field,
       regexPattern: field.regexPattern,
-      options: field.options?.map((opt) => opt.label).join(', '),
+      options: field.options?.map((opt) => opt.label) || [],
       visibilityFieldKey: field.visibilityCondition?.fieldKey,
       visibilityOperator: field.visibilityCondition?.operator,
       visibilityValue: field.visibilityCondition?.value,
@@ -227,6 +252,14 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
       const parsedVisibilityValue = isCheckboxVisibility
         ? values.visibilityValue === true || values.visibilityValue === 'true'
         : values.visibilityValue;
+
+      const parsedOptions = values.type === 'select' && Array.isArray(values.options)
+        ? values.options
+            .map((opt: string) => String(opt).trim())
+            .filter((opt: string) => opt.length > 0)
+            .filter((opt: string, index: number, arr: string[]) => arr.indexOf(opt) === index)
+            .map((opt: string) => ({ label: opt, value: opt }))
+        : undefined;
       
       const updatedField: FormField = {
         ...editingField!,
@@ -239,12 +272,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
         regexPattern: values.type === 'text' && values.regexPattern
           ? values.regexPattern.trim()
           : undefined,
-        options: values.type === 'select' && values.options 
-          ? values.options.split(',').map((opt: string) => {
-              const trimmed = opt.trim();
-              return { label: trimmed, value: trimmed.toLowerCase() };
-            })
-          : undefined,
+        options: parsedOptions,
         visibilityCondition: values.visibilityFieldKey
           ? {
               fieldKey: values.visibilityFieldKey,
@@ -665,10 +693,15 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                 return (
                   <Form.Item
                     name="options"
-                    label="Opções (separadas por vírgula)"
+                    label="Opções"
                     rules={[{ required: true, message: 'Adicione pelo menos uma opção' }]}
                   >
-                    <Input placeholder="TI, RH, Financeiro, Operações" />
+                    <Select
+                      mode="tags"
+                      placeholder="Digite uma opção e pressione Enter (ou use ;)"
+                      tokenSeparators={[';']}
+                      open={false}
+                    />
                   </Form.Item>
                 );
               }
@@ -696,7 +729,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                     form.setFieldValue('visibilityValue', undefined);
                   }}
                   options={availableVisibilityFields.map((field) => ({
-                    label: field.label,
+                    label: field.key,
                     value: field.key,
                   }))}
                 />

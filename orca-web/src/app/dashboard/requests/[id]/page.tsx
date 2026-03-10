@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { catalogService, requestsService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
 import { REQUEST_STATUS_COLORS, REQUEST_STATUS_LABELS } from '@/lib/constants';
 import { ExecutionResultType, Request } from '@/lib/types';
 import {
@@ -107,7 +108,7 @@ function RequestDetailsContent() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <AppHeader />
+      <AppHeader centerContent={<DashboardHeaderTabs activeTab="requests" />} />
 
       <Content style={{ padding: '24px' }}>
         <div className={styles.container}>

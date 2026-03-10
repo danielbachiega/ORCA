@@ -16,6 +16,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { catalogService, formsService, requestsService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
 import { useAuth } from '@/lib/contexts/auth.context';
 import type { FormField } from '@/components/form-builder';
 import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
@@ -500,7 +501,7 @@ function RequestFormContent() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <AppHeader />
+      <AppHeader centerContent={<DashboardHeaderTabs activeTab="services" />} />
 
       <Content style={{ padding: '24px' }}>
         <div className={styles.container}>

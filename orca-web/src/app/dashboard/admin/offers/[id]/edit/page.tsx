@@ -6,7 +6,7 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { catalogService, identityService } from '@/services';
@@ -49,6 +49,7 @@ function EditOfferContent() {
   const offerId = params.id as string;
   const { roles } = useAuth();
   const [form] = Form.useForm<EditOfferFormValues>();
+  const fixedRoles = useMemo(() => ['admin'], []);
 
   const isAdmin = roles && roles.length > 0 && roles.some((r) =>
     r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
@@ -65,6 +66,27 @@ function EditOfferContent() {
       return result;
     },
   });
+
+  const fixedRoleValues = useMemo(() => {
+    const roleMap = new Map(
+      availableRoles.map((role) => [role.name.toLowerCase(), role.name])
+    );
+    return fixedRoles.map((role) => roleMap.get(role) ?? role);
+  }, [availableRoles, fixedRoles]);
+
+  const fixedRoleValuesLower = useMemo(
+    () => fixedRoleValues.map((r) => r.toLowerCase()),
+    [fixedRoleValues]
+  );
+
+  const ensureFixedRoles = useCallback(
+    (current: string[] | undefined) => {
+      const existing = Array.isArray(current) ? current : [];
+      const combined = Array.from(new Set([...existing, ...fixedRoleValues]));
+      return combined;
+    },
+    [fixedRoleValues]
+  );
 
   const {
     data: offer,
@@ -88,11 +110,11 @@ function EditOfferContent() {
         description: offer.description,
         tags: offer.tags || [],
         active: offer.active,
-        visibleToRoles: offer.visibleToRoles || [],
+        visibleToRoles: ensureFixedRoles(offer.visibleToRoles || []),
         imageAssetId: offer.imageAssetId,
       });
     }
-  }, [offer, form]);
+  }, [offer, form, ensureFixedRoles]);
 
   const {
     mutate: submitUpdate,
@@ -102,6 +124,7 @@ function EditOfferContent() {
   } = useMutation({
     mutationFn: async (values: EditOfferFormValues) => {
       console.log('📝 Atualizando oferta com valores:', values);
+      const enforcedRoles = ensureFixedRoles(values.visibleToRoles);
       const result = await catalogService.updateOffer(offerId, {
         id: offerId,
         name: values.name,
@@ -109,7 +132,7 @@ function EditOfferContent() {
         description: values.description || undefined,
         tags: values.tags || [],
         active: values.active,
-        visibleToRoles: values.visibleToRoles || [],
+        visibleToRoles: enforcedRoles,
         imageAssetId: values.imageAssetId || undefined,
       });
 
@@ -130,6 +153,15 @@ function EditOfferContent() {
 
   const handleSubmit = async (values: EditOfferFormValues) => {
     submitUpdate(values);
+  };
+
+  const handleValuesChange = (changedValues: Partial<EditOfferFormValues>) => {
+    if (Object.prototype.hasOwnProperty.call(changedValues, 'visibleToRoles')) {
+      const next = ensureFixedRoles(changedValues.visibleToRoles);
+      if (next.length !== (changedValues.visibleToRoles || []).length) {
+        form.setFieldsValue({ visibleToRoles: next });
+      }
+    }
   };
 
   const handleBack = () => {
@@ -213,6 +245,7 @@ function EditOfferContent() {
                 form={form}
                 layout="vertical"
                 onFinish={handleSubmit}
+                onValuesChange={handleValuesChange}
                 disabled={isSubmitting || isLoading || !offer}
               >
                 <Form.Item
@@ -275,7 +308,7 @@ function EditOfferContent() {
                 <Form.Item
                   name="visibleToRoles"
                   label="Visível para Roles"
-                  tooltip="Admin sempre tem acesso. Deixe vazio para todos verem."
+                  tooltip="Admin sempre tem acesso e não pode ser removido."
                 >
                   <Select
                     mode="multiple"
@@ -285,6 +318,9 @@ function EditOfferContent() {
                     options={availableRoles.map((role) => ({
                       label: `${role.name} - ${role.description || 'Sem descrição'}`,
                       value: role.name,
+                      disabled: fixedRoleValuesLower.includes(
+                        role.name.toLowerCase()
+                      ),
                     }))}
                   />
                 </Form.Item>

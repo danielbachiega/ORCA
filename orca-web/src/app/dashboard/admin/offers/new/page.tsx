@@ -50,7 +50,7 @@ function CreateOfferContent() {
   const [form] = Form.useForm();
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const autoSluggingRef = useRef(false);
-  const fixedRoles = useMemo(() => ['admin', 'editor'], []);
+  const fixedRoles = useMemo(() => ['admin'], []);
 
   // Verificar permissão
   const isAdmin = roles && roles.length > 0 && roles.some((r) => r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin');
@@ -342,7 +342,7 @@ function CreateOfferContent() {
                 <Form.Item
                   name="visibleToRoles"
                   label="Visível para Roles"
-                  tooltip="Admin e Editor sempre têm acesso."
+                  tooltip="Admin sempre tem acesso e não pode ser removido."
                 >
                   <Select
                     mode="multiple"

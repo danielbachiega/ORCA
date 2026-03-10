@@ -17,6 +17,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { catalogService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppHeader } from '@/components/app-header';
+import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
 import { FormsManagementModal } from '@/components/forms-management-modal';
 import { ExecutionTemplateModal } from '@/components/execution-template-modal';
 import type { FormField } from '@/components/form-builder';
@@ -37,8 +38,9 @@ import {
   Badge,
   Modal,
   message,
+  Breadcrumb,
 } from 'antd';
-import { SendOutlined, EditOutlined, CalendarOutlined, TagOutlined, FileTextOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { SendOutlined, EditOutlined, CalendarOutlined, TagOutlined, FileTextOutlined, UploadOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import styles from './offer-details.module.css';
 
 const { Content } = Layout;
@@ -255,12 +257,30 @@ function OfferDetailsContent() {
     });
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <AppHeader />
+      <AppHeader centerContent={<DashboardHeaderTabs activeTab="manage" />} />
 
       <Content style={{ padding: '24px' }}>
         <div className={styles.container}>
+          <Breadcrumb
+            style={{ marginBottom: '24px' }}
+            items={[
+              {
+                title: (
+                  <Button type="text" size="small" onClick={handleBack} icon={<ArrowLeftOutlined />}>
+                    Voltar
+                  </Button>
+                ),
+              },
+              { title: 'Detalhes da Oferta' },
+            ]}
+          />
+
           {/* Loading */}
           {isLoading && (
             <Card loading style={{ marginBottom: '24px' }}>
@@ -383,6 +403,27 @@ function OfferDetailsContent() {
                     </div>
                   </>
                 )}
+
+                {/* Roles com acesso */}
+                <Divider style={{ margin: '16px 0' }} />
+                <div>
+                  <h3 style={{ fontSize: '16px', marginBottom: '12px', color: '#666' }}>
+                    Roles com acesso
+                  </h3>
+                  {offer.visibleToRoles && offer.visibleToRoles.length > 0 ? (
+                    <Space size={[8, 8]} wrap>
+                      {offer.visibleToRoles.map((role) => (
+                        <Tag key={role} color="geekblue">
+                          {role}
+                        </Tag>
+                      ))}
+                    </Space>
+                  ) : (
+                    <span style={{ color: '#999' }}>
+                      Todas as roles (não configurado na oferta)
+                    </span>
+                  )}
+                </div>
 
                 {/* Informações de data */}
                 <Divider style={{ margin: '16px 0' }} />
