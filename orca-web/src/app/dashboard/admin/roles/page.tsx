@@ -7,7 +7,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { identityService } from '@/services';
 import { ProtectedRoute } from '@/components/protected-route';
@@ -32,7 +31,7 @@ import {
   Modal,
   Pagination,
 } from 'antd';
-import { ArrowLeftOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import styles from './roles.module.css';
 
 const { Content } = Layout;
@@ -76,7 +75,6 @@ function accessTypeToLabels(accessType: number | string): string[] {
 }
 
 function RolesContent() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { roles: userRoles } = useAuth();
   const [form] = Form.useForm();
@@ -206,8 +204,6 @@ function RolesContent() {
     });
   };
 
-  const handleBack = () => router.back();
-
   if (!isAdmin) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
@@ -232,13 +228,6 @@ function RolesContent() {
           <Breadcrumb
             style={{ marginBottom: '24px' }}
             items={[
-              {
-                title: (
-                  <Button type="text" size="small" onClick={handleBack} icon={<ArrowLeftOutlined />}>
-                    Voltar
-                  </Button>
-                ),
-              },
               { title: 'Gerenciar Roles' },
             ]}
           />

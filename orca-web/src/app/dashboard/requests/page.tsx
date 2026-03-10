@@ -88,10 +88,6 @@ function MyRequestsContent() {
     router.push(`/dashboard/requests/${requestId}`);
   };
 
-  const handleBack = () => {
-    router.back();
-  };
-
   const columns = [
     {
       title: 'Oferta',
@@ -161,11 +157,6 @@ function MyRequestsContent() {
           <Breadcrumb
             style={{ marginBottom: '24px' }}
             items={[
-              {
-                title: <Button type="text" size="small" onClick={handleBack}>
-                  Voltar
-                </Button>,
-              },
               {
                 title: 'Minhas Requisições',
               },

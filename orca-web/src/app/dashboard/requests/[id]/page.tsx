@@ -123,7 +123,7 @@ function RequestDetailsContent() {
 
   const formData = useMemo(() => parseFormData(request), [request]);
 
-  const handleBack = () => router.back();
+  const handleBack = () => router.push('/dashboard/requests');
 
   const executionTargetLabel = request?.executionTargetType === 1 ? 'OO' : 'AWX';
   const executionResultType = request?.resultType ?? request?.executionResultType;
