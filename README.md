@@ -16,6 +16,16 @@ O ORCA é um sistema de **solicitação e execução de automações** onde:
 5. **Bypass SSL** para ambientes com certificados inválidos
 6. Usuários acompanham o status em **tempo real**
 
+### 🆕 Atualizações recentes (últimos commits)
+
+- Frontend: navegação por abas no header com permissões por perfil, incluindo melhorias em detalhes da oferta e requisição.
+- Frontend: busca adicionada em "Minhas Requisições" (oferta/ID/status) e em "Gerenciar Imagens" (nome/slug).
+- Catalog/Web: suporte a imagens em ofertas (upload/listagem/remoção e exibição em card/detalhe/solicitação).
+- Forms/Web: evolução do form builder com validação regex, visibilidade com boolean, reordenação de campos e melhorias de mapeamento.
+- Requests: inclusão do parâmetro `OfferName`.
+- Identity: login AD aceitando autenticação apenas com usuário.
+- Infra: ajuste de controle de logs para reduzir consumo de disco.
+
 ---
 
 ## 🏗️ Arquitetura — Microserviços

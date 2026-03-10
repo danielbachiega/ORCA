@@ -8,9 +8,36 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### ✨ Added
+- Navegação principal por abas no header, com exibição por perfil (Consumer/Editor/Admin)
+- Abas superiores nas páginas de detalhes da oferta, nova solicitação e detalhes de requisição
+- Busca em "Minhas Requisições" (oferta, ID e status)
+- Busca em "Gerenciar Imagens" (nome e slug)
+- Exibição de "Criada em" (data/hora/minuto) em "Minhas Requisições"
+- Suporte a imagens em ofertas (upload/listagem/remoção) e seletor de imagem no admin
+- Exibição de imagens em cards, detalhes e fluxo de solicitação
+- Reordenação de campos no form builder (setas + drag-and-drop)
+- Validação por regex em campos de texto (builder, preview e request)
+- Múltiplos mapeamentos para o mesmo campo de payload com concatenação ordenada
+
+### 🎨 Changed
+- Aba ativa em detalhes da oferta ajustada para "Gerenciar Catálogo"
+- Botão/breadcrumb "Voltar" adicionado em detalhes da oferta
+- Exibição das roles com acesso em detalhes da oferta
+- Regra de visibilidade reforçada para sempre incluir `admin` em ofertas (create/edit)
+- Opção "Roles" removida do dropdown de perfil
+- UX de visibilidade no builder com comparação case-insensitive e suporte a boolean (checkbox)
+- Campo de opções no builder usando tags com Enter e separador por ponto e vírgula (`;`)
+- Dropdown de campos na visibilidade passa a exibir key/id
+- Ajustes de exibição de descrição nos cards e no detalhe da oferta
+
+### 🔧 Fixed
+- Ajuste de autenticação para permitir login no AD informando apenas usuário (sem domínio)
+- Requests: inclusão de parâmetro `OfferName`
+- Controle de logs ajustado para reduzir consumo de espaço em disco
+
 ### 🚧 Em Desenvolvimento
 - Designer de formulários visual (JSON Schema builder)
-- Renderização dinâmica de formulários com Uniforms
 - Integração com AWX/Operations Orchestration
 - Histórico de execuções de requisições
 - Dashboard analytics para admins
@@ -189,4 +216,4 @@ git commit -m "refactor: extrai lógica de validação para service"
 
 ---
 
-**Última atualização**: 2024-01-15
+**Última atualização**: 2026-03-10

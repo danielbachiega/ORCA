@@ -25,18 +25,26 @@ O ORCA Web é o frontend da plataforma ORCA, permitindo que usuários:
 
 - ✅ Autenticação LDAP com sessão JWT + persistência em localStorage
 - ✅ Dashboard com listagem de ofertas role-based
+- ✅ Navegação principal por abas no header com controle por perfil
 - ✅ Detalhes de ofertas
+- ✅ Detalhes da oferta com roles de acesso e botão "Voltar"
 - ✅ Criação de requisições com field mapping
-- ✅ Listagem de minhas requisições com filtro por usuário
+- ✅ Listagem de minhas requisições com filtro por usuário e busca (oferta/ID/status)
+- ✅ Exibição de data/hora de criação em "Minhas Requisições"
 - ✅ Página de detalhes de requisição com auto-refresh
 - ✅ Admin: Criar/Editar/Deletar ofertas
 - ✅ Admin: Gerenciar roles (CRUD, search, paginação, modal)
 - ✅ Admin: Controle de visibilidade de ofertas por roles
+- ✅ Regra de visibilidade reforçada para sempre incluir `admin` nas ofertas
+- ✅ Admin: Gestão de imagens (upload/listagem/remoção) e vínculo em ofertas
+- ✅ Exibição de imagem nas views de card, detalhe e solicitação
 - ✅ User: Página de perfil (info, roles, grupos LDAP)
 - ✅ Protected routes com RBAC
 - ✅ Error handling e loading states
 - ✅ Cache inteligente com TanStack Query
 - ✅ ExecutionTemplate com mapeamento visual de payload
+- ✅ Múltiplos mapeamentos para o mesmo campo de payload com concatenação
+- ✅ Form builder com regex, visibilidade robusta (incluindo boolean) e reordenação de campos
 - ✅ Suporte para string/número em accessType
 
 ### Em Desenvolvimento 🚧

@@ -61,6 +61,18 @@ git commit -m "docs: atualiza README"
 git push origin feature/minha-feature
 ```
 
+## 🆕 Novidades Rápidas (últimos commits)
+
+- **Header com abas**: navegação principal consolidada no topo, com visibilidade por perfil.
+- **Busca em listas**: "Minhas Requisições" busca por oferta, ID e status; "Gerenciar Imagens" busca por nome e slug.
+- **Ofertas com imagem**: suporte completo a upload/listagem/remoção e vínculo da imagem na oferta.
+- **Regra de visibilidade**: criação/edição de oferta sempre inclui `admin` em `visibleToRoles`.
+- **Form Builder**:
+  - regex para validação de texto (builder/preview/request)
+  - visibilidade com suporte a boolean (checkbox)
+  - reordenação por setas e drag-and-drop
+  - opções via tags usando Enter e separador `;`
+
 ## 🧩 Code Snippets
 
 ### Nova Página com TanStack Query
