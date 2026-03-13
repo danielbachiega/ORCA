@@ -67,8 +67,6 @@ function DashboardContent() {
     r.name.toLowerCase() === 'editor'
   );
 
-  const isConsumer = !isAdmin && !isEditor;
-
   const canManageCatalog = isAdmin || isEditor;
 
   const requestedTab = searchParams.get('tab');
@@ -133,17 +131,17 @@ function DashboardContent() {
 
   // Refetch ao entrar na página (garantir dados frescos)
   React.useEffect(() => {
-    console.log('🔍 Dashboard - isConsumer:', isConsumer);
+    console.log('🔍 Dashboard - activeTab:', activeTab);
     console.log('👤 Roles do usuário:', roles?.map(r => r.name).join(', '));
     refetch();
-  }, [refetch, isConsumer, roles]);
+  }, [refetch, activeTab, roles]);
 
   // Filtrar ofertas baseado em busca e tag selecionada
   const filteredOffers = useMemo(() => {
     return offers.filter((offer) => {
-      // Consumers não veem ofertas inativas
-      if (isConsumer && !offer.active) {
-        console.log(`⏭️ Filtrando oferta inativa para consumer: ${offer.name} (active: ${offer.active})`);
+      // No catálogo de serviços, nunca exibir ofertas inativas
+      if (activeTab === 'services' && !offer.active) {
+        console.log(`⏭️ Filtrando oferta inativa no catálogo de serviços: ${offer.name} (active: ${offer.active})`);
         return false;
       }
 
@@ -169,7 +167,7 @@ function DashboardContent() {
 
       return matchesSearch && matchesTag;
     });
-  }, [offers, searchTerm, selectedTag, isConsumer]);
+  }, [offers, searchTerm, selectedTag, activeTab]);
 
   // Agrupar ofertas por tags
   const offersByTag = useMemo(() => {

@@ -272,7 +272,7 @@ function RequestFormContent() {
   const router = useRouter();
   const params = useParams();
   const offerSlug = params.id as string;
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const [form] = Form.useForm();
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
@@ -284,13 +284,19 @@ function RequestFormContent() {
     isError: isErrorOffer,
     error: errorOffer,
   } = useQuery({
-    queryKey: ['offers', 'slug', offerSlug],
+    queryKey: ['offers', 'slug', offerSlug, roles],
     queryFn: async () => {
-      const offers = await catalogService.listOffers();
+      const roleNames = roles?.map((role) => role.name) ?? [];
+      const offers = roleNames.length > 0
+        ? await catalogService.listOffersByRoles(roleNames)
+        : await catalogService.listOffers();
+
       const found = offers.find((o) => o.slug === offerSlug || o.id === offerSlug);
       if (!found) throw new Error('Oferta não encontrada');
+      if (!found.active) throw new Error('Oferta inativa');
       return found;
     },
+    enabled: Boolean(offerSlug),
   });
 
   const { data: imageAssets = [] } = useQuery({

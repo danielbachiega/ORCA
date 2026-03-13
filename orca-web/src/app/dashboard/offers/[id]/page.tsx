@@ -173,6 +173,30 @@ function OfferDetailsContent() {
     },
   });
 
+  const toggleOfferStatusMutation = useMutation({
+    mutationFn: async () => {
+      if (!offer) throw new Error('Oferta inválida');
+      return catalogService.updateOffer(offer.id, {
+        id: offer.id,
+        name: offer.name,
+        slug: offer.slug,
+        description: offer.description || undefined,
+        tags: offer.tags || [],
+        active: !offer.active,
+        visibleToRoles: offer.visibleToRoles || [],
+        imageAssetId: offer.imageAssetId || undefined,
+      });
+    },
+    onSuccess: (updatedOffer) => {
+      queryClient.setQueryData(['offers', offerId], updatedOffer);
+      queryClient.invalidateQueries({ queryKey: ['offers'] });
+      message.success(updatedOffer.active ? 'Oferta ativada com sucesso!' : 'Oferta desativada com sucesso!');
+    },
+    onError: (mutationError: Error) => {
+      message.error(mutationError.message || 'Erro ao atualizar status da oferta');
+    },
+  });
+
   const handleDeleteOffer = () => {
     Modal.confirm({
       title: 'Excluir oferta?',
@@ -337,9 +361,25 @@ function OfferDetailsContent() {
                         {offer.name}
                       </h1>
                       <Space size={8}>
-                        <Tag color={offer.active ? 'green' : 'default'}>
-                          {offer.active ? 'Ativa' : 'Inativa'}
-                        </Tag>
+                        {isAdmin ? (
+                          <Tag
+                            color={offer.active ? 'green' : 'default'}
+                            onClick={() => {
+                              if (toggleOfferStatusMutation.isPending) return;
+                              toggleOfferStatusMutation.mutate();
+                            }}
+                            style={{
+                              cursor: toggleOfferStatusMutation.isPending ? 'not-allowed' : 'pointer',
+                              opacity: toggleOfferStatusMutation.isPending ? 0.6 : 1,
+                            }}
+                          >
+                            {offer.active ? 'Ativa' : 'Inativa'}
+                          </Tag>
+                        ) : (
+                          <Tag color={offer.active ? 'green' : 'default'}>
+                            {offer.active ? 'Ativa' : 'Inativa'}
+                          </Tag>
+                        )}
                         <span style={{ color: token.colorTextSecondary, fontSize: '14px' }}>
                           ID: {offer.id}
                         </span>
