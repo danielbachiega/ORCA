@@ -19,6 +19,7 @@ import {
   message,
   Card,
   Alert,
+  theme,
 } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -50,6 +51,7 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
   onSaved,
 }) => {
   const [form] = Form.useForm();
+  const { token } = theme.useToken();
   const queryClient = useQueryClient();
   const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
   const watchedFieldMappings = Form.useWatch('fieldMappings', form) as FieldMappingFormValue[] | undefined;
@@ -332,8 +334,11 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
           </Form.Item>
 
           {targetType !== undefined && resourceId && (
-            <Card style={{ backgroundColor: '#f6ffed', marginBottom: '24px' }} size="small">
-              <div style={{ fontSize: '14px' }}>
+            <Card
+              style={{ backgroundColor: token.colorFillAlter, marginBottom: '24px' }}
+              size="small"
+            >
+              <div style={{ fontSize: '14px', color: token.colorText }}>
                 <div style={{ marginBottom: '8px' }}>
                   <strong>✅ Resumo da Configuração:</strong>
                 </div>
@@ -352,7 +357,15 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
                   )}
                   <div>
                     • <strong>ID:</strong>{' '}
-                    <code style={{ backgroundColor: '#f0f0f0', padding: '2px 6px' }}>
+                    <code
+                      style={{
+                        backgroundColor: token.colorBgContainer,
+                        border: `1px solid ${token.colorBorderSecondary}`,
+                        color: token.colorText,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                      }}
+                    >
                       {resourceId}
                     </code>
                   </div>
