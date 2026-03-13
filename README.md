@@ -753,10 +753,27 @@ orca-web/                # Frontend Next.js
 - [x] **Password Validation**: ✅ Backend valida credenciais via LDAP
 - [x] **JSON Schema Editor**:  ✅ UI visual para criar/editar formulários
 
-## 🚀 Próximos Passos (Phase 2)
+## 🚀 Próximos Passos (HA + Escalabilidade)
 
-- [ ] **Advanced Reporting**: Dashboards com métricas e trends
-- [ ] **Webhook Support**: Notificações de status em tempo real via webhook
-- [ ] **Multi-tenant**: Suporte para múltiplas organizações
-- [ ] **API Documentation**: Auto-generated API docs com exemplos
-- [ ] **Performance**: Cache distribuído com Redis, índices PostgreSQL
+### Fase 1 — Ganho imediato (curto prazo)
+- [ ] **Baseline de SLOs e observabilidade**: definir p95/p99, taxa de erro e throughput por serviço (importante para priorizar otimizações com dados reais).
+- [ ] **API Gateway com YARP (MVP)**: centralizar roteamento, autenticação, rate limit, timeout e correlation-id (importante para reduzir acoplamento e aumentar governança).
+- [ ] **Escala horizontal dos serviços stateless**: 2+ réplicas para APIs críticas com health checks (importante para manter disponibilidade em falha de nó).
+- [ ] **Redis compartilhado (cache/sessão)**: aplicar cache cirúrgico em catálogo, formulários publicados e permissões LDAP (importante para reduzir latência e carga no banco).
+
+### Fase 2 — HA de dados e mensageria (médio prazo)
+- [ ] **PostgreSQL em alta disponibilidade**: failover automático + backup contínuo/PITR (importante para reduzir risco de indisponibilidade e perda de dados).
+- [ ] **RabbitMQ em cluster (quorum queues)**: 3 nós com filas duráveis (importante para resiliência do fluxo assíncrono).
+- [ ] **Storage redundante para imagens/arquivos**: S3/MinIO em vez de disco local (importante para continuidade após falhas e escalabilidade).
+- [ ] **Outbox/Inbox + idempotência**: padronizar publicação/consumo de eventos (importante para consistência entre Requests e Orchestrator).
+
+### Fase 3 — Operação robusta (produção)
+- [ ] **BFF focado em jornadas críticas**: agregar endpoints para dashboard e detalhes de request (importante para reduzir overfetch no frontend e simplificar UX).
+- [ ] **Runbooks e testes de failover/DR**: exercícios periódicos com RTO/RPO definidos (importante para validar recuperação real em incidente).
+- [ ] **Alertas e operação orientada a SLO**: alarmes por latência/erro/fila e playbooks de resposta (importante para detectar e resolver incidentes rapidamente).
+
+### Backlog funcional (após base de HA)
+- [ ] **Advanced Reporting**: dashboards com métricas e trends de negócio e operação.
+- [ ] **Webhook Support**: notificações de status em tempo real via webhook.
+- [ ] **Multi-tenant**: suporte para múltiplas organizações.
+- [ ] **API Documentation**: documentação de API gerada automaticamente com exemplos.
