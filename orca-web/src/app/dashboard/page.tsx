@@ -261,24 +261,24 @@ function DashboardContent() {
       key={offer.id}
       className={styles.listItem}
       style={{ cursor: 'pointer' }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fafafa')}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
     >
       <List.Item.Meta
         className={styles.listMeta}
         avatar={
-          imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={offer.name}
-              width={40}
-              height={40}
-              style={{ objectFit: 'contain' }}
-              unoptimized
-            />
-          ) : (
-            <BugOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-          )
+          <div className={styles.listAvatar}>
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt={offer.name}
+                width={40}
+                height={40}
+                style={{ objectFit: 'contain' }}
+                unoptimized
+              />
+            ) : (
+              <BugOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+            )}
+          </div>
         }
         title={<div className={styles.listTitle}>{offer.name}</div>}
         description={

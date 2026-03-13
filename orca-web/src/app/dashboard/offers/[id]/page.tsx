@@ -39,6 +39,7 @@ import {
   Modal,
   message,
   Breadcrumb,
+  theme,
 } from 'antd';
 import { SendOutlined, EditOutlined, CalendarOutlined, TagOutlined, FileTextOutlined, UploadOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import styles from './offer-details.module.css';
@@ -69,6 +70,7 @@ function OfferDetailsContent() {
   const [automationModalVisible, setAutomationModalVisible] = useState(false);
   const [automationFormId, setAutomationFormId] = useState<string | null>(null);
   const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
+  const { token } = theme.useToken();
 
   const isAdmin = roles && roles.length > 0 && roles.some((r) =>
     r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
@@ -319,14 +321,16 @@ function OfferDetailsContent() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', gap: '16px', flex: 1 }}>
                     {offerImageUrl && (
-                      <Image
-                        src={offerImageUrl}
-                        alt={offer.name}
-                        width={96}
-                        height={96}
-                        style={{ objectFit: 'contain' }}
-                        unoptimized
-                      />
+                      <div className={styles.offerImageFrame}>
+                        <Image
+                          src={offerImageUrl}
+                          alt={offer.name}
+                          width={96}
+                          height={96}
+                          style={{ objectFit: 'contain' }}
+                          unoptimized
+                        />
+                      </div>
                     )}
                     <Space orientation="vertical" size={4}>
                       <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600 }}>
@@ -336,7 +340,7 @@ function OfferDetailsContent() {
                         <Tag color={offer.active ? 'green' : 'default'}>
                           {offer.active ? 'Ativa' : 'Inativa'}
                         </Tag>
-                        <span style={{ color: '#999', fontSize: '14px' }}>
+                        <span style={{ color: token.colorTextSecondary, fontSize: '14px' }}>
                           ID: {offer.id}
                         </span>
                       </Space>
@@ -377,7 +381,7 @@ function OfferDetailsContent() {
                   <>
                     <Divider style={{ margin: '16px 0' }} />
                     <div>
-                      <h3 style={{ fontSize: '16px', marginBottom: '12px', color: '#666' }}>
+                      <h3 style={{ fontSize: '16px', marginBottom: '12px', color: token.colorTextSecondary }}>
                         Descrição
                       </h3>
                       <p className={styles.descriptionCard}>
@@ -393,7 +397,7 @@ function OfferDetailsContent() {
                     <Divider style={{ margin: '16px 0' }} />
                     <div>
                       <Space size={[0, 8]} wrap>
-                        <TagOutlined style={{ color: '#999', fontSize: '14px' }} />
+                        <TagOutlined style={{ color: token.colorTextSecondary, fontSize: '14px' }} />
                         {offer.tags.map((tag) => (
                           <Tag key={tag} color="blue">
                             {tag}
@@ -407,7 +411,7 @@ function OfferDetailsContent() {
                 {/* Roles com acesso */}
                 <Divider style={{ margin: '16px 0' }} />
                 <div>
-                  <h3 style={{ fontSize: '16px', marginBottom: '12px', color: '#666' }}>
+                  <h3 style={{ fontSize: '16px', marginBottom: '12px', color: token.colorTextSecondary }}>
                     Roles com acesso
                   </h3>
                   {offer.visibleToRoles && offer.visibleToRoles.length > 0 ? (
@@ -419,7 +423,7 @@ function OfferDetailsContent() {
                       ))}
                     </Space>
                   ) : (
-                    <span style={{ color: '#999' }}>
+                    <span style={{ color: token.colorTextSecondary }}>
                       Todas as roles (não configurado na oferta)
                     </span>
                   )}
@@ -431,8 +435,8 @@ function OfferDetailsContent() {
                   <Col xs={24} sm={12}>
                     <Space orientation="vertical" size={4}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <CalendarOutlined style={{ color: '#999', fontSize: '14px' }} />
-                        <span style={{ fontSize: '13px', color: '#999' }}>Criada em</span>
+                        <CalendarOutlined style={{ color: token.colorTextSecondary, fontSize: '14px' }} />
+                        <span style={{ fontSize: '13px', color: token.colorTextSecondary }}>Criada em</span>
                       </div>
                       <span style={{ fontSize: '15px', fontWeight: 500 }}>
                         {new Date(offer.createdAtUtc).toLocaleDateString('pt-BR', {
@@ -448,8 +452,8 @@ function OfferDetailsContent() {
                     <Col xs={24} sm={12}>
                       <Space orientation="vertical" size={4}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <CalendarOutlined style={{ color: '#999', fontSize: '14px' }} />
-                          <span style={{ fontSize: '13px', color: '#999' }}>Última atualização</span>
+                          <CalendarOutlined style={{ color: token.colorTextSecondary, fontSize: '14px' }} />
+                          <span style={{ fontSize: '13px', color: token.colorTextSecondary }}>Última atualização</span>
                         </div>
                         <span style={{ fontSize: '15px', fontWeight: 500 }}>
                           {new Date(offer.updatedAtUtc).toLocaleDateString('pt-BR', {
@@ -486,7 +490,7 @@ function OfferDetailsContent() {
                       <span>Formulários da Oferta</span>
                       <Badge
                         count={forms.length}
-                        style={{ backgroundColor: '#1890ff' }}
+                        style={{ backgroundColor: token.colorPrimary }}
                       />
                     </Space>
                   }
@@ -512,9 +516,11 @@ function OfferDetailsContent() {
                           style={{
                             padding: '12px',
                             marginBottom: '12px',
-                            border: '1px solid #e8e8e8',
+                            border: `1px solid ${token.colorBorderSecondary}`,
                             borderRadius: '4px',
-                            backgroundColor: formDef.isPublished ? '#fafafa' : '#ffffff',
+                            backgroundColor: formDef.isPublished
+                              ? token.colorFillAlter
+                              : token.colorBgContainer,
                           }}
                         >
                           <div
@@ -532,7 +538,7 @@ function OfferDetailsContent() {
                               <span style={{ fontWeight: 500 }}>
                                 v{formDef.version}
                               </span>
-                              <span style={{ color: '#999', fontSize: '12px' }}>
+                              <span style={{ color: token.colorTextSecondary, fontSize: '12px' }}>
                                 {new Date(formDef.createdAtUtc).toLocaleDateString(
                                   'pt-BR'
                                 )}

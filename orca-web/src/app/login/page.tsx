@@ -16,7 +16,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth.context';
-import { Button, Input, Card, Typography, Space, Alert, Spin } from 'antd';
+import { Button, Input, Card, Typography, Space, Alert } from 'antd';
 import { APP_NAME, APP_SUBTITLE } from '@/lib/constants';
 import styles from './login.module.css';
 

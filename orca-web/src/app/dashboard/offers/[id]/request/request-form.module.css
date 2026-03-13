@@ -56,6 +56,28 @@
   word-break: break-word;
 }
 
+:global(html[data-theme='dark']) .heroCard {
+  border-color: #303030;
+  background: #141414;
+}
+
+:global(html[data-theme='dark']) .heroBanner {
+  background: linear-gradient(135deg, #eef2f7 0%, #e2e8f0 100%);
+  border-bottom-color: #303030;
+}
+
+:global(html[data-theme='dark']) .heroOverlay {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.45));
+}
+
+:global(html[data-theme='dark']) .heroTitle {
+  color: #f5f5f5;
+}
+
+:global(html[data-theme='dark']) .heroDescription {
+  color: #bfbfbf;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

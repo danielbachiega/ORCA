@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/lib/providers';
-import { APP_NAME, APP_SUBTITLE } from '@/lib/constants';
+import { APP_NAME, APP_SUBTITLE, THEME_STORAGE_KEY } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: `${APP_NAME} - ${APP_SUBTITLE}`,
@@ -16,8 +16,28 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const themeInitializationScript = `
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem('${THEME_STORAGE_KEY}');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = savedTheme === 'dark' || savedTheme === 'light'
+          ? savedTheme
+          : (prefersDark ? 'dark' : 'light');
+
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      } catch (_) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  `;
+
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
+      </head>
       <body>
         <Providers>
           {children}

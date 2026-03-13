@@ -26,6 +26,7 @@ import {
   Divider,
   Tabs,
   Alert,
+  theme,
 } from 'antd';
 import type { Rule } from 'antd/es/form';
 import {
@@ -169,6 +170,7 @@ const PreviewForm: React.FC<PreviewFormProps> = ({ fields, renderFieldPreview, g
 };
 
 export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) => {
+  const { token } = theme.useToken();
   const [editingField, setEditingField] = useState<FormField | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -484,7 +486,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                           size="small"
                           hoverable
                           style={{
-                            borderColor: dragOverFieldId === field.id ? '#1677ff' : undefined,
+                            borderColor: dragOverFieldId === field.id ? token.colorPrimary : undefined,
                             borderWidth: dragOverFieldId === field.id ? 2 : undefined,
                           }}
                         >
@@ -496,7 +498,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
                             }}
                           >
                             <Space>
-                              <DragOutlined style={{ color: '#999', cursor: 'move' }} />
+                              <DragOutlined style={{ color: token.colorTextSecondary, cursor: 'move' }} />
                               <div>
                                 <div style={{ fontWeight: 500 }}>{field.label}</div>
                                 <Space size={4}>
@@ -552,7 +554,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
               </span>
             ),
             children: (
-              <Card title="Preview do Formulário" style={{ backgroundColor: '#fafafa' }}>
+              <Card title="Preview do Formulário" style={{ backgroundColor: token.colorFillAlter }}>
                 {fields.length === 0 ? (
                   <Alert
                     message="Adicione campos no editor para ver o preview"

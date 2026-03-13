@@ -64,6 +64,14 @@
   border-radius: 8px;
 }
 
+.listItem:hover {
+  background: #fafafa;
+}
+
+:global(html[data-theme='dark']) .listItem:hover {
+  background: #1f1f1f;
+}
+
 .listMeta {
   flex: 1;
   min-width: 0;
@@ -81,6 +89,19 @@
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.listAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #eef2f7 0%, #e2e8f0 100%);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .listActions {

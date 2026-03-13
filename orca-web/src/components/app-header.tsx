@@ -10,9 +10,10 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth.context';
+import { useThemeMode } from '@/lib/contexts/theme.context';
 import { APP_NAME } from '@/lib/constants';
-import { Layout, Button, Avatar, Space, Dropdown, Badge } from 'antd';
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import { Layout, Button, Avatar, Space, Dropdown, Badge, theme } from 'antd';
+import { LogoutOutlined, UserOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
 const { Header } = Layout;
@@ -24,6 +25,9 @@ interface AppHeaderProps {
 export const AppHeader: React.FC<AppHeaderProps> = ({ centerContent }) => {
   const router = useRouter();
   const { user, logout, roles } = useAuth();
+  const { themeMode, toggleThemeMode } = useThemeMode();
+  const { token } = theme.useToken();
+  const isDarkMode = themeMode === 'dark';
 
   const handleLogout = () => {
     logout();
@@ -58,9 +62,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ centerContent }) => {
   return (
     <Header
       style={{
-        background: '#fff',
+        background: token.colorBgContainer,
         padding: '0 24px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        boxShadow: token.boxShadowSecondary,
         display: 'flex',
         alignItems: 'center',
       }}
@@ -90,14 +94,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ centerContent }) => {
 
       {/* User Info */}
       <Space align="center" size="middle">
+        <Button
+          type="text"
+          shape="circle"
+          size="large"
+          aria-label={isDarkMode ? 'Ativar tema claro' : 'Ativar tema escuro'}
+          icon={isDarkMode ? <SunOutlined /> : <MoonOutlined />}
+          onClick={toggleThemeMode}
+        />
         <div style={{ textAlign: 'right', lineHeight: '1.4' }}>
           <div style={{ fontSize: '14px', fontWeight: '500', margin: '0' }}>
             {user?.firstName || user?.username}
           </div>
-          <div style={{ fontSize: '12px', color: '#999', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', margin: '0' }}>
+          <div style={{ fontSize: '12px', color: token.colorTextSecondary, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', margin: '0' }}>
             <Badge
               count={roles?.length || 0}
-              style={{ backgroundColor: '#52c41a' }}
+              style={{ backgroundColor: token.colorSuccess }}
             />
             role{(roles?.length || 0) !== 1 ? 's' : ''}
           </div>

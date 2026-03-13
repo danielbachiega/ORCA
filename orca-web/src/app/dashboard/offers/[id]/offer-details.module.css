@@ -39,6 +39,23 @@
   word-wrap: break-word;
 }
 
+:global(html[data-theme='dark']) .descriptionCard {
+  color: #d9d9d9;
+}
+
+.offerImageFrame {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eef2f7 0%, #e2e8f0 100%);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
 
 .metadata {
   display: grid;
