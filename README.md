@@ -19,12 +19,21 @@ O ORCA é um sistema de **solicitação e execução de automações** onde:
 ### 🆕 Atualizações recentes (últimos commits)
 
 - Frontend: navegação por abas no header com permissões por perfil, incluindo melhorias em detalhes da oferta e requisição.
-- Frontend: busca adicionada em "Minhas Requisições" (oferta/ID/status) e em "Gerenciar Imagens" (nome/slug).
+- Frontend: busca em "Minhas Requisições" (oferta/ID/status) e em "Gerenciar Imagens" (nome/slug).
 - Catalog/Web: suporte a imagens em ofertas (upload/listagem/remoção e exibição em card/detalhe/solicitação).
 - Forms/Web: evolução do form builder com validação regex, visibilidade com boolean, reordenação de campos e melhorias de mapeamento.
 - Requests: inclusão do parâmetro `OfferName`.
 - Identity: login AD aceitando autenticação apenas com usuário.
 - Infra: ajuste de controle de logs para reduzir consumo de disco.
+- Orchestrator/Requests: sincronização de dados completos da execução na atualização de status da request.
+- UX/Navegação: padronização do fluxo de "Voltar" em requests, roles e tela de imagens.
+- Dashboard/Admin: melhorias nas ações do catálogo e padronização de navegação na gestão de imagens.
+- Orchestrator/UX: correção de tipo de recurso, substatus de execuções OO e link externo da execução.
+- Identity/Web: role `Consumer` padrão garantida e expiração real de sessão aplicada no frontend.
+- UI: dark mode com persistência no localStorage e padronização de contraste com tokens Ant Design.
+- UI: correção adicional de contraste no resumo de automação em modo escuro.
+- Catálogo: busca em campos de seleção, melhoria no filtro por tags e ocultação de ofertas inativas para usuário final.
+- Catálogo/Admin: ajuste de toggle de status de oferta para refletir corretamente visibilidade/ativação.
 
 ---
 
