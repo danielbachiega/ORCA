@@ -93,6 +93,12 @@ const normalizeVisibilityValue = (
 const normalizeStringComparison = (value: unknown): string =>
   String(value ?? '').trim().toLowerCase();
 
+const normalizeSelectSearchText = (value: unknown): string =>
+  String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
 // Componente para preview com suporte a visibilidade condicional
 interface PreviewFormProps {
   fields: FormField[];
@@ -316,7 +322,17 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({ fields, onChange }) =>
         return <Input.TextArea {...commonProps} rows={3} />;
       case 'select':
         return (
-          <Select {...commonProps} options={field.options} />
+          <Select
+            {...commonProps}
+            options={field.options}
+            showSearch
+            filterOption={(input, option) => {
+              const search = normalizeSelectSearchText(input);
+              const label = normalizeSelectSearchText(option?.label);
+              const optionValue = normalizeSelectSearchText(option?.value);
+              return label.includes(search) || optionValue.includes(search);
+            }}
+          />
         );
       case 'checkbox':
         return <Switch />;

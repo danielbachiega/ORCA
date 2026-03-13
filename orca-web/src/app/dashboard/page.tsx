@@ -45,6 +45,12 @@ const { Content } = Layout;
 type ViewMode = 'cards' | 'list' | 'tags';
 type DashboardTab = 'services' | 'manage';
 
+const normalizeSearchText = (value: unknown): string =>
+  String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -71,6 +77,19 @@ function DashboardContent() {
 
   const showRequestActionOnly = activeTab === 'services';
   const showDetailsActionOnly = activeTab === 'manage';
+
+  const isTagSelected = (tag: string): boolean =>
+    selectedTag !== null && normalizeSearchText(tag) === normalizeSearchText(selectedTag);
+
+  const handleTagFilterClick = (tag: string) => {
+    setSelectedTag((currentTag) => {
+      if (currentTag && normalizeSearchText(currentTag) === normalizeSearchText(tag)) {
+        return null;
+      }
+
+      return tag;
+    });
+  };
 
   // TanStack Query - Buscar ofertas baseado em roles
   const {
@@ -128,15 +147,25 @@ function DashboardContent() {
         return false;
       }
 
+      const normalizedSearch = normalizeSearchText(searchTerm);
+      const normalizedName = normalizeSearchText(offer.name);
+      const normalizedDescription = normalizeSearchText(offer.description);
+      const matchesTagSearch =
+        Array.isArray(offer.tags)
+        && offer.tags.some((tag) => normalizeSearchText(tag).includes(normalizedSearch));
+
       const matchesSearch =
         searchTerm === '' ||
-        offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (offer.description &&
-          offer.description.toLowerCase().includes(searchTerm.toLowerCase()));
+        normalizedName.includes(normalizedSearch) ||
+        normalizedDescription.includes(normalizedSearch) ||
+        matchesTagSearch;
 
       const matchesTag =
         selectedTag === null ||
-        (offer.tags && offer.tags.includes(selectedTag));
+        (Array.isArray(offer.tags)
+          && offer.tags.some(
+            (tag) => normalizeSearchText(tag) === normalizeSearchText(selectedTag),
+          ));
 
       return matchesSearch && matchesTag;
     });
@@ -204,7 +233,14 @@ function DashboardContent() {
         {offer.tags && offer.tags.length > 0 && (
           <Space size={4} wrap>
             {offer.tags.map((tag: string) => (
-              <Tag key={tag} onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}>
+              <Tag
+                key={tag}
+                color={isTagSelected(tag) ? 'blue' : undefined}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleTagFilterClick(tag);
+                }}
+              >
                 {tag}
               </Tag>
             ))}
@@ -289,7 +325,11 @@ function DashboardContent() {
                 {offer.tags.map((tag: string) => (
                   <Tag
                     key={tag}
-                    onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}
+                    color={isTagSelected(tag) ? 'blue' : undefined}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTagFilterClick(tag);
+                    }}
                   >
                     {tag}
                   </Tag>
@@ -398,13 +438,23 @@ function DashboardContent() {
               <Space style={{ width: '100%' }} size="large" direction="vertical">
                 {/* Barra de Busca */}
                 <Input
-                  placeholder="Buscar ofertas por nome ou descrição..."
+                  placeholder="Buscar ofertas por nome, descrição ou tag..."
                   prefix={<SearchOutlined />}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   allowClear
                   size="large"
                 />
+
+                {selectedTag && (
+                  <Space size={8} wrap>
+                    <span style={{ color: '#666' }}>Filtrando por tag:</span>
+                    <Tag color="blue">{selectedTag}</Tag>
+                    <Button size="small" onClick={() => setSelectedTag(null)}>
+                      Limpar filtro de tag
+                    </Button>
+                  </Space>
+                )}
 
                 {/* Modo de Visualização */}
                 <div>
@@ -435,7 +485,7 @@ function DashboardContent() {
                 </div>
 
                 {/* Resultado da Busca */}
-                {searchTerm && (
+                {(searchTerm || selectedTag) && (
                   <div style={{ color: '#666' }}>
                     Encontradas <strong>{filteredOffers.length}</strong> oferta(s)
                   </div>

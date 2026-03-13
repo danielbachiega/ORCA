@@ -81,6 +81,12 @@ const normalizeVisibilityValue = (
   return conditionValue;
 };
 
+const normalizeSelectSearchText = (value: unknown): string =>
+  String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
 // Componente para renderizar campos com visibilidade condicional
 function DynamicFormFields({ fields }: { fields: FormField[] }) {
   const form = Form.useFormInstance();
@@ -206,6 +212,13 @@ function DynamicFormFields({ fields }: { fields: FormField[] }) {
               <Select
                 placeholder={field.placeholder}
                 options={field.options}
+                showSearch
+                filterOption={(input, option) => {
+                  const search = normalizeSelectSearchText(input);
+                  const label = normalizeSelectSearchText(option?.label);
+                  const optionValue = normalizeSelectSearchText(option?.value);
+                  return label.includes(search) || optionValue.includes(search);
+                }}
               />
             </Form.Item>
           );
