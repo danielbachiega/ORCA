@@ -758,6 +758,9 @@ orca-web/                # Frontend Next.js
 ### Fase 1 — Ganho imediato (curto prazo)
 - [ ] **Baseline de SLOs e observabilidade**: definir p95/p99, taxa de erro e throughput por serviço (importante para priorizar otimizações com dados reais).
 - [ ] **API Gateway com YARP (MVP)**: centralizar roteamento, autenticação, rate limit, timeout e correlation-id (importante para reduzir acoplamento e aumentar governança).
+- [ ] **Módulo de Gerenciamento de VMs (MVP) — após YARP**: permitir listar VMs do usuário e executar ações de ligar, desligar, reiniciar, excluir e estender prazo (importante para entregar valor direto ao usuário com trilha de segurança/auditoria desde a entrada).
+- [ ] **Integração de ciclo de vida de VMs (vCenter + AWX)**: usar APIs do vCenter para operações de estado e AWX para remoção quando aplicável (importante para padronizar automação e manter aderência aos fluxos operacionais atuais).
+- [ ] **Expiração automática de VMs (lease/TTL)**: agendar verificação contínua e remover automaticamente VMs expiradas (importante para governança de capacidade e redução de custo operacional).
 - [ ] **Escala horizontal dos serviços stateless**: 2+ réplicas para APIs críticas com health checks (importante para manter disponibilidade em falha de nó).
 - [ ] **Redis compartilhado (cache/sessão)**: aplicar cache cirúrgico em catálogo, formulários publicados e permissões LDAP (importante para reduzir latência e carga no banco).
 
