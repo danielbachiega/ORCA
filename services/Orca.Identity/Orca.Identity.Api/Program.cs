@@ -59,6 +59,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<RequestObservabilityMiddleware>();
 // 1.5️⃣ Exception Handler Middleware
 app.UseExceptionHandler();
 

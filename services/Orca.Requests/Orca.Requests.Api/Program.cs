@@ -19,6 +19,7 @@ builder.Services.AddCors(o => o.AddPolicy("DevCors", p => p
     .AllowAnyHeader()
     .AllowAnyMethod()));
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRequestDtoValidator>();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddFluentValidationAutoValidation();
@@ -83,6 +84,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseRouting();
 app.UseCors("DevCors");
+app.UseMiddleware<RequestObservabilityMiddleware>();
 
 // Exception handling (ProblemDetails)
 app.UseExceptionHandler();

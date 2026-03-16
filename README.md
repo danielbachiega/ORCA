@@ -757,6 +757,13 @@ orca-web/                # Frontend Next.js
 
 ### Fase 1 — Ganho imediato (curto prazo)
 - [ ] **Baseline de SLOs e observabilidade**: definir p95/p99, taxa de erro e throughput por serviço (importante para priorizar otimizações com dados reais).
+- [ ] **Refatoração Clean Architecture (futuro, não agora)**:
+  - A base está boa para MVP, mas hoje a camada Application de Requests está acoplada ao transporte (publicação de evento direto via MassTransit em RequestService), o que fere um ponto central de Clean Architecture: regra de negócio não conhecer detalhe de infraestrutura.
+  - Também há indícios de primitive obsession com status (int/string mágicos), que vale atacar no próximo ciclo.
+  - Próximo passo recomendado (primeiro refactor didático):
+    - Objetivo: aplicar Dependency Inversion no fluxo de criação de request.
+    - Resultado: RequestService depende de uma porta (interface) e não mais de IPublishEndpoint.
+    - Benefício: teste unitário mais simples e troca de broker sem tocar no caso de uso.
 - [ ] **API Gateway com YARP (MVP)**: centralizar roteamento, autenticação, rate limit, timeout e correlation-id (importante para reduzir acoplamento e aumentar governança).
 - [ ] **Módulo de Gerenciamento de VMs (MVP) — após YARP**: permitir listar VMs do usuário e executar ações de ligar, desligar, reiniciar, excluir e estender prazo (importante para entregar valor direto ao usuário com trilha de segurança/auditoria desde a entrada).
 - [ ] **Integração de ciclo de vida de VMs (vCenter + AWX)**: usar APIs do vCenter para operações de estado e AWX para remoção quando aplicável (importante para padronizar automação e manter aderência aos fluxos operacionais atuais).

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Orca.Requests.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0ef4fcde6421c1f03c582f1aae77b9c9afaaae76")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+85f9eecfc81d37fc4d20a5fa13b98f0e53086132")]
 [assembly: System.Reflection.AssemblyProductAttribute("Orca.Requests.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Orca.Requests.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

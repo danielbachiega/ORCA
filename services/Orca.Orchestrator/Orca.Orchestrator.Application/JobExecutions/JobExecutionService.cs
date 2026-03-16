@@ -16,6 +16,7 @@ public class JobExecutionService : IJobExecutionService
     private readonly IAwxExecutionClient _awxClient;
     private readonly IOoExecutionClient _ooClient;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ConsumeContext? _consumeContext;
     private readonly ILogger<JobExecutionService> _logger;
     private readonly LaunchRetryOptions _retryOptions;
     
@@ -26,6 +27,7 @@ public class JobExecutionService : IJobExecutionService
         IAwxExecutionClient awxClient,
         IOoExecutionClient ooClient,
         IPublishEndpoint publishEndpoint,
+        ConsumeContext? consumeContext,
         ILogger<JobExecutionService> logger,
         IOptions<LaunchRetryOptions> retryOptions)
     {
@@ -33,6 +35,7 @@ public class JobExecutionService : IJobExecutionService
         _awxClient = awxClient ?? throw new ArgumentNullException(nameof(awxClient));
         _ooClient = ooClient ?? throw new ArgumentNullException(nameof(ooClient));
         _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
+        _consumeContext = consumeContext;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _retryOptions = retryOptions?.Value ?? throw new ArgumentNullException(nameof(retryOptions));
     }
@@ -222,16 +225,32 @@ public class JobExecutionService : IJobExecutionService
 
             if (string.IsNullOrWhiteSpace(execution.AwxOoJobId))
             {
+                if (execution.LaunchAttempts >= _retryOptions.MaxAttempts)
+                {
+                    _logger.LogWarning(
+                        "⏹️ JobExecutionId={JobExecutionId} sem ExecutionId e excedeu limite de relançamento ({Attempts})",
+                        execution.Id,
+                        execution.LaunchAttempts);
+
+                    execution.ExecutionStatus = "failed";
+                    execution.ErrorMessage = $"Falha ao disparar após {execution.LaunchAttempts} tentativas";
+                    execution.CompletedAtUtc = DateTime.UtcNow;
+                    await _repository.UpdateAsync(execution);
+
+                    await PublishStatusUpdateAsync(execution, "failed", null);
+                    continue;
+                }
+
+                execution.ExecutionStatus = "retry_pending";
+                execution.NextLaunchAttemptAtUtc ??= DateTime.UtcNow;
+
                 _logger.LogWarning(
-                    "⚠️ JobExecutionId={JobExecutionId} sem ExecutionId para polling",
-                    execution.Id);
+                    "⚠️ JobExecutionId={JobExecutionId} sem ExecutionId. Reagendando relançamento (AttemptAtual={AttemptAtual}, Max={MaxAttempts})",
+                    execution.Id,
+                    execution.LaunchAttempts,
+                    _retryOptions.MaxAttempts);
 
-                execution.ExecutionStatus = "failed";
-                execution.ErrorMessage = "Sem ExecutionId para polling (falha no disparo)";
-                execution.CompletedAtUtc = DateTime.UtcNow;
                 await _repository.UpdateAsync(execution);
-
-                await PublishStatusUpdateAsync(execution, "failed", null);
                 continue;
             }
 
@@ -328,9 +347,27 @@ public class JobExecutionService : IJobExecutionService
         string status,
         int? resultType)
     {
+        var correlationId = execution.RequestId;
+        var correlationIdText = correlationId.ToString("N");
+
+        if (_consumeContext is not null)
+        {
+            try
+            {
+                correlationId = _consumeContext.CorrelationId ?? execution.RequestId;
+                correlationIdText = _consumeContext.Headers.Get<string>("X-Correlation-Id")
+                    ?? correlationId.ToString("N");
+            }
+            catch (ConsumeContextNotAvailableException)
+            {
+                correlationId = execution.RequestId;
+                correlationIdText = correlationId.ToString("N");
+            }
+        }
+
         _logger.LogInformation(
-            "📨 PublishStatusUpdateAsync RequestId={RequestId} Status={Status}",
-            execution.RequestId, status);
+            "📨 PublishStatusUpdateAsync RequestId={RequestId} Status={Status} CorrelationId={CorrelationId}",
+            execution.RequestId, status, correlationIdText);
 
         var requestStatus = status switch
         {
@@ -349,9 +386,16 @@ public class JobExecutionService : IJobExecutionService
             ExecutionId = execution.AwxOoJobId?.ToString(),
             ErrorMessage = execution.ErrorMessage,
             UpdatedAtUtc = DateTime.UtcNow
+        }, publishContext =>
+        {
+            publishContext.CorrelationId = correlationId;
+            publishContext.Headers.Set("X-Correlation-Id", correlationIdText);
         });
 
-        _logger.LogInformation("✅ Evento publicado para RequestId={RequestId}", execution.RequestId);
+        _logger.LogInformation(
+            "✅ Evento publicado para RequestId={RequestId} CorrelationId={CorrelationId}",
+            execution.RequestId,
+            correlationIdText);
     }
 
     public async Task<JobExecution?> GetJobExecutionAsync(Guid jobExecutionId)

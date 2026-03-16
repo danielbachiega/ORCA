@@ -10,6 +10,7 @@ using Orca.Orchestrator.Application.Workers;
 using Orca.Orchestrator.Application.Clients;
 using Orca.SharedContracts.Events;
 using Microsoft.AspNetCore.Builder;
+using Orca.Orchestrator.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +25,6 @@ builder.Services.Configure<LaunchRetryOptions>(
 builder.Services.AddScoped<IJobExecutionService, JobExecutionService>();
 
 var allowInvalidSsl = builder.Configuration.GetValue<bool>("ExternalServices:AllowInvalidSsl");
-
 builder.Services.AddHttpClient<AwxClient>()
     .ConfigureHttpClient(client =>
     {
@@ -115,6 +115,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 //  MIDDLEWARE
+
+app.UseMiddleware<RequestObservabilityMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

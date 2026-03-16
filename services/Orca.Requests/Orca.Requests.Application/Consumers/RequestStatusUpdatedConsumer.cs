@@ -21,10 +21,13 @@ public class RequestStatusUpdatedConsumer : IConsumer<RequestStatusUpdatedEvent>
     public async Task Consume(ConsumeContext<RequestStatusUpdatedEvent> context)
     {
         var message = context.Message;
+        var correlationId = context.CorrelationId?.ToString()
+            ?? context.Headers.Get<string>("X-Correlation-Id")
+            ?? "(none)";
         
         _logger.LogInformation(
-            "📨 RequestStatusUpdatedConsumer recebeu evento: RequestId={RequestId}, Status={Status}",
-            message.RequestId, message.Status);
+            "📨 RequestStatusUpdatedConsumer recebeu evento: RequestId={RequestId}, Status={Status}, CorrelationId={CorrelationId}",
+            message.RequestId, message.Status, correlationId);
 
         try
         {
@@ -42,14 +45,14 @@ public class RequestStatusUpdatedConsumer : IConsumer<RequestStatusUpdatedEvent>
             );
 
             _logger.LogInformation(
-                "✅ Request {RequestId} atualizado para status {Status}",
-                message.RequestId, message.Status);
+                "✅ Request {RequestId} atualizado para status {Status} (CorrelationId={CorrelationId})",
+                message.RequestId, message.Status, correlationId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "❌ Erro ao processar RequestStatusUpdatedEvent para RequestId={RequestId}",
-                message.RequestId);
+                "❌ Erro ao processar RequestStatusUpdatedEvent para RequestId={RequestId} (CorrelationId={CorrelationId})",
+                message.RequestId, correlationId);
             
             // Não relançar - permitir que mensagem seja marcada como processada
             // (evita loop infinito se o Request não existir)

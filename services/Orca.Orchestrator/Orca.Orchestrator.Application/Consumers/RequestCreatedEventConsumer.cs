@@ -21,10 +21,13 @@ public class RequestCreatedEventConsumer : IConsumer<RequestCreatedEvent>
     public async Task Consume(ConsumeContext<RequestCreatedEvent> context)
     {
         var @event = context.Message;
+        var correlationId = context.CorrelationId?.ToString()
+            ?? context.Headers.Get<string>("X-Correlation-Id")
+            ?? "(none)";
 
         _logger.LogInformation(
-            "📨 RequestCreatedEvent consumido. RequestId={RequestId} TargetType={TargetType}",
-            @event.RequestId, @event.ExecutionTargetType);
+            "📨 RequestCreatedEvent consumido. RequestId={RequestId} TargetType={TargetType} CorrelationId={CorrelationId}",
+            @event.RequestId, @event.ExecutionTargetType, correlationId);
 
         try
         {
@@ -37,23 +40,34 @@ public class RequestCreatedEventConsumer : IConsumer<RequestCreatedEvent>
                 @event.FormData);
 
             _logger.LogInformation(
-                "✅ JobExecution criada. Id={JobExecutionId}",
-                jobExecution.Id);
+                "✅ JobExecution criada. Id={JobExecutionId} CorrelationId={CorrelationId}",
+                jobExecution.Id, correlationId);
 
             // 🚀 Dispara para AWX/OO
             var (executionId, payload, response) = await _jobExecutionService.SendToAwxOoAsync(
                 jobExecution,
                 @event.FormData);
 
-            _logger.LogInformation(
-                "✅ Execução disparada com sucesso. ExecutionId={ExecutionId}",
-                executionId);
+            if (string.IsNullOrWhiteSpace(executionId))
+            {
+                _logger.LogWarning(
+                    "⚠️ Disparo não retornou ExecutionId. JobExecutionId={JobExecutionId} entrou em retry_pending. CorrelationId={CorrelationId}",
+                    jobExecution.Id,
+                    correlationId);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "✅ Execução disparada com sucesso. ExecutionId={ExecutionId} CorrelationId={CorrelationId}",
+                    executionId,
+                    correlationId);
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "❌ Erro ao processar RequestCreatedEvent para RequestId={RequestId}",
-                @event.RequestId);
+                "❌ Erro ao processar RequestCreatedEvent para RequestId={RequestId} (CorrelationId={CorrelationId})",
+                @event.RequestId, correlationId);
             
             // NÃO relança exceção - RabbitMQ não fará retry
             // A execução fica como "pending" e será retentada pelo PollingWorker

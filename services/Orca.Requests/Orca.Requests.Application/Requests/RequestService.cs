@@ -3,6 +3,7 @@ using Orca.Requests.Domain.Repositories;
 using MassTransit;
 using Orca.SharedContracts.Events;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace Orca.Requests.Application.Requests;
 
@@ -13,19 +14,22 @@ public class RequestService : IRequestService
     private readonly IValidator<UpdateRequestDto> _updateValidator;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<RequestService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public RequestService(
         IRequestRepository repository,
         IValidator<CreateRequestDto> createValidator,
         IValidator<UpdateRequestDto> updateValidator,
         IPublishEndpoint publishEndpoint,
-        ILogger<RequestService> logger)
+        ILogger<RequestService> logger,
+        IHttpContextAccessor httpContextAccessor)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
         _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
         _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint)); 
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     }
 
     public async Task<IEnumerable<RequestSummaryDto>> GetAllAsync()
@@ -65,7 +69,27 @@ public class RequestService : IRequestService
         var entity = dto.ToEntity();
         var created = await _repository.CreateAsync(entity);
 
-        _logger.LogInformation("[MassTransit] Publicando RequestCreatedEvent para RequestId={RequestId}", created.Id);
+        var httpContext = _httpContextAccessor.HttpContext;
+
+        var correlationIdText = httpContext?.Request.Headers["X-Correlation-Id"].ToString();
+        if (string.IsNullOrWhiteSpace(correlationIdText))
+        {
+            correlationIdText = httpContext?.Response.Headers["X-Correlation-Id"].ToString();
+        }
+
+        if (string.IsNullOrWhiteSpace(correlationIdText))
+        {
+            correlationIdText = created.Id.ToString("N");
+        }
+
+        var parsedCorrelationId = Guid.TryParse(correlationIdText, out var correlationGuid)
+            ? correlationGuid
+            : created.Id;
+
+        _logger.LogInformation(
+            "[MassTransit] Publicando RequestCreatedEvent para RequestId={RequestId} CorrelationId={CorrelationId}",
+            created.Id,
+            correlationIdText);
 
         // ✨ PUBLICA EVENTO NO RABBITMQ
         await _publishEndpoint.Publish(new RequestCreatedEvent
@@ -80,9 +104,16 @@ public class RequestService : IRequestService
             UserId = created.UserId,
             FormData = created.FormData,
             CreatedAtUtc = created.CreatedAtUtc
+        }, publishContext =>
+        {
+            publishContext.CorrelationId = parsedCorrelationId;
+            publishContext.Headers.Set("X-Correlation-Id", correlationIdText);
         });
 
-        _logger.LogInformation("[MassTransit] Evento publicado com sucesso para RequestId={RequestId}", created.Id);
+        _logger.LogInformation(
+            "[MassTransit] Evento publicado com sucesso para RequestId={RequestId} CorrelationId={CorrelationId}",
+            created.Id,
+            correlationIdText);
         
 
         return created.ToDetailsDto();
