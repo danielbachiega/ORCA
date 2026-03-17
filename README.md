@@ -64,6 +64,7 @@ O ORCA é um sistema de **solicitação e execução de automações** onde:
 | **Identity** | 5002 | **Autenticação OIDC, LDAP, mapeamento dinâmico de roles** | ✅ **Completo** |
 | **Requests** | 5004 | Gestão de solicitações, histórico, eventos | ✅ **Completo** |
 | **Orchestrator** | 5005 | **Disparo em AWX/OO**, polling, retry com backoff, tracking | ✅ **Completo** |
+| **Gateway (YARP)** | 5000 | Ponto único de entrada, validação JWT, roteamento e Swagger agregada | ✅ **Completo (MVP)** |
 | **SharedContracts** | — | Definições de eventos compartilhados (Message Contracts) | ✅ Disponível |
 | **Frontend (Web)** | 3000 | Next.js - Dashboard, gerenciamento de ofertas e requisições | ✅ **Completo (MVP)** |
 
@@ -378,16 +379,13 @@ podman-compose logs -f orchestrator-api
 podman-compose down
 ```
 
-**Endpoints disponíveis:**
-- Catalog: http://localhost:5001/swagger
-- Identity: http://localhost:5002/swagger 
-- Forms: http://localhost:5003/swagger
-
-- Requests: http://localhost:5004/swagger
-
-- Orchestrator: http://localhost:5005/swagger 
+**Endpoints disponíveis (host):**
+- Gateway: http://localhost:5000
+- Swagger do Gateway (protegida por JWT): http://localhost:5000/swagger
 - Frontend: http://localhost:3000
 - RabbitMQ: http://localhost:15672 (guest/guest)
+
+> As APIs internas (Catalog, Identity, Forms, Requests e Orchestrator) não ficam mais expostas diretamente no host; o acesso externo deve ser via Gateway.
 
 ---
 
@@ -412,9 +410,9 @@ O Identity Service já vem com um **usuário administrativo padrão**:
 #   "sub": "superadmin"
 # }
 
-curl -X POST http://localhost:5002/api/auth/login \
+curl -X POST http://localhost:5000/api/identity/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"idToken": "seu-jwt-aqui"}'
+  -d '{"username": "admin", "password": "admin321"}'
 ```
 
 Você receberá um `sessionToken` para usar nas próximas requisições.
@@ -702,7 +700,7 @@ Para dúvidas ou problemas:
 
 ## 🏗️ Arquitetura — Visão Geral
 
-* **API Gateway (YARP):** Planejado (não presente no repositório atual).
+* **API Gateway (YARP):** Implementado no MVP como ponto único de entrada.
 * **Identity/RBAC Service:** No ato do login, consulta o **Windows AD via LDAP**, resolve os grupos do usuário e mapeia para as Roles internas do ORCA.
 * **Orchestrator Service:** * Processa o mapeamento de dados e dispara chamadas REST (Basic Auth) para AWX/OO.
     * **Monitoramento:** Realiza **polling de 5 em 5 segundos** para atualizar o status da execução.
@@ -764,7 +762,7 @@ orca-web/                # Frontend Next.js
     - Objetivo: aplicar Dependency Inversion no fluxo de criação de request.
     - Resultado: RequestService depende de uma porta (interface) e não mais de IPublishEndpoint.
     - Benefício: teste unitário mais simples e troca de broker sem tocar no caso de uso.
-- [ ] **API Gateway com YARP (MVP)**: centralizar roteamento, autenticação, rate limit, timeout e correlation-id (importante para reduzir acoplamento e aumentar governança).
+- [x] **API Gateway com YARP (MVP)**: roteamento centralizado, validação JWT no gateway, Swagger agregada e controle de acesso via ponto único.
 - [ ] **Módulo de Gerenciamento de VMs (MVP) — após YARP**: permitir listar VMs do usuário e executar ações de ligar, desligar, reiniciar, excluir e estender prazo (importante para entregar valor direto ao usuário com trilha de segurança/auditoria desde a entrada).
 - [ ] **Integração de ciclo de vida de VMs (vCenter + AWX)**: usar APIs do vCenter para operações de estado e AWX para remoção quando aplicável (importante para padronizar automação e manter aderência aos fluxos operacionais atuais).
 - [ ] **Expiração automática de VMs (lease/TTL)**: agendar verificação contínua e remover automaticamente VMs expiradas (importante para governança de capacidade e redução de custo operacional).

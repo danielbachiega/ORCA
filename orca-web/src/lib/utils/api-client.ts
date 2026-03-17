@@ -2,8 +2,8 @@
  * HTTP CLIENT ABSTRATO
  * 
  * PORQUÊ ABSTRATO?
- * Hoje: chamadas diretas aos microserviços (localhost:5001, localhost:5002, etc)
- * Amanhã: Gateway/BFF (localhost:3000/api)
+ * Hoje: chamadas via Gateway/BFF (localhost:5000/api)
+ * Amanhã: qualquer mudança de roteamento centralizada nas constantes
  * 
  * Mudando AQUI = mudando em 1 arquivo, não em 50 componentes!
  * 
@@ -34,8 +34,10 @@ export interface ApiResponse<T> {
  */
 export class ApiClient {
   private axiosInstance: AxiosInstance;
+  private baseURL: string;
 
   constructor(config: ApiClientConfig) {
+    this.baseURL = config.baseURL;
     this.axiosInstance = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout || 30000,
@@ -71,7 +73,7 @@ export class ApiClient {
    */
   async get<T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.axiosInstance.get<T>(endpoint, config);
+      const response = await this.axiosInstance.get<T>(this.normalizeEndpoint(endpoint), config);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -87,7 +89,7 @@ export class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await this.axiosInstance.post<T>(endpoint, data, config);
+      const response = await this.axiosInstance.post<T>(this.normalizeEndpoint(endpoint), data, config);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -103,7 +105,7 @@ export class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await this.axiosInstance.put<T>(endpoint, data, config);
+      const response = await this.axiosInstance.put<T>(this.normalizeEndpoint(endpoint), data, config);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -115,7 +117,7 @@ export class ApiClient {
    */
   async delete<T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.axiosInstance.delete<T>(endpoint, config);
+      const response = await this.axiosInstance.delete<T>(this.normalizeEndpoint(endpoint), config);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -193,5 +195,13 @@ export class ApiClient {
       // Trigger a custom event que o AuthContext escuta
       window.dispatchEvent(new Event('auth:unauthorized'));
     }
+  }
+
+  private normalizeEndpoint(endpoint: string): string {
+    if (this.baseURL.includes('/api/') && endpoint.startsWith('/api/')) {
+      return endpoint.slice(4);
+    }
+
+    return endpoint;
   }
 }

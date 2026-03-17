@@ -80,8 +80,6 @@ services:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_catalog
       RabbitMq__Host: rabbitmq
       Redis__ConnectionString: redis:6379
-    ports:
-      - "5001:5001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -130,6 +128,9 @@ services:
       ASPNETCORE_URLS: http://+:5002
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_identity
       RabbitMq__Host: rabbitmq
+      Jwt__SecretKey: ${ORCA_JWT_SECRET_KEY:-super-secret-key-change-in-production-minimum-32-characters}
+      Jwt__Issuer: ${ORCA_JWT_ISSUER:-Orca.Identity}
+      Jwt__Audience: ${ORCA_JWT_AUDIENCE:-Orca.API}
       # Configurações LDAP/Active Directory
       Ldap__UseMockMode: ${LDAP_USE_MOCK_MODE:-false}
       Ldap__Host: ${LDAP_HOST:-10.100.12.20}
@@ -145,8 +146,6 @@ services:
       Ldap__GroupAttribute: ${LDAP_GROUP_ATTR:-memberOf}
       Ldap__LocalSuperAdminPassword: ${LOCAL_SUPERADMIN_PASSWORD:-superadmin1234}
       Ldap__LocalAdminPassword: ${LOCAL_ADMIN_PASSWORD:-admin321}
-    ports:
-      - "5002:5002"
     depends_on:
       postgres:
         condition: service_healthy
@@ -171,8 +170,6 @@ services:
       ASPNETCORE_URLS: http://+:5003
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_forms
       RabbitMq__Host: rabbitmq
-    ports:
-      - "5003:5003"
     depends_on:
       postgres:
         condition: service_healthy
@@ -197,8 +194,6 @@ services:
       ASPNETCORE_URLS: http://+:5004
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Username=orca;Password=orca123;Database=orca_requests
       RabbitMq__Host: rabbitmq
-    ports:
-      - "5004:5004"
     depends_on:
       postgres:
         condition: service_healthy
@@ -236,13 +231,39 @@ services:
       ExternalServices__OoBaseUrl: ${OO_HOST:-https://oo.example1.com}
       ExternalServices__OoUsername: ${OO_USERNAME:-admin}
       ExternalServices__OoPassword: ${OO_PASSWORD:-password}
-    ports:
-      - "5005:5005"
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    networks:
+      - orca-network
+
+  gateway-api:
+    build:
+      context: .
+      dockerfile: services/Orca.Gateway/Orca.Gateway.Api/Orca.Gateway.Api/Dockerfile
+    container_name: orca-gateway-api
+    restart: unless-stopped
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+      Jwt__Issuer: ${ORCA_JWT_ISSUER:-Orca.Identity}
+      Jwt__Audience: ${ORCA_JWT_AUDIENCE:-Orca.API}
+      Jwt__SecretKey: ${ORCA_JWT_SECRET_KEY:-super-secret-key-change-in-production-minimum-32-characters}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - catalog-api
+      - identity-api
+      - forms-api
+      - requests-api
+      - orchestrator-api
     networks:
       - orca-network
   
@@ -254,11 +275,7 @@ services:
         http_proxy: ${http_proxy}
         https_proxy: ${https_proxy}
         no_proxy: ${no_proxy}
-        NEXT_PUBLIC_IDENTITY_API: http://127.0.0.1:5002
-        NEXT_PUBLIC_CATALOG_API: http://localhost:5001
-        NEXT_PUBLIC_FORMS_API: http://localhost:5003
-        NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
-        NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
+        NEXT_PUBLIC_GATEWAY_API: http://localhost:5000/api
         NEXT_PUBLIC_AWX_BASE_URL: ${AWX_HOST:-https://awx.example1.com}
         NEXT_PUBLIC_OO_BASE_URL: ${OO_HOST:-https://oo.example1.com}
         NEXT_PUBLIC_APP_NAME: ${APP_NAME:-B.O.L.T.}
@@ -274,11 +291,7 @@ services:
       http_proxy: ${http_proxy}
       https_proxy: ${https_proxy}
       no_proxy: ${no_proxy}
-      NEXT_PUBLIC_IDENTITY_API: http://127.0.0.1:5002
-      NEXT_PUBLIC_CATALOG_API: http://localhost:5001
-      NEXT_PUBLIC_FORMS_API: http://localhost:5003
-      NEXT_PUBLIC_REQUESTS_API: http://localhost:5004
-      NEXT_PUBLIC_ORCHESTRATOR_API: http://localhost:5005
+      NEXT_PUBLIC_GATEWAY_API: http://localhost:5000/api
       NEXT_PUBLIC_AWX_BASE_URL: ${AWX_HOST:-https://awx.example1.com}
       NEXT_PUBLIC_OO_BASE_URL: ${OO_HOST:-https://oo.example1.com}
       NEXT_PUBLIC_APP_NAME: ${APP_NAME:-B.O.L.T.}
@@ -286,6 +299,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
+      - gateway-api
       - catalog-api
       - identity-api
       - forms-api

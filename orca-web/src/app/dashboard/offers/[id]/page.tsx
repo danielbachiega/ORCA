@@ -23,6 +23,7 @@ import { ExecutionTemplateModal } from '@/components/execution-template-modal';
 import type { FormField } from '@/components/form-builder';
 import { useAuth } from '@/lib/contexts/auth.context';
 import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
+import { API_CONFIG, TOKEN_STORAGE_KEY } from '@/lib/constants';
 import {
   Layout,
   Card,
@@ -69,8 +70,26 @@ function OfferDetailsContent() {
   const [modalLoading, setModalLoading] = useState(false);
   const [automationModalVisible, setAutomationModalVisible] = useState(false);
   const [automationFormId, setAutomationFormId] = useState<string | null>(null);
-  const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
+  const formsApiBase = API_CONFIG.FORMS;
   const { token } = theme.useToken();
+
+  const getAuthHeaders = (includeJsonContentType = false): HeadersInit => {
+    const authToken = typeof window !== 'undefined'
+      ? localStorage.getItem(TOKEN_STORAGE_KEY)
+      : null;
+
+    const headers: Record<string, string> = {};
+
+    if (includeJsonContentType) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`;
+    }
+
+    return headers;
+  };
 
   const isAdmin = roles && roles.length > 0 && roles.some((r) =>
     r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'superadmin'
@@ -121,7 +140,10 @@ function OfferDetailsContent() {
     queryKey: ['forms', offerId],
     queryFn: async () => {
       const response = await fetch(
-        `${formsApiBase}/api/form-definitions/offer/${offerId}`
+        `${formsApiBase}/form-definitions/offer/${offerId}`,
+        {
+          headers: getAuthHeaders(),
+        }
       );
       if (!response.ok) throw new Error('Erro ao buscar formulários');
       return response.json();
@@ -132,8 +154,11 @@ function OfferDetailsContent() {
   const publishMutation = useMutation({
     mutationFn: async (formId: string) => {
       const response = await fetch(
-        `${formsApiBase}/api/form-definitions/${formId}/publish`,
-        { method: 'POST' }
+        `${formsApiBase}/form-definitions/${formId}/publish`,
+        {
+          method: 'POST',
+          headers: getAuthHeaders(),
+        }
       );
       if (!response.ok) throw new Error('Erro ao publicar formulário');
       if (response.status === 204) return null;
@@ -148,10 +173,14 @@ function OfferDetailsContent() {
   const deleteMutation = useMutation({
     mutationFn: async (formId: string) => {
       const response = await fetch(
-        `${formsApiBase}/api/form-definitions/${formId}`,
-        { method: 'DELETE' }
+        `${formsApiBase}/form-definitions/${formId}`,
+        {
+          method: 'DELETE',
+          headers: getAuthHeaders(),
+        }
       );
       if (!response.ok) throw new Error('Erro ao deletar formulário');
+      if (response.status === 204) return null;
       return response.json();
     },
     onSuccess: () => {
@@ -248,7 +277,10 @@ function OfferDetailsContent() {
     try {
       setModalLoading(true);
       const response = await fetch(
-        `${formsApiBase}/api/form-definitions/${formDef.id}`
+        `${formsApiBase}/form-definitions/${formDef.id}`,
+        {
+          headers: getAuthHeaders(),
+        }
       );
       if (!response.ok) throw new Error('Erro ao carregar formulário');
       const details = await response.json();

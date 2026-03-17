@@ -1,0 +1,45 @@
+@gatewayHost = http://localhost:5000
+@username = admin
+@password = admin321
+@sessionToken = COLE_AQUI_O_SESSION_TOKEN
+
+### Health check (público)
+GET {{gatewayHost}}/health
+Accept: application/json
+
+###
+
+### Login (público) - captura sessionToken
+# @name gatewayLogin
+POST {{gatewayHost}}/api/identity/auth/login
+Content-Type: application/json
+
+{
+	"username": "{{username}}",
+	"password": "{{password}}"
+}
+
+###
+
+### Swagger UI sem token (esperado: 401)
+GET {{gatewayHost}}/swagger/index.html
+
+###
+
+### Swagger JSON sem token (esperado: 401)
+GET {{gatewayHost}}/swagger/catalog/swagger.json
+Accept: application/json
+
+###
+
+### Swagger JSON com token (esperado: 200)
+GET {{gatewayHost}}/swagger/catalog/swagger.json
+Accept: application/json
+Authorization: Bearer {{sessionToken}}
+
+###
+
+### Swagger Orchestrator com token (esperado: 200)
+GET {{gatewayHost}}/swagger/orchestrator/swagger.json
+Accept: application/json
+Authorization: Bearer {{sessionToken}}

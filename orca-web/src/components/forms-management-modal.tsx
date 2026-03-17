@@ -16,6 +16,7 @@ import {
 } from 'antd';
 import { useMutation } from '@tanstack/react-query';
 import { FormBuilder, type FormField } from './form-builder';
+import { API_CONFIG, TOKEN_STORAGE_KEY } from '@/lib/constants';
 
 interface FormsManagementModalProps {
   visible: boolean;
@@ -46,10 +47,28 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
   isLoading = false,
   onSaved,
 }) => {
-  const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
+  const formsApiBase = API_CONFIG.FORMS;
   const isEditing = mode === 'edit' && Boolean(editingFormId);
   const currentVersion = editingFormVersion ?? nextVersion ?? 1;
   const currentIsPublished = editingIsPublished ?? false;
+
+  const getAuthHeaders = (includeJsonContentType = false): HeadersInit => {
+    const token = typeof window !== 'undefined'
+      ? localStorage.getItem(TOKEN_STORAGE_KEY)
+      : null;
+
+    const headers: Record<string, string> = {};
+
+    if (includeJsonContentType) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+  };
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -70,10 +89,10 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
       });
 
       const response = await fetch(
-        `${formsApiBase}/api/form-definitions`,
+        `${formsApiBase}/form-definitions`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(true),
           body: JSON.stringify({
             offerId,
             version: nextVersion,
@@ -114,10 +133,10 @@ export const FormsManagementModal: React.FC<FormsManagementModalProps> = ({
       });
 
       const response = await fetch(
-        `${formsApiBase}/api/form-definitions/${editingFormId}`,
+        `${formsApiBase}/form-definitions/${editingFormId}`,
         {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(true),
           body: JSON.stringify({
             id: editingFormId,
             offerId,

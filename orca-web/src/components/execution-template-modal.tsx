@@ -23,6 +23,7 @@ import {
 } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { API_CONFIG, TOKEN_STORAGE_KEY } from '@/lib/constants';
 
 interface FieldMappingFormValue {
   payloadFieldName: string;
@@ -53,15 +54,36 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
   const [form] = Form.useForm();
   const { token } = theme.useToken();
   const queryClient = useQueryClient();
-  const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
+  const formsApiBase = API_CONFIG.FORMS;
   const watchedFieldMappings = Form.useWatch('fieldMappings', form) as FieldMappingFormValue[] | undefined;
+
+  const getAuthHeaders = (includeJsonContentType = false): HeadersInit => {
+    const token = typeof window !== 'undefined'
+      ? localStorage.getItem(TOKEN_STORAGE_KEY)
+      : null;
+
+    const headers: Record<string, string> = {};
+
+    if (includeJsonContentType) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+  };
 
   // Buscar campos do formulário
   const { data: formDefinition, isLoading: formLoading } = useQuery({
     queryKey: ['form-definition', formDefinitionId],
     queryFn: async () => {
       const response = await fetch(
-        `${formsApiBase}/api/form-definitions/${formDefinitionId}`
+        `${formsApiBase}/form-definitions/${formDefinitionId}`,
+        {
+          headers: getAuthHeaders(),
+        }
       );
       if (!response.ok) throw new Error('Erro ao carregar formulário');
       return response.json();
@@ -89,7 +111,10 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
     queryKey: ['execution-template', formDefinitionId],
     queryFn: async () => {
       const response = await fetch(
-        `${formsApiBase}/api/execution-templates/form-definition/${formDefinitionId}`
+        `${formsApiBase}/execution-templates/form-definition/${formDefinitionId}`,
+        {
+          headers: getAuthHeaders(),
+        }
       );
       if (response.status === 404) return null;
       if (!response.ok) throw new Error('Erro ao carregar automação');
@@ -127,9 +152,9 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
 
       console.log('📤 Enviando ExecutionTemplate:', payload);
 
-      const response = await fetch(`${formsApiBase}/api/execution-templates`, {
+      const response = await fetch(`${formsApiBase}/execution-templates`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(true),
         body: JSON.stringify(payload),
       });
       if (!response.ok) {
@@ -171,10 +196,10 @@ export const ExecutionTemplateModal: React.FC<ExecutionTemplateModalProps> = ({
       console.log('📤 Atualizando ExecutionTemplate:', payload);
 
       const response = await fetch(
-        `${formsApiBase}/api/execution-templates/${existingTemplate.id}`,
+        `${formsApiBase}/execution-templates/${existingTemplate.id}`,
         {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(true),
           body: JSON.stringify(payload),
         }
       );

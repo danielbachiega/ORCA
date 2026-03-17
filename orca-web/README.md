@@ -184,7 +184,7 @@ npm install
 
 # Configure variáveis de ambiente
 # Use o arquivo raiz .env.example como referência e crie orca-web/.env.local
-# com as URLs dos microserviços
+# com a URL base do gateway
 
 # Execute em desenvolvimento
 npm run dev
@@ -204,11 +204,7 @@ npm run start
 ```bash
 docker build -t orca-web .
 docker run -p 3000:3000 \
-  -e NEXT_PUBLIC_IDENTITY_API=http://localhost:5002 \
-  -e NEXT_PUBLIC_CATALOG_API=http://localhost:5001 \
-  -e NEXT_PUBLIC_FORMS_API=http://localhost:5003 \
-  -e NEXT_PUBLIC_REQUESTS_API=http://localhost:5004 \
-  -e NEXT_PUBLIC_ORCHESTRATOR_API=http://localhost:5005 \
+  -e NEXT_PUBLIC_GATEWAY_API=http://localhost:5000/api \
   orca-web
 ```
 
@@ -277,12 +273,8 @@ Para guias detalhados, consulte:
 ## 🌐 Environment Variables
 
 ```bash
-# APIs Backend
-NEXT_PUBLIC_IDENTITY_API=http://localhost:5002
-NEXT_PUBLIC_CATALOG_API=http://localhost:5001
-NEXT_PUBLIC_FORMS_API=http://localhost:5003
-NEXT_PUBLIC_REQUESTS_API=http://localhost:5004
-NEXT_PUBLIC_ORCHESTRATOR_API=http://localhost:5005
+# API Gateway (ponto único)
+NEXT_PUBLIC_GATEWAY_API=http://localhost:5000/api
 ```
 
 ## 🧪 Testes
@@ -297,6 +289,7 @@ npm run build
 
 ## 📖 Links Relacionados
 
+- [Gateway API](../services/Orca.Gateway/README.md)
 - [Backend Identity Service](../services/Orca.Identity/README.md)
 - [Backend Catalog Service](../services/Orca.Catalog/README.md)
 - [Backend Requests Service](../services/Orca.Requests/README.md)

@@ -19,6 +19,7 @@ import { AppHeader } from '@/components/app-header';
 import { DashboardHeaderTabs } from '@/components/dashboard-header-tabs';
 import { useAuth } from '@/lib/contexts/auth.context';
 import type { FormField } from '@/components/form-builder';
+import { API_CONFIG, TOKEN_STORAGE_KEY } from '@/lib/constants';
 import { resolveImageAssetUrl } from '@/lib/utils/image-assets';
 import {
   Layout,
@@ -275,7 +276,21 @@ function RequestFormContent() {
   const { user, roles } = useAuth();
   const [form] = Form.useForm();
   const [formData, setFormData] = useState<Record<string, unknown>>({});
-  const formsApiBase = process.env.NEXT_PUBLIC_FORMS_API ?? 'http://localhost:5003';
+  const formsApiBase = API_CONFIG.FORMS;
+
+  const getAuthHeaders = (): HeadersInit => {
+    const token = typeof window !== 'undefined'
+      ? localStorage.getItem(TOKEN_STORAGE_KEY)
+      : null;
+
+    if (!token) {
+      return {};
+    }
+
+    return {
+      Authorization: `Bearer ${token}`,
+    };
+  };
 
   // Buscar detalhes da oferta
   const {
@@ -323,10 +338,12 @@ function RequestFormContent() {
       console.log('🔍 Buscando formulário publicado para oferta:', offer.id);
       console.log('📍 Forms API Base:', formsApiBase);
       
-      const url = `${formsApiBase}/api/form-definitions/offer/${offer.id}/published`;
+      const url = `${formsApiBase}/form-definitions/offer/${offer.id}/published`;
       console.log('🌐 URL completa:', url);
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getAuthHeaders(),
+      });
       
       console.log('📡 Response status:', response.status);
       console.log('📡 Response ok:', response.ok);

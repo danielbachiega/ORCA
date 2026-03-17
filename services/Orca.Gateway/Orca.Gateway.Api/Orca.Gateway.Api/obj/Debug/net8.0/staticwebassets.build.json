@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "kngbsl1+mO8N0rW2rrobOKU8cGvjKM07ctzX22htHCY=",
+  "Source": "Orca.Gateway.Api",
+  "BasePath": "_content/Orca.Gateway.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

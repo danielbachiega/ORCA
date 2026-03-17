@@ -1,19 +1,19 @@
 /**
  * CONFIGURAÇÕES E CONSTANTES GLOBAIS
- * 
- * Em desenvolvimento (localhost): variáveis de ambiente apontam para http://localhost:PORT
- * Em produção/docker: variáveis de ambiente apontam para nomes de serviço (http://catalog-api:5001)
+ *
+ * Em desenvolvimento: pode usar variáveis por serviço (NEXT_PUBLIC_*_API)
+ * ou uma única base de gateway (NEXT_PUBLIC_GATEWAY_API).
  */
 
-// API Base URLs (microserviços)
-// Usa variáveis de ambiente, com fallback para localhost em desenvolvimento
+const gatewayApiBase = process.env.NEXT_PUBLIC_GATEWAY_API;
+const defaultGatewayApiBase = 'http://localhost:5000/api';
 
 export const API_CONFIG = {
-  IDENTITY: process.env.NEXT_PUBLIC_IDENTITY_API || 'http://localhost:5002',
-  CATALOG: process.env.NEXT_PUBLIC_CATALOG_API || 'http://localhost:5001',
-  FORMS: process.env.NEXT_PUBLIC_FORMS_API || 'http://localhost:5003',
-  REQUESTS: process.env.NEXT_PUBLIC_REQUESTS_API || 'http://localhost:5004',
-  ORCHESTRATOR: process.env.NEXT_PUBLIC_ORCHESTRATOR_API || 'http://localhost:5005',
+  IDENTITY: process.env.NEXT_PUBLIC_IDENTITY_API || `${gatewayApiBase || defaultGatewayApiBase}/identity`,
+  CATALOG: process.env.NEXT_PUBLIC_CATALOG_API || `${gatewayApiBase || defaultGatewayApiBase}/catalog`,
+  FORMS: process.env.NEXT_PUBLIC_FORMS_API || `${gatewayApiBase || defaultGatewayApiBase}/forms`,
+  REQUESTS: process.env.NEXT_PUBLIC_REQUESTS_API || `${gatewayApiBase || defaultGatewayApiBase}/requests`,
+  ORCHESTRATOR: process.env.NEXT_PUBLIC_ORCHESTRATOR_API || `${gatewayApiBase || defaultGatewayApiBase}/orchestrator`,
 };
 
 export const EXTERNAL_EXECUTION_CONFIG = {
