@@ -110,10 +110,13 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
+    app.UseSwagger(options =>
+    {
+        options.RouteTemplate = "swagger/gateway/{documentName}/swagger.json";
+    });
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Gateway v1");
+        options.SwaggerEndpoint("/swagger/gateway/v1/swagger.json", "Gateway v1");
         options.SwaggerEndpoint("/swagger/identity/swagger.json", "Identity API");
         options.SwaggerEndpoint("/swagger/catalog/swagger.json", "Catalog API");
         options.SwaggerEndpoint("/swagger/forms/swagger.json", "Forms API");
